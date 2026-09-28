@@ -93,7 +93,7 @@ function confirmReceiptDraft(){
  p.insertAdjacentHTML('beforeend','<div class="card"><b>Kontrolle erforderlich</b><p class="muted">Speichern erst nach AI-Auswertung und deiner Bestätigung. Keine erfundenen Produkte.</p></div>');
 }
 
-const OFFER_COUNTRIES=['DE','IT','MK'];
+const OFFER_COUNTRIES=['DE','IT','MK','CH'];
 const OFFER_SOURCES=[
  {country:'DE',name:'Lidl',url:'https://www.lidl.de/c/online-prospekte/s10005610',mode:'prospekt',regional:true},
  {country:'DE',name:'ALDI SÜD',url:'https://www.aldi-sued.de/prospekte',mode:'prospekt',regional:true},
@@ -133,7 +133,23 @@ const OFFER_SOURCES=[
  {country:'MK',name:'KAM',url:'https://kam.com.mk/',mode:'offers',regional:true},
  {country:'MK',name:'Stokomak',url:'https://stokomak.com.mk/',mode:'offers',regional:true},
  {country:'MK',name:'JYSK Macedonia',url:'https://jysk.mk/',mode:'offers',regional:true},
- {country:'MK',name:'Setec',url:'https://setec.mk/',mode:'offers',regional:true}
+ {country:'MK',name:'Setec',url:'https://setec.mk/',mode:'offers',regional:true},
+ {country:'CH',name:'Coop',url:'https://www.coop.ch/de/aktionen.html',mode:'offers',regional:true},
+ {country:'CH',name:'Migros',url:'https://www.migros.ch/de/offers-promotions.html',mode:'offers',regional:true},
+ {country:'CH',name:'Denner',url:'https://www.denner.ch/de/aktionen',mode:'offers',regional:true},
+ {country:'CH',name:'Lidl Schweiz',url:'https://www.lidl.ch/c/de-CH/werbeprospekte-als-pdf/s10019683',mode:'prospekt',regional:true},
+ {country:'CH',name:'ALDI SUISSE',url:'https://www.aldi-suisse.ch/de/aktionen.html',mode:'offers',regional:true},
+ {country:'CH',name:'SPAR',url:'https://www.spar.ch/',mode:'offers',regional:true},
+ {country:'CH',name:"OTTO'S",url:'https://www.ottos.ch/',mode:'offers',regional:true},
+ {country:'CH',name:'Interdiscount',url:'https://www.interdiscount.ch/de/cms/unternehmen/prospekt',mode:'prospekt',regional:true},
+ {country:'CH',name:'MediaMarkt Schweiz',url:'https://www.mediamarkt.ch/',mode:'offers',regional:true},
+ {country:'CH',name:'JUMBO',url:'https://www.jumbo.ch/',mode:'offers',regional:true},
+ {country:'CH',name:'LANDI',url:'https://www.landi.ch/',mode:'offers',regional:true},
+ {country:'CH',name:'IKEA Schweiz',url:'https://www.ikea.com/ch/de/offers/',mode:'offers',regional:true},
+ {country:'CH',name:'JYSK Schweiz',url:'https://jysk.ch/de/angebote',mode:'offers',regional:true},
+ {country:'CH',name:'Conforama Schweiz',url:'https://www.conforama.ch/',mode:'offers',regional:true},
+ {country:'CH',name:'Möbel Pfister',url:'https://www.pfister.ch/',mode:'offers',regional:true},
+ {country:'CH',name:'Coop City',url:'https://www.coop-city.ch/',mode:'offers',regional:true}
 ];
 function countryCode(){return (localStorage.offerCountry||((navigator.language||'de-DE').split('-')[1])||'DE').toUpperCase()}
 function detectOfferCountryByGPS(){if(!navigator.geolocation)return; navigator.geolocation.getCurrentPosition(async p=>{try{const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+p.coords.latitude+'&lon='+p.coords.longitude,{headers:{'Accept-Language':'en'}});const j=await r.json();const c=(j.address?.country_code||'').toUpperCase();if(c){localStorage.offerCountry=c;renderOfferSources();}}catch(e){}},{},{enableHighAccuracy:false,timeout:8000,maximumAge:3600000});}
