@@ -10,3 +10,28 @@ document.getElementById('offerItems').innerHTML=offers.map(x=>'<div class="card 
 const stock=[['Reis','2 kg','Genug','ok'],['Mehl','1 kg','Genug','ok'],['Zucker','500 g','Wenig','soon'],['Öl','1 Liter','Genug','ok'],['Nudeln','500 g','Wenig','soon'],['Dosentomaten','400 g','Leer','empty']];
 document.getElementById('stockItems').innerHTML=stock.map(x=>'<div class="card row"><div class="grow"><b>'+x[0]+'</b><div class="muted">'+x[1]+'</div></div><span class="badge '+x[3]+'">'+x[2]+'</span></div>').join('');
 applyLang(); if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
+
+/* Weekly household checks — staples such as oil/salt */
+const WEEKLY_CHECKS=[
+  {key:'vaj',de:'Öl prüfen',sq:'Kontrollo vajin',en:'Check the oil'},
+  {key:'kripe',de:'Salz prüfen',sq:'Kontrollo kripën',en:'Check the salt'}
+];
+function weeklyCheckDue(){
+  const last=Number(localStorage.getItem('weeklyCheckLast')||0);
+  return Date.now()-last>=7*24*60*60*1000;
+}
+function renderWeeklyChecks(){
+  if(!weeklyCheckDue()) return;
+  const box=document.createElement('div'); box.className='card'; box.id='weeklyCheckCard';
+  const title={sq:'Kontrolli javor',de:'Wöchentliche Kontrolle',en:'Weekly check'}[lang]||'Wöchentliche Kontrolle';
+  box.innerHTML='<b>🔔 '+title+'</b><div style="height:8px"></div>'+
+    WEEKLY_CHECKS.map(x=>'<div class="row" style="padding:7px 0"><span>☐</span><span class="grow">'+x[lang]+'</span></div>').join('')+
+    '<button class="primary" onclick="completeWeeklyCheck()">'+({sq:'E kontrollova',de:'Geprüft',en:'Checked'}[lang])+'</button>';
+  const home=document.getElementById('home'), anchor=home.querySelector('.section');
+  home.insertBefore(box,anchor);
+}
+function completeWeeklyCheck(){localStorage.setItem('weeklyCheckLast',Date.now());document.getElementById('weeklyCheckCard')?.remove();}
+function requestAppNotifications(){
+  if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
+}
+setTimeout(()=>{renderWeeklyChecks();requestAppNotifications();},300);
