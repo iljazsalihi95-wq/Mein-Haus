@@ -100,7 +100,21 @@ const OFFER_SOURCES=[
  {country:'DE',name:'REWE',url:'https://www.rewe.de/angebote/nationale-angebote/',mode:'offers',regional:true},
  {country:'DE',name:'Netto Marken-Discount',url:'https://www.netto-online.de/',mode:'offers',regional:true},
  {country:'DE',name:'EDEKA',url:'https://www.edeka.de/angebote/',mode:'offers',regional:true},
- {country:'DE',name:'Action',url:'https://www.action.com/de-de/wochenangebote/',mode:'offers',regional:false}
+ {country:'DE',name:'Action',url:'https://www.action.com/de-de/wochenangebote/',mode:'offers',regional:false},
+ {country:'DE',name:'toom Baumarkt',url:'https://toom.de/m/frankenthal/',mode:'offers',regional:true},
+ {country:'DE',name:'BAUHAUS',url:'https://www.bauhaus.info/',mode:'offers',regional:true},
+ {country:'DE',name:'MediaMarkt',url:'https://www.mediamarkt.de/',mode:'offers',regional:true},
+ {country:'DE',name:'IKEA',url:'https://www.ikea.com/de/de/offers/',mode:'offers',regional:true},
+ {country:'DE',name:'JYSK',url:'https://jysk.de/angebote',mode:'offers',regional:true},
+ {country:'DE',name:'ROLLER',url:'https://www.roller.de/',mode:'offers',regional:true},
+ {country:'DE',name:'POCO',url:'https://www.poco.de/',mode:'offers',regional:true},
+ {country:'DE',name:'mömax',url:'https://www.moemax.de/',mode:'offers',regional:true},
+ {country:'DE',name:'XXXLutz',url:'https://www.xxxlutz.de/',mode:'offers',regional:true},
+ {country:'DE',name:'Möbel Martin',url:'https://www.moebel-martin.de/',mode:'offers',regional:true},
+ {country:'DE',name:'Möbel Boss',url:'https://moebel-boss.de/',mode:'offers',regional:true},
+ {country:'DE',name:'Segmüller',url:'https://www.segmueller.de/',mode:'offers',regional:true},
+ {country:'DE',name:'Hornbach',url:'https://www.hornbach.de/',mode:'offers',regional:true},
+ {country:'DE',name:'OBI',url:'https://www.obi.de/',mode:'offers',regional:true}
 ];
 function countryCode(){return (localStorage.offerCountry||((navigator.language||'de-DE').split('-')[1])||'DE').toUpperCase()}
 function renderOfferSources(){
