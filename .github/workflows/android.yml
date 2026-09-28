@@ -33,7 +33,7 @@ jobs:
           cat > android/app/build.gradle <<'EOF'
           plugins { id 'com.android.application' }
           android { namespace 'com.meinhaushalt.ft'; compileSdk 35
-            defaultConfig { applicationId 'com.meinhaushalt.ft'; minSdk 24; targetSdk 35; versionCode 2; versionName '0.2.0' }
+            defaultConfig { applicationId 'com.meinhaushalt.ft'; minSdk 24; targetSdk 35; versionCode 3; versionName '0.3.0' }
           }
           EOF
           cat > android/app/src/main/AndroidManifest.xml <<'EOF'
@@ -48,7 +48,7 @@ jobs:
           import android.app.*; import android.os.*; import android.webkit.*; import android.content.*;
           public class MainActivity extends Activity {
             WebView w;
-            public void onCreate(Bundle b){super.onCreate(b);w=new WebView(this);setContentView(w);WebSettings s=w.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setAllowFileAccess(true);w.setWebViewClient(new WebViewClient());w.loadUrl("file:///android_asset/www/index.html");}
+            public void onCreate(Bundle b){super.onCreate(b);w=new WebView(this);setContentView(w);WebSettings s=w.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setAllowFileAccess(true);w.setWebViewClient(new WebViewClient());w.setWebChromeClient(new WebChromeClient());w.loadUrl("https://mein-haus-shtepia-ime.netlify.app/");}
             public void onBackPressed(){if(w.canGoBack())w.goBack();else super.onBackPressed();}
           }
           EOF
