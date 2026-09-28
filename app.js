@@ -80,3 +80,15 @@ function checkAppointments(){
  if(changed)localStorage.setItem(APPOINTMENT_KEY,JSON.stringify(arr));
 }
 setInterval(checkAppointments,30000);setTimeout(()=>{renderAppointments();checkAppointments()},700);
+
+async function scanReceipt(){
+ const input=document.getElementById('receiptFile'), p=document.getElementById('receiptPreview'), file=input&&input.files&&input.files[0];
+ if(!file){p.innerHTML='<p class="muted">Bitte zuerst einen Kassenbon fotografieren.</p>';return}
+ const reader=new FileReader();
+ reader.onload=function(){sessionStorage.setItem('receiptImage',reader.result);p.innerHTML='<div class="card"><img src="'+reader.result+'" style="width:100%;max-height:320px;object-fit:contain;border-radius:12px"><p><b>✓ Foto übernommen</b></p><p class="muted">Produkt, Menge, Preis, Geschäft und Datum werden vor dem Speichern geprüft.</p><button class="primary" onclick="confirmReceiptDraft()">Produkte prüfen</button></div>'};
+ reader.readAsDataURL(file);
+}
+function confirmReceiptDraft(){
+ const p=document.getElementById('receiptPreview');
+ p.insertAdjacentHTML('beforeend','<div class="card"><b>Kontrolle erforderlich</b><p class="muted">Speichern erst nach AI-Auswertung und deiner Bestätigung. Keine erfundenen Produkte.</p></div>');
+}
