@@ -35,3 +35,8 @@ function requestAppNotifications(){
   if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
 }
 setTimeout(()=>{renderWeeklyChecks();requestAppNotifications();},300);
+
+async function apiPost(action,payload={}){const body={action,...payload};const token=localStorage.sessionToken;if(token)body.token=token;const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});return r.json();}
+function authMessage(m,bad=false){const e=document.getElementById('authMsg');if(e){e.textContent=m;e.style.color=bad?'#c12626':'#11834f'}}
+async function registerUser(){try{authMessage('…');const d=await apiPost('register',{displayName:authName.value.trim(),email:authEmail.value.trim(),password:authPass.value,householdName:houseName.value.trim(),language:lang});if(!d.ok)throw Error(d.error||'Registrierung fehlgeschlagen');const x=d.data||d;if(x.token)localStorage.sessionToken=x.token;authMessage('✓ Konto erstellt');go('home')}catch(e){authMessage(e.message,true)}}
+async function loginUser(){try{authMessage('…');const d=await apiPost('login',{email:authEmail.value.trim(),password:authPass.value});if(!d.ok)throw Error(d.error||'Login fehlgeschlagen');const x=d.data||d;if(x.token)localStorage.sessionToken=x.token;authMessage('✓ Angemeldet');go('home')}catch(e){authMessage(e.message,true)}}
