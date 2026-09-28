@@ -93,6 +93,7 @@ function confirmReceiptDraft(){
  p.insertAdjacentHTML('beforeend','<div class="card"><b>Kontrolle erforderlich</b><p class="muted">Speichern erst nach AI-Auswertung und deiner Bestätigung. Keine erfundenen Produkte.</p></div>');
 }
 
+const OFFER_COUNTRIES=['DE','IT','MK'];
 const OFFER_SOURCES=[
  {country:'DE',name:'Lidl',url:'https://www.lidl.de/c/online-prospekte/s10005610',mode:'prospekt',regional:true},
  {country:'DE',name:'ALDI SÜD',url:'https://www.aldi-sued.de/prospekte',mode:'prospekt',regional:true},
@@ -115,10 +116,25 @@ const OFFER_SOURCES=[
  {country:'DE',name:'Segmüller',url:'https://www.segmueller.de/',mode:'offers',regional:true},
  {country:'DE',name:'Hornbach',url:'https://www.hornbach.de/',mode:'offers',regional:true},
  {country:'DE',name:'OBI',url:'https://www.obi.de/',mode:'offers',regional:true}
+,
+ {country:'IT',name:'Lidl Italia',url:'https://www.lidl.it/c/volantino-lidl/s10018048',mode:'prospekt',regional:true},
+ {country:'IT',name:'Eurospin',url:'https://www.eurospin.it/volantino/',mode:'prospekt',regional:true},
+ {country:'IT',name:'Conad',url:'https://www.conad.it/ricerca-negozi',mode:'prospekt',regional:true},
+ {country:'IT',name:'IKEA Italia',url:'https://www.ikea.com/it/it/offers/',mode:'offers',regional:true},
+ {country:'IT',name:'MediaWorld',url:'https://www.mediaworld.it/',mode:'offers',regional:true},
+ {country:'IT',name:'JYSK Italia',url:'https://jysk.it/',mode:'offers',regional:true},
+ {country:'MK',name:'Vero',url:'https://vero.com.mk/letoci/',mode:'prospekt',regional:true},
+ {country:'MK',name:'Tinex',url:'https://www.tinex.com.mk/',mode:'prospekt',regional:true},
+ {country:'MK',name:'Ramstore',url:'https://ramstore.com.mk/',mode:'prospekt',regional:true},
+ {country:'MK',name:'KAM',url:'https://kam.com.mk/',mode:'offers',regional:true},
+ {country:'MK',name:'Stokomak',url:'https://stokomak.com.mk/',mode:'offers',regional:true},
+ {country:'MK',name:'JYSK Macedonia',url:'https://jysk.mk/',mode:'offers',regional:true},
+ {country:'MK',name:'Setec',url:'https://setec.mk/',mode:'offers',regional:true}
 ];
 function countryCode(){return (localStorage.offerCountry||((navigator.language||'de-DE').split('-')[1])||'DE').toUpperCase()}
+function detectOfferCountryByGPS(){if(!navigator.geolocation)return; navigator.geolocation.getCurrentPosition(async p=>{try{const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+p.coords.latitude+'&lon='+p.coords.longitude,{headers:{'Accept-Language':'en'}});const j=await r.json();const c=(j.address?.country_code||'').toUpperCase();if(c){localStorage.offerCountry=c;renderOfferSources();}}catch(e){}},{},{enableHighAccuracy:false,timeout:8000,maximumAge:3600000});}
 function renderOfferSources(){
  const e=document.getElementById('verifiedOffers');if(!e)return;const c=countryCode(),src=OFFER_SOURCES.filter(x=>x.country===c);
  e.innerHTML='<div class="section"><h3>📚 Prospekte & Angebote</h3></div>'+src.map(x=>'<div class="card row"><div class="grow"><b>'+x.name+'</b><div class="muted">'+(x.regional?'Filiale/Region auswählen':'Landesweite Angebote')+'</div></div><button class="chip" onclick="window.open(\''+x.url+'\',\'_blank\')">Prospekt ↗</button></div>').join('');
 }
-setTimeout(renderOfferSources,500);
+setTimeout(()=>{renderOfferSources();detectOfferCountryByGPS();},500);
