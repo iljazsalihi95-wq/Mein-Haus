@@ -92,3 +92,19 @@ function confirmReceiptDraft(){
  const p=document.getElementById('receiptPreview');
  p.insertAdjacentHTML('beforeend','<div class="card"><b>Kontrolle erforderlich</b><p class="muted">Speichern erst nach AI-Auswertung und deiner Bestätigung. Keine erfundenen Produkte.</p></div>');
 }
+
+const OFFER_SOURCES=[
+ {country:'DE',name:'Lidl',url:'https://www.lidl.de/c/online-prospekte/s10005610',mode:'prospekt',regional:true},
+ {country:'DE',name:'ALDI SÜD',url:'https://www.aldi-sued.de/prospekte',mode:'prospekt',regional:true},
+ {country:'DE',name:'Kaufland',url:'https://filiale.kaufland.de/prospekte.html',mode:'prospekt',regional:true},
+ {country:'DE',name:'REWE',url:'https://www.rewe.de/angebote/nationale-angebote/',mode:'offers',regional:true},
+ {country:'DE',name:'Netto Marken-Discount',url:'https://www.netto-online.de/',mode:'offers',regional:true},
+ {country:'DE',name:'EDEKA',url:'https://www.edeka.de/angebote/',mode:'offers',regional:true},
+ {country:'DE',name:'Action',url:'https://www.action.com/de-de/wochenangebote/',mode:'offers',regional:false}
+];
+function countryCode(){return (localStorage.offerCountry||((navigator.language||'de-DE').split('-')[1])||'DE').toUpperCase()}
+function renderOfferSources(){
+ const e=document.getElementById('verifiedOffers');if(!e)return;const c=countryCode(),src=OFFER_SOURCES.filter(x=>x.country===c);
+ e.innerHTML='<div class="section"><h3>📚 Prospekte & Angebote</h3></div>'+src.map(x=>'<div class="card row"><div class="grow"><b>'+x.name+'</b><div class="muted">'+(x.regional?'Filiale/Region auswählen':'Landesweite Angebote')+'</div></div><button class="chip" onclick="window.open(\''+x.url+'\',\'_blank\')">Prospekt ↗</button></div>').join('');
+}
+setTimeout(renderOfferSources,500);
