@@ -82,16 +82,36 @@ function checkAppointments(){
 setInterval(checkAppointments,30000);setTimeout(()=>{renderAppointments();checkAppointments()},700);
 
 async function scanReceipt(){
- const input=document.getElementById('receiptFile'), p=document.getElementById('receiptPreview'), file=input&&input.files&&input.files[0];
- if(!file){p.innerHTML='<p class="muted">Bitte zuerst einen Kassenbon fotografieren.</p>';return}
- const reader=new FileReader();
- reader.onload=function(){sessionStorage.setItem('receiptImage',reader.result);p.innerHTML='<div class="card"><img src="'+reader.result+'" style="width:100%;max-height:320px;object-fit:contain;border-radius:12px"><p><b>✓ Foto übernommen</b></p><p class="muted">Produkt, Menge, Preis, Geschäft und Datum werden vor dem Speichern geprüft.</p><button class="primary" onclick="confirmReceiptDraft()">Produkte prüfen</button></div>'};
- reader.readAsDataURL(file);
+ const input=document.getElementById('receiptFile'),p=document.getElementById('receiptPreview'),file=input?.files?.[0];
+ if(!file){p.innerHTML='<p class="muted">Zgjidh ose fotografo faturën.</p>';return}
+ if(file.size>8*1024*1024){p.innerHTML='<p class="muted">Fotoja është shumë e madhe (max 8 MB).</p>';return}
+ const dataUrl=await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(file)});
+ sessionStorage.setItem('receiptImage',dataUrl);
+ p.innerHTML='<div class="card"><img src="'+dataUrl+'" style="width:100%;max-height:320px;object-fit:contain;border-radius:12px"><p><b>✓ Foto u mor</b></p><button class="primary" onclick="analyzeReceiptAI()">🤖 Analizo faturën me AI</button><div id="receiptStatus" class="muted"></div></div>';
 }
-function confirmReceiptDraft(){
- const p=document.getElementById('receiptPreview');
- p.insertAdjacentHTML('beforeend','<div class="card"><b>Kontrolle erforderlich</b><p class="muted">Speichern erst nach AI-Auswertung und deiner Bestätigung. Keine erfundenen Produkte.</p></div>');
+async function analyzeReceiptAI(){
+ const p=document.getElementById('receiptPreview'),s=document.getElementById('receiptStatus'),image=sessionStorage.getItem('receiptImage');
+ if(!image)return;
+ s.innerHTML='⏳ AI po lexon faturën…';
+ try{
+  const d=await apiPost('householdAI',{task:'receipt_scan',imageDataUrl:image,language:lang});
+  if(!d.ok)throw Error(d.error||'AI-Auswertung fehlgeschlagen');
+  const x=d.data||d,items=x.items||x.products||[];
+  if(!items.length)throw Error('AI nuk gjeti produkte të lexueshme në faturë.');
+  sessionStorage.setItem('receiptDraft',JSON.stringify(x));
+  const rows=items.map((it,n)=>'<div class="card"><b>'+(n+1)+'. '+esc(it.name||it.product||'')+'</b><div class="muted">'+esc(String(it.quantity||it.qty||1))+' × '+esc(String(it.unitPrice||it.price||''))+' € · <b>'+esc(String(it.total||''))+' €</b></div></div>').join('');
+  p.insertAdjacentHTML('beforeend','<div id="receiptAIResult"><h3>🧾 '+esc(x.store||'')+' · '+esc(x.date||'')+'</h3>'+rows+'<div class="card"><b>Total: '+esc(String(x.total||''))+' €</b></div><button class="primary" onclick="confirmReceiptAI()">✓ Konfirmo dhe ruaj</button></div>');
+  s.innerHTML='✓ Kontrollo produktet para ruajtjes.';
+ }catch(e){s.innerHTML='❌ '+esc(e.message);}
 }
+async function confirmReceiptAI(){
+ const x=JSON.parse(sessionStorage.getItem('receiptDraft')||'null');if(!x)return;
+ const p=document.getElementById('receiptPreview');let box=document.getElementById('receiptSaveStatus');if(!box){box=document.createElement('div');box.id='receiptSaveStatus';box.className='card';p.appendChild(box)}
+ box.textContent='⏳ Po ruhet…';
+ try{const d=await apiPost('confirmScan',{scan:x});if(!d.ok)throw Error(d.error||'Ruajtja dështoi');box.innerHTML='<b>✓ U ruajt.</b><div class="muted">Blerjet, inventari dhe financat u përditësuan.</div>';sessionStorage.removeItem('receiptDraft');}
+ catch(e){box.textContent='❌ '+e.message}
+}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
 const OFFER_COUNTRIES=['DE','IT','MK','CH'];
 const OFFER_SOURCES=[
