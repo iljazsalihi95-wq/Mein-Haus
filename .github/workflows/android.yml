@@ -16,8 +16,8 @@ jobs:
           java-version: '17'
       - name: Create Android wrapper
         run: |
-          mkdir -p android/app/src/main/java/com/meinhaushalt/ft android/app/src/main/res/drawable android/app/src/main/res/mipmap-hdpi android/app/src/main/assets/www
-          cp index.html app.js manifest.json sw.js android/app/src/main/assets/www/
+          mkdir -p android/app/src/main/java/com/meinhaushalt/ft android/app/src/main/res/drawable android/app/src/main/res/mipmap-hdpi android/app/src/main/assets/www\n          cp icon-128.jpg android/app/src/main/res/drawable/app_icon.jpg
+          cp index.html app.js manifest.json sw.js logo.jpg icon-128.jpg android/app/src/main/assets/www/
           cat > android/settings.gradle <<'EOF'
           pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
           dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
@@ -36,7 +36,7 @@ jobs:
           }
           EOF
           cat > android/app/src/main/AndroidManifest.xml <<'EOF'
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/><application android:theme="@style/AppTheme" android:label="Mein Haus" android:usesCleartextTraffic="false"><activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/><application android:theme="@style/AppTheme" android:label="MeinHaushalt FT" android:icon="@drawable/app_icon" android:usesCleartextTraffic="false"><activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>
           EOF
           mkdir -p android/app/src/main/res/values
           cat > android/app/src/main/res/values/styles.xml <<'EOF'
