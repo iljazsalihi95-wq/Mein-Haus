@@ -151,13 +151,24 @@ const OFFER_SOURCES=[
  {country:'CH',name:'Möbel Pfister',url:'https://www.pfister.ch/',mode:'offers',regional:true},
  {country:'CH',name:'Coop City',url:'https://www.coop-city.ch/',mode:'offers',regional:true}
 ];
-function countryCode(){return (localStorage.offerCountry||((navigator.language||'de-DE').split('-')[1])||'DE').toUpperCase()}
-function detectOfferCountryByGPS(){if(!navigator.geolocation)return; navigator.geolocation.getCurrentPosition(async p=>{try{const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+p.coords.latitude+'&lon='+p.coords.longitude,{headers:{'Accept-Language':'en'}});const j=await r.json();const c=(j.address?.country_code||'').toUpperCase();if(c){localStorage.offerCountry=c;renderOfferSources();}}catch(e){}},{},{enableHighAccuracy:false,timeout:8000,maximumAge:3600000});}
-function renderOfferSources(){
- const e=document.getElementById('verifiedOffers');if(!e)return;const c=countryCode(),src=OFFER_SOURCES.filter(x=>x.country===c);
- e.innerHTML='<div class="section"><h3>📚 Prospekte & Angebote</h3></div>'+src.map(x=>'<div class="card row"><div class="grow"><b>'+x.name+'</b><div class="muted">'+(x.regional?'Filiale/Region auswählen':'Landesweite Angebote')+'</div></div><button class="chip" onclick="window.open(\''+x.url+'\',\'_blank\')">Prospekt ↗</button></div>').join('');
+function countryCode(){return (localStorage.getItem('offerCountry')||'DE').toUpperCase()}
+function offerCountryName(c){return ({DE:'Deutschland / Gjermani',CH:'Schweiz / Zvicër',IT:'Italia',MK:'Северна Македонија',TR:'Türkiye',RS:'Srbija',HR:'Hrvatska',AT:'Österreich',BA:'Bosna i Hercegovina',XK:'Kosovë',AL:'Shqipëri',SI:'Slovenija'})[c]||c}
+function detectOfferCountryByGPS(){
+ const e=document.getElementById('verifiedOffers');if(e)e.innerHTML='<div class="card">📍 Po kërkoj vendndodhjen… / Standort wird ermittelt…</div>';
+ if(!navigator.geolocation){renderOfferSources();return}
+ navigator.geolocation.getCurrentPosition(async p=>{try{
+  const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+p.coords.latitude+'&lon='+p.coords.longitude+'&zoom=10',{headers:{'Accept-Language':'de'}});
+  const j=await r.json(),c=(j.address?.country_code||'DE').toUpperCase(),city=j.address?.city||j.address?.town||j.address?.village||j.address?.county||'';
+  localStorage.setItem('offerCountry',c);localStorage.setItem('offerCity',city);renderOfferSources();
+ }catch(err){renderOfferSources()}
+ },()=>renderOfferSources(),{enableHighAccuracy:true,timeout:12000,maximumAge:300000});
 }
-setTimeout(()=>{renderOfferSources();detectOfferCountryByGPS();},500);
+function renderOfferSources(){
+ const e=document.getElementById('verifiedOffers');if(!e)return;const c=countryCode(),city=localStorage.getItem('offerCity')||'',src=OFFER_SOURCES.filter(x=>x.country===c);
+ e.innerHTML='<div class="card"><b>📍 '+offerCountryName(c)+(city?' · '+city:'')+'</b><div class="muted">Prospektet sipas vendndodhjes / Angebote nach Standort</div><button class="chip" style="margin-top:8px" onclick="detectOfferCountryByGPS()">📍 GPS aktualisieren</button></div><div class="section"><h3>📚 Prospekte & Angebote</h3></div>'+
+ (src.length?src.map(x=>'<div class="card row"><div class="grow"><b>'+x.name+'</b><div class="muted">'+(x.regional?'Filiale/Region auswählen':'Landesweite Angebote')+'</div></div><button class="chip" onclick="window.open(\''+x.url+'\',\'_blank\')">Prospekt ↗</button></div>').join(''):'<div class="card">Nuk ka ende burime për këtë shtet.</div>');
+}
+setTimeout(detectOfferCountryByGPS,500);
 
 let productLevel='full',productUsage='normal';
 function setProductLevel(v){productLevel=v;document.querySelectorAll('#stock .chips:first-of-type .chip').forEach(b=>b.classList.remove('on'));event?.target?.classList.add('on')}
