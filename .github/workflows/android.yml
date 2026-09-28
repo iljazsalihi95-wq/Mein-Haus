@@ -33,7 +33,7 @@ jobs:
           cat > android/app/build.gradle <<'EOF'
           plugins { id 'com.android.application' }
           android { namespace 'com.meinhaushalt.ft'; compileSdk 35
-            defaultConfig { applicationId 'com.meinhaushalt.ft'; minSdk 24; targetSdk 35; versionCode 4; versionName '0.4.0' }
+            defaultConfig { applicationId 'com.meinhaushalt.ft'; minSdk 24; targetSdk 35; versionCode 5; versionName '0.5.0' }
           }
           EOF
           cat > android/app/src/main/AndroidManifest.xml <<'EOF'
@@ -50,7 +50,15 @@ jobs:
             WebView w;
             public void onCreate(Bundle b){super.onCreate(b);w=new WebView(this);setContentView(w);WebSettings s=w.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setAllowFileAccess(true);w.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE); w.clearCache(true);
             w.setWebViewClient(new WebViewClient(){@Override public WebResourceResponse shouldInterceptRequest(WebView v,WebResourceRequest r){return super.shouldInterceptRequest(v,r);}});
-            w.setWebChromeClient(new WebChromeClient());
+            w.setWebChromeClient(new WebChromeClient(){
+              @Override public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> cb, FileChooserParams params){
+                if(filePathCallback!=null) filePathCallback.onReceiveValue(null);
+                filePathCallback=cb;
+                Intent i=params.createIntent();
+                try{startActivityForResult(i,FILE_CHOOSER);}catch(Exception e){filePathCallback=null;return false;}
+                return true;
+              }
+            });
             w.loadUrl("https://mein-haus-shtepia-ime.netlify.app/?app=android&v=4");}
             public void onBackPressed(){if(w.canGoBack())w.goBack();else super.onBackPressed();}
           }
