@@ -33,7 +33,7 @@ jobs:
           cat > android/app/build.gradle <<'EOF'
           plugins { id 'com.android.application' }
           android { namespace 'com.meinhaushalt.ft'; compileSdk 35
-            defaultConfig { applicationId 'com.meinhaushalt.ft'; minSdk 24; targetSdk 35; versionCode 3; versionName '0.3.0' }
+            defaultConfig { applicationId 'com.meinhaushalt.ft'; minSdk 24; targetSdk 35; versionCode 4; versionName '0.4.0' }
           }
           EOF
           cat > android/app/src/main/AndroidManifest.xml <<'EOF'
@@ -45,10 +45,13 @@ jobs:
           EOF
           cat > android/app/src/main/java/com/meinhaushalt/ft/MainActivity.java <<'EOF'
           package com.meinhaushalt.ft;
-          import android.app.*; import android.os.*; import android.webkit.*; import android.content.*;
+          import android.app.*; import android.os.*; import android.webkit.*; import android.content.*; import android.net.*;
           public class MainActivity extends Activity {
             WebView w;
-            public void onCreate(Bundle b){super.onCreate(b);w=new WebView(this);setContentView(w);WebSettings s=w.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setAllowFileAccess(true);w.setWebViewClient(new WebViewClient());w.setWebChromeClient(new WebChromeClient());w.loadUrl("https://mein-haus-shtepia-ime.netlify.app/");}
+            public void onCreate(Bundle b){super.onCreate(b);w=new WebView(this);setContentView(w);WebSettings s=w.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setAllowFileAccess(true);w.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE); w.clearCache(true);
+            w.setWebViewClient(new WebViewClient(){@Override public WebResourceResponse shouldInterceptRequest(WebView v,WebResourceRequest r){return super.shouldInterceptRequest(v,r);}});
+            w.setWebChromeClient(new WebChromeClient());
+            w.loadUrl("https://mein-haus-shtepia-ime.netlify.app/?app=android&v=4");}
             public void onBackPressed(){if(w.canGoBack())w.goBack();else super.onBackPressed();}
           }
           EOF
