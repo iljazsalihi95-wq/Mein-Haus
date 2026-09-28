@@ -16,7 +16,8 @@ jobs:
           java-version: '17'
       - name: Create Android wrapper
         run: |
-          mkdir -p android/app/src/main/java/com/meinhaushalt/ft android/app/src/main/res/drawable android/app/src/main/res/mipmap-hdpi android/app/src/main/assets/www\n          cp icon-128.jpg android/app/src/main/res/drawable/app_icon.jpg
+          mkdir -p android/app/src/main/java/com/meinhaushalt/ft android/app/src/main/res/drawable android/app/src/main/res/mipmap-hdpi android/app/src/main/assets/www
+          cp icon-128.jpg android/app/src/main/res/drawable/app_icon.jpg
           cp index.html app.js manifest.json sw.js logo.jpg icon-128.jpg android/app/src/main/assets/www/
           cat > android/settings.gradle <<'EOF'
           pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
