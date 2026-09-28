@@ -40,3 +40,32 @@ async function apiPost(action,payload={}){const body={action,...payload};const t
 function authMessage(m,bad=false){const e=document.getElementById('authMsg');if(e){e.textContent=m;e.style.color=bad?'#c12626':'#11834f'}}
 async function registerUser(){try{authMessage('…');const d=await apiPost('register',{displayName:authName.value.trim(),email:authEmail.value.trim(),password:authPass.value,householdName:houseName.value.trim(),language:lang});if(!d.ok)throw Error(d.error||'Registrierung fehlgeschlagen');const x=d.data||d;if(x.token)localStorage.sessionToken=x.token;authMessage('✓ Konto erstellt');go('home')}catch(e){authMessage(e.message,true)}}
 async function loginUser(){try{authMessage('…');const d=await apiPost('login',{email:authEmail.value.trim(),password:authPass.value});if(!d.ok)throw Error(d.error||'Login fehlgeschlagen');const x=d.data||d;if(x.token)localStorage.sessionToken=x.token;authMessage('✓ Angemeldet');go('home')}catch(e){authMessage(e.message,true)}}
+
+const APPOINTMENT_KEY='familyAppointmentsV1';
+function getAppointments(){try{return JSON.parse(localStorage.getItem(APPOINTMENT_KEY)||'[]')}catch(e){return[]}}
+function addAppointment(){
+ const x={id:Date.now(),first:aptFirst.value.trim(),last:aptLast.value.trim(),date:aptDate.value,time:aptTime.value,place:aptPlace.value.trim(),alerted:false};
+ if(!x.first||!x.date||!x.time||!x.place){alert(lang==='sq'?'Plotëso emrin, datën, orën dhe vendin.':lang==='en'?'Fill in name, date, time and place.':'Name, Datum, Uhrzeit und Ort ausfüllen.');return}
+ const arr=getAppointments();arr.push(x);arr.sort((p,q)=>(p.date+p.time).localeCompare(q.date+q.time));localStorage.setItem(APPOINTMENT_KEY,JSON.stringify(arr));renderAppointments();requestAppNotifications();
+}
+function deleteAppointment(id){localStorage.setItem(APPOINTMENT_KEY,JSON.stringify(getAppointments().filter(x=>x.id!==id)));renderAppointments()}
+function renderAppointments(){
+ const e=document.getElementById('aptList');if(!e)return;const arr=getAppointments();
+ e.innerHTML=arr.length?arr.map(x=>'<div class="card"><b>👤 '+escA(x.first+' '+x.last)+'</b><div>📅 '+x.date+' · ⏰ '+x.time+'</div><div>📍 '+escA(x.place)+'</div><button class="chip" onclick="deleteAppointment('+x.id+')">🗑</button></div>').join(''):'<div class="card muted">Keine Termine / Nuk ka termine</div>';
+}
+function escA(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function appointmentAlarm(x){
+ const sq='🔔 Termini: '+x.first+' '+x.last+'\n⏰ '+x.time+'\n📍 '+x.place;
+ const de='🔔 Termin: '+x.first+' '+x.last+'\n⏰ '+x.time+'\n📍 '+x.place;
+ const en='🔔 Appointment: '+x.first+' '+x.last+'\n⏰ '+x.time+'\n📍 '+x.place;
+ const msg=lang==='sq'?sq:lang==='en'?en:de;
+ try{const ac=new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=880;g.gain.value=.15;o.start();setTimeout(()=>{o.stop();ac.close()},1200)}catch(e){}
+ if('Notification'in window&&Notification.permission==='granted')new Notification('Mein Haus',{body:msg.replace(/\n/g,' · ')});
+ alert(msg);
+}
+function checkAppointments(){
+ const now=Date.now(),arr=getAppointments();let changed=false;
+ arr.forEach(x=>{const t=new Date(x.date+'T'+x.time).getTime();if(!x.alerted&&now>=t-30*60000&&now<t+5*60000){x.alerted=true;changed=true;appointmentAlarm(x)}});
+ if(changed)localStorage.setItem(APPOINTMENT_KEY,JSON.stringify(arr));
+}
+setInterval(checkAppointments,30000);setTimeout(()=>{renderAppointments();checkAppointments()},700);
