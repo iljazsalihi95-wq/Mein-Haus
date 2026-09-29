@@ -48,7 +48,7 @@ function renderFinance(){
 }
 function saveFinanceEntry(){
  const g=id=>document.getElementById(id),amount=Number(g('finAmount')?.value||0),description=g('finDescription')?.value.trim()||'';if(!description||amount<=0)return alert('Plotëso përshkrimin dhe shumën.');
- const rows=getFinanceEntries();rows.push({id:Date.now(),date:g('finDate')?.value||new Date().toISOString().slice(0,10),type:g('finType')?.value||'expense',payment:g('finPayment')?.value||'cash',description,category:g('finCategory')?.value||'Tjetër',amount});localStorage.setItem(FIN_KEY,JSON.stringify(rows));g('finDescription').value='';g('finAmount').value='';renderFinance();
+ const rows=getFinanceEntries();rows.push({id:Date.now(),date:g('finDate')?.value||new Date().toISOString().slice(0,10),type:g('finType')?.value||'expense',payment:g('finPayment')?.value||'cash',memberId:g('finMember')?.value||'',description,category:g('finCategory')?.value||'Tjetër',amount});localStorage.setItem(FIN_KEY,JSON.stringify(rows));g('finDescription').value='';g('finAmount').value='';renderFinance();renderFamily();
 }
 setTimeout(()=>{const d=new Date().toISOString().slice(0,10);if(document.getElementById('finDate'))document.getElementById('finDate').value=d;if(document.getElementById('shoppingAddDate'))document.getElementById('shoppingAddDate').value=d;renderFinance()},350);
 async function addShoppingItem(name){name=(name||'').trim();if(!name)return;const d=await apiPost('shoppingAdd',{product:name,quantity:1,unit:'copë',date:new Date().toISOString().slice(0,10)});if(!d.ok)throw Error(d.error||'Nuk u ruajt');await loadShoppingList();}
