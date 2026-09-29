@@ -30,6 +30,21 @@ async function addShoppingManual(){
  const payload={product:name,date:v('shoppingAddDate')?.value||new Date().toISOString().slice(0,10),store:v('shoppingAddStore')?.value.trim()||'',description:v('shoppingAddDescription')?.value.trim()||'',category:v('shoppingAddCategory')?.value||'',quantity:Number(v('shoppingAddQty')?.value||1),unit:v('shoppingAddUnit')?.value||'copë',unitPrice:Number(v('shoppingAddPrice')?.value||0),total:Number(v('shoppingAddTotal')?.value||0),paymentMethod:v('shoppingAddPayment')?.value||'cash'};
  try{const d=await apiPost('shoppingAdd',payload);if(!d.ok)throw Error(d.error||'Nuk u ruajt');['shoppingAddName','shoppingAddStore','shoppingAddDescription','shoppingAddPrice','shoppingAddTotal'].forEach(id=>{if(v(id))v(id).value=''});await loadShoppingList()}catch(e){alert('Lidhja me serverin dështoi: '+e.message)}
 }
+const FIN_KEY='meinHausFinanceEntries';
+function getFinanceEntries(){try{return JSON.parse(localStorage.getItem(FIN_KEY)||'[]')}catch(e){return []}}
+function money(v){return Number(v||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'}
+function renderFinance(){
+ const rows=getFinanceEntries(),inc=rows.filter(x=>x.type==='income').reduce((a,x)=>a+x.amount,0),exp=rows.filter(x=>x.type==='expense').reduce((a,x)=>a+x.amount,0);
+ const cash=rows.filter(x=>x.payment==='cash').reduce((a,x)=>a+(x.type==='income'?x.amount:-x.amount),0),bank=rows.filter(x=>x.payment==='bank').reduce((a,x)=>a+(x.type==='income'?x.amount:-x.amount),0);
+ const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('finIncome',money(inc));set('finExpense',money(exp));set('finBalance',money(inc-exp));set('finCash','Cash '+money(cash));set('finBank','Bankë '+money(bank));
+ const box=document.getElementById('financeItems');if(!box)return;if(!rows.length){box.innerHTML='<div class="card muted">Nuk ka transaksione të regjistruara.</div>';return}
+ box.innerHTML=rows.slice().reverse().map(x=>'<div class="card row"><div class="grow"><b>'+esc(x.description)+'</b><div class="muted">'+esc(x.date)+' · '+esc(x.category)+' · '+(x.payment==='bank'?'Bankë/Kartë':'Cash')+'</div></div><b>'+(x.type==='income'?'+':'−')+money(x.amount)+'</b></div>').join('');
+}
+function saveFinanceEntry(){
+ const g=id=>document.getElementById(id),amount=Number(g('finAmount')?.value||0),description=g('finDescription')?.value.trim()||'';if(!description||amount<=0)return alert('Plotëso përshkrimin dhe shumën.');
+ const rows=getFinanceEntries();rows.push({id:Date.now(),date:g('finDate')?.value||new Date().toISOString().slice(0,10),type:g('finType')?.value||'expense',payment:g('finPayment')?.value||'cash',description,category:g('finCategory')?.value||'Tjetër',amount});localStorage.setItem(FIN_KEY,JSON.stringify(rows));g('finDescription').value='';g('finAmount').value='';renderFinance();
+}
+setTimeout(()=>{const d=new Date().toISOString().slice(0,10);if(document.getElementById('finDate'))document.getElementById('finDate').value=d;if(document.getElementById('shoppingAddDate'))document.getElementById('shoppingAddDate').value=d;renderFinance()},350);
 async function addShoppingItem(name){name=(name||'').trim();if(!name)return;const d=await apiPost('shoppingAdd',{product:name,quantity:1,unit:'copë',date:new Date().toISOString().slice(0,10)});if(!d.ok)throw Error(d.error||'Nuk u ruajt');await loadShoppingList();}
 async function toggleShoppingItem(id,done){await apiPost('shoppingUpdate',{itemId:id,status:done?'done':'open'});await loadShoppingList()}
 async function deleteShoppingItem(id){await apiPost('shoppingDelete',{itemId:id});await loadShoppingList()}
