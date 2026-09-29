@@ -105,6 +105,7 @@ function requestAppNotifications(){
 }
 setTimeout(()=>{renderWeeklyChecks();requestAppNotifications();},300);
 
+const BILL_KEY='meinHausBills';function getBills(){try{return JSON.parse(localStorage.getItem(BILL_KEY)||'[]')}catch(e){return []}}function saveBill(){const n=document.getElementById('billName')?.value.trim(),a=Number(document.getElementById('billAmount')?.value||0);if(!n||a<=0)return alert('Plotëso emrin dhe shumën.');const x=getBills();x.push({id:Date.now(),name:n,amount:a,due:document.getElementById('billDue')?.value||'',category:document.getElementById('billCategory')?.value||'Tjetër'});localStorage.setItem(BILL_KEY,JSON.stringify(x));renderBills()}function renderBills(){const e=document.getElementById('billItems');if(!e)return;const x=getBills();e.innerHTML=x.length?x.map(b=>'<div class="card row"><div class="grow"><b>'+esc(b.name)+'</b><div class="muted">'+esc(b.category)+' · '+esc(b.due)+'</div></div><b>'+money(b.amount)+'</b></div>').join(''):'<div class="card muted">Nuk ka fatura të regjistruara.</div>'}setTimeout(renderBills,400);
 function aiBubble(text,who='ai'){const box=document.getElementById('aiChat');if(!box)return;const d=document.createElement('div');d.className=who==='user'?'user':'ai';d.textContent=(who==='ai'?'AI · ':'')+text;box.appendChild(d);d.scrollIntoView({behavior:'smooth',block:'end'})}
 async function sendHouseAI(){
  const input=document.getElementById('aiInput'),q=input?.value.trim();if(!q)return;aiBubble(q,'user');input.value='';aiBubble('Po analizoj të dhënat e shtëpisë…','ai');
@@ -153,14 +154,7 @@ function checkAppointments(){
 }
 setInterval(checkAppointments,30000);setTimeout(()=>{renderAppointments();checkAppointments()},700);
 
-async function scanReceipt(){
- const input=document.getElementById('receiptFile'),p=document.getElementById('receiptPreview'),file=input?.files?.[0];
- if(!file){p.innerHTML='<p class="muted">Zgjidh ose fotografo faturën.</p>';return}
- if(file.size>8*1024*1024){p.innerHTML='<p class="muted">Fotoja është shumë e madhe (max 8 MB).</p>';return}
- const dataUrl=await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(file)});
- sessionStorage.setItem('receiptImage',dataUrl);
- p.innerHTML='<div class="card"><img src="'+dataUrl+'" style="width:100%;max-height:320px;object-fit:contain;border-radius:12px"><p><b>✓ Foto u mor</b></p><button class="primary" onclick="analyzeReceiptAI()">🤖 Analizo faturën me AI</button><div id="receiptStatus" class="muted"></div></div>';
-}
+async function scanReceipt(){const input=document.getElementById('receiptFile'),p=document.getElementById('receiptPreview'),file=input?.files?.[0];if(!file){p.innerHTML='<p class="muted">Zgjidh ose fotografo faturën.</p>';return}p.innerHTML='<p class="muted">Po përgatitet fotografia…</p>';try{const img=await new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(file);i.onload=()=>{URL.revokeObjectURL(u);ok(i)};i.onerror=no;i.src=u});const max=1800,scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);const dataUrl=c.toDataURL('image/jpeg',.78);sessionStorage.setItem('receiptImage',dataUrl);p.innerHTML='<div class="card"><img src="'+dataUrl+'" style="width:100%;max-height:320px;object-fit:contain;border-radius:12px"><p><b>Fotoja u përgatit.</b></p><button class="primary" onclick="analyzeReceiptAI()">Analizo faturën me AI</button><div id="receiptStatus" class="muted"></div></div>'}catch(e){p.innerHTML='<p class="muted">Fotografia nuk u përpunua: '+esc(e.message)+'</p>'}}
 async function analyzeReceiptAI(){
  const p=document.getElementById('receiptPreview'),s=document.getElementById('receiptStatus'),image=sessionStorage.getItem('receiptImage');
  if(!image)return;
