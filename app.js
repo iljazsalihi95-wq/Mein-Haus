@@ -150,23 +150,43 @@ function checkAppointments(){
 setInterval(checkAppointments,30000);setTimeout(()=>{renderAppointments();checkAppointments()},700);
 
 async function scanReceipt(){const input=document.getElementById('receiptFile'),p=document.getElementById('receiptPreview'),file=input?.files?.[0];if(!file){p.innerHTML='<p class="muted">Zgjidh ose fotografo faturën.</p>';return}p.innerHTML='<p class="muted">Po përgatitet fotografia…</p>';try{const img=await new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(file);i.onload=()=>{URL.revokeObjectURL(u);ok(i)};i.onerror=no;i.src=u});const max=1800,scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);const dataUrl=c.toDataURL('image/jpeg',.78);sessionStorage.setItem('receiptImage',dataUrl);p.innerHTML='<div class="card"><img src="'+dataUrl+'" style="width:100%;max-height:320px;object-fit:contain;border-radius:12px"><p><b>Fotoja u përgatit.</b></p><button class="primary" onclick="analyzeReceiptAI()">Analizo faturën me AI</button><div id="receiptStatus" class="muted"></div></div>'}catch(e){p.innerHTML='<p class="muted">Fotografia nuk u përpunua: '+esc(e.message)+'</p>'}}
-async function analyzeReceiptAI(){
+async async function analyzeReceiptAI(){
  const p=document.getElementById('receiptPreview'),s=document.getElementById('receiptStatus'),image=sessionStorage.getItem('receiptImage');
  if(!image)return;
  s.innerHTML='⏳ AI po lexon faturën…';
  try{
   const d=await apiPost('householdAI',{task:'receipt_scan',imageDataUrl:image,language:lang});
   if(!d.ok)throw Error(d.error||'AI-Auswertung fehlgeschlagen');
-  const x=d.data||d,items=x.items||x.products||[];
+  const x=normalizeReceiptDraft(d.data||d),items=x.items||[];
   if(!items.length)throw Error('AI nuk gjeti produkte të lexueshme në faturë.');
   sessionStorage.setItem('receiptDraft',JSON.stringify(x));
-  const rows=items.map((it,n)=>'<div class="card"><b>'+(n+1)+'. '+esc(it.name||it.product||'')+'</b><div class="muted">'+esc(String(it.quantity||it.qty||1))+' × '+esc(String(it.unitPrice||it.price||''))+' € · <b>'+esc(String(it.total||''))+' €</b></div></div>').join('');
-  p.insertAdjacentHTML('beforeend','<div id="receiptAIResult"><h3>🧾 '+esc(x.store||'')+' · '+esc(x.date||'')+'</h3>'+rows+'<div class="card"><b>Total: '+esc(String(x.total||''))+' €</b></div><button class="primary" onclick="confirmReceiptAI()">✓ Konfirmo dhe ruaj</button></div>');
-  s.innerHTML='✓ Kontrollo produktet para ruajtjes.';
+  renderReceiptDraft(x);
+  s.innerHTML=x.totalMismatch?'⚠️ Kontrollo totalin: shuma e produkteve nuk përputhet me totalin e faturës.':'✓ Kontrollo dhe korrigjo produktet para ruajtjes.';
  }catch(e){s.innerHTML='❌ '+esc(e.message);}
+}
+function receiptNum(v){if(typeof v==='number')return v;const n=parseFloat(String(v??'').replace(/[^0-9,.-]/g,'').replace(',','.'));return Number.isFinite(n)?n:0}
+function normalizeReceiptDate(v){
+ const s=String(v||'').trim(); let m;
+ if((m=s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2}|\d{4})$/))){let y=+m[3];if(y<100)y=2000+y;return y+'-'+String(+m[2]).padStart(2,'0')+'-'+String(+m[1]).padStart(2,'0')}
+ if((m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/)))return s;
+ return s;
+}
+function normalizeReceiptDraft(raw){
+ const x=JSON.parse(JSON.stringify(raw||{}));x.date=normalizeReceiptDate(x.date||x.receiptDate||'');
+ x.items=(x.items||x.products||[]).map((it,i)=>{const q=receiptNum(it.quantity||it.qty||1)||1,u=receiptNum(it.unitPrice??it.price),t=receiptNum(it.total)||+(q*u).toFixed(2);return{name:it.name||it.product||'',quantity:q,unitPrice:u,total:t,category:it.category||''}});
+ x.total=receiptNum(x.total||x.grandTotal);const sum=+x.items.reduce((a,it)=>a+receiptNum(it.total),0).toFixed(2);x.itemsSum=sum;x.totalMismatch=!!x.total&&Math.abs(sum-x.total)>0.05;return x;
+}
+function renderReceiptDraft(x){
+ const p=document.getElementById('receiptPreview');document.getElementById('receiptAIResult')?.remove();
+ const rows=x.items.map((it,n)=>'<div class="card"><label>'+(n+1)+'. Produkti</label><input id="ri_name_'+n+'" value="'+esc(it.name)+'"><div class="grid2"><div><label>Sasia</label><input id="ri_qty_'+n+'" type="number" step="0.01" value="'+it.quantity+'"></div><div><label>Çmimi/njësi €</label><input id="ri_price_'+n+'" type="number" step="0.01" value="'+it.unitPrice+'"></div></div><label>Totali €</label><input id="ri_total_'+n+'" type="number" step="0.01" value="'+it.total+'"></div>').join('');
+ const warn=x.totalMismatch?'<div class="card" style="border:2px solid #e0a000"><b>⚠️ Shuma e produkteve: '+x.itemsSum.toFixed(2)+' € — Totali i faturës: '+x.total.toFixed(2)+' €</b></div>':'';
+ p.insertAdjacentHTML('beforeend','<div id="receiptAIResult"><h3>🧾 '+esc(x.store||'')+'</h3><label>Data</label><input id="receiptEditDate" type="date" value="'+esc(x.date||'')+'">'+rows+warn+'<label>Totali i faturës €</label><input id="receiptEditTotal" type="number" step="0.01" value="'+x.total+'"><button class="primary" onclick="confirmReceiptAI()">✓ Konfirmo dhe ruaj</button></div>');
 }
 async function confirmReceiptAI(){
  const x=JSON.parse(sessionStorage.getItem('receiptDraft')||'null');if(!x)return;
+ x.date=document.getElementById('receiptEditDate')?.value||x.date;x.total=receiptNum(document.getElementById('receiptEditTotal')?.value||x.total);
+ x.items=x.items.map((it,n)=>({name:document.getElementById('ri_name_'+n)?.value.trim()||it.name,quantity:receiptNum(document.getElementById('ri_qty_'+n)?.value)||1,unitPrice:receiptNum(document.getElementById('ri_price_'+n)?.value),total:receiptNum(document.getElementById('ri_total_'+n)?.value),category:it.category||''}));
+ const sum=+x.items.reduce((a,it)=>a+it.total,0).toFixed(2);if(x.total&&Math.abs(sum-x.total)>0.05&&!confirm('Shuma e produkteve është '+sum.toFixed(2)+' €, ndërsa fatura '+x.total.toFixed(2)+' €. Ta ruaj gjithsesi?'))return;
  const p=document.getElementById('receiptPreview');let box=document.getElementById('receiptSaveStatus');if(!box){box=document.createElement('div');box.id='receiptSaveStatus';box.className='card';p.appendChild(box)}
  box.textContent='⏳ Po ruhet…';
  try{const d=await apiPost('confirmScan',{scan:x});if(!d.ok)throw Error(d.error||'Ruajtja dështoi');box.innerHTML='<b>✓ U ruajt.</b><div class="muted">Blerjet, inventari dhe financat u përditësuan.</div>';sessionStorage.removeItem('receiptDraft');}
