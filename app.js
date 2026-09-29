@@ -99,6 +99,17 @@ function requestAppNotifications(){
 }
 setTimeout(()=>{renderWeeklyChecks();requestAppNotifications();},300);
 
+function aiBubble(text,who='ai'){const box=document.getElementById('aiChat');if(!box)return;const d=document.createElement('div');d.className=who==='user'?'user':'ai';d.textContent=(who==='ai'?'AI · ':'')+text;box.appendChild(d);d.scrollIntoView({behavior:'smooth',block:'end'})}
+async function sendHouseAI(){
+ const input=document.getElementById('aiInput'),q=input?.value.trim();if(!q)return;aiBubble(q,'user');input.value='';aiBubble('Po analizoj të dhënat e shtëpisë…','ai');
+ const box=document.getElementById('aiChat'),loading=box?.lastElementChild;
+ try{
+  const context={finance:getFinanceEntries().slice(-50),shopping:shoppingItems.slice(-50),language:lang};
+  const d=await apiPost('householdAI',{task:'chat',message:q,question:q,language:lang,context});
+  if(loading)loading.remove();if(!d.ok)throw Error(d.error||'Asistenti nuk u përgjigj.');
+  const x=d.data||d,answer=x.answer||x.reply||x.text||x.message;if(!answer)throw Error('Nuk erdhi përgjigje nga AI.');aiBubble(answer,'ai');
+ }catch(e){if(loading)loading.remove();aiBubble('Gabim në lidhjen me AI: '+e.message,'ai')}
+}
 async function apiPost(action,payload={}){const body={action,...payload};const token=localStorage.sessionToken;if(token)body.token=token;const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});return r.json();}
 function authMessage(m,bad=false){const e=document.getElementById('authMsg');if(e){e.textContent=m;e.style.color=bad?'#c12626':'#11834f'}}
 async function registerUser(){try{authMessage('…');const d=await apiPost('register',{displayName:authName.value.trim(),email:authEmail.value.trim(),password:authPass.value,householdName:houseName.value.trim(),language:lang});if(!d.ok)throw Error(d.error||'Registrierung fehlgeschlagen');const x=d.data||d;if(x.token)localStorage.sessionToken=x.token;authMessage('✓ Konto erstellt');go('home')}catch(e){authMessage(e.message,true)}}
