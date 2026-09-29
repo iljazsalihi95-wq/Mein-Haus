@@ -16,7 +16,7 @@ function go(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove
 let shoppingItems=[];
 async function loadShoppingList(){
  const e=document.getElementById('shopItems');if(!e)return;e.innerHTML='<div class="card muted">Po ngarkohet…</div>';
- try{const d=await apiPost('shoppingList',{});if(!d.ok)throw Error(d.error||'');shoppingItems=(d.data?.items||d.data||[]);renderShoppingList();refreshHomeRealData();}
+ try{const d=await apiPost('shoppingList',{});if(!d.ok)throw Error(d.error||'');shoppingItems=(d.data?.items||d.data||[]);try{const rp=JSON.parse(localStorage.getItem('meinHausReceiptPurchases')||'[]');const ids=new Set(shoppingItems.map(x=>String(x.ID||x.id||'')));shoppingItems=[...rp.filter(x=>!ids.has(String(x.ID||x.id||''))),...shoppingItems]}catch(e){}renderShoppingList();refreshHomeRealData();}
  catch(err){e.innerHTML='<div class="card muted">Nuk u lidh me serverin. Provo përsëri.</div>';}
 }
 function renderShoppingList(){
@@ -189,7 +189,7 @@ async function confirmReceiptAI(){
  const sum=+x.items.reduce((a,it)=>a+it.total,0).toFixed(2);if(x.total&&Math.abs(sum-x.total)>0.05&&!confirm('Shuma e produkteve është '+sum.toFixed(2)+' €, ndërsa fatura '+x.total.toFixed(2)+' €. Ta ruaj gjithsesi?'))return;
  const p=document.getElementById('receiptPreview');let box=document.getElementById('receiptSaveStatus');if(!box){box=document.createElement('div');box.id='receiptSaveStatus';box.className='card';p.appendChild(box)}
  box.textContent='⏳ Po ruhet…';
- try{const d=await apiPost('confirmScan',{scan:x});if(!d.ok)throw Error(d.error||'Ruajtja dështoi');box.innerHTML='<b>✓ U ruajt.</b><div class="muted">Blerjet, inventari dhe financat u përditësuan.</div>';sessionStorage.removeItem('receiptDraft');}
+ try{const d=await apiPost('confirmScan',{scan:x});if(!d.ok)throw Error(d.error||'Ruajtja dështoi');const receiptPurchases=x.items.map((it,n)=>({ID:'receipt_'+Date.now()+'_'+n,Produkti:it.name||it.product||'',Data:x.date||'',Dyqani:x.store||'',Kategoria:it.category||'',Sasia:Number(it.quantity||1),unitPrice:Number(it.unitPrice||0),Totali:Number(it.total||0),description:'Faturë AI'}));shoppingItems=[...receiptPurchases,...shoppingItems];localStorage.setItem('meinHausReceiptPurchases',JSON.stringify(receiptPurchases));renderShoppingList();refreshHomeRealData();box.innerHTML='<b>✓ U ruajt.</b><div class="muted">Fatura u ruajt dhe produktet u shtuan te Blerjet.</div>';sessionStorage.removeItem('receiptDraft');}
  catch(e){box.textContent='❌ '+e.message}
 }
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
