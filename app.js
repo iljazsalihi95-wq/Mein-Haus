@@ -16,7 +16,7 @@ function go(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove
 let shoppingItems=[];
 async function loadShoppingList(){
  const e=document.getElementById('shopItems');if(!e)return;e.innerHTML='<div class="card muted">Po ngarkohet…</div>';
- try{const d=await apiPost('shoppingList',{});if(!d.ok)throw Error(d.error||'');shoppingItems=(d.data?.items||d.data||[]);renderShoppingList();}
+ try{const d=await apiPost('shoppingList',{});if(!d.ok)throw Error(d.error||'');shoppingItems=(d.data?.items||d.data||[]);renderShoppingList();refreshHomeRealData();}
  catch(err){e.innerHTML='<div class="card muted">Nuk u lidh me serverin. Provo përsëri.</div>';}
 }
 function renderShoppingList(){
@@ -33,10 +33,11 @@ async function addShoppingManual(){
 const FIN_KEY='meinHausFinanceEntries';
 function getFinanceEntries(){try{return JSON.parse(localStorage.getItem(FIN_KEY)||'[]')}catch(e){return []}}
 function money(v){return Number(v||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'}
+function refreshHomeRealData(){const pc=document.getElementById('homePurchaseCount');if(pc)pc.textContent=(shoppingItems?.length||0)+' të regjistruara';const sc=document.getElementById('homeStockCount');if(sc)sc.textContent=(typeof manualProducts!=='undefined'?manualProducts.length:0)+' produkte';const rows=getFinanceEntries(),bal=rows.reduce((a,x)=>a+(x.type==='income'?x.amount:-x.amount),0),fs=document.getElementById('homeFinanceSummary');if(fs)fs.textContent=money(bal);const rs=document.getElementById('homeRealSummary');if(rs)rs.textContent=(shoppingItems?.length||0)+' blerje · '+(typeof manualProducts!=='undefined'?manualProducts.length:0)+' produkte në inventar · gjendja '+money(bal)}
 function renderFinance(){
  const rows=getFinanceEntries(),inc=rows.filter(x=>x.type==='income').reduce((a,x)=>a+x.amount,0),exp=rows.filter(x=>x.type==='expense').reduce((a,x)=>a+x.amount,0);
  const cash=rows.filter(x=>x.payment==='cash').reduce((a,x)=>a+(x.type==='income'?x.amount:-x.amount),0),bank=rows.filter(x=>x.payment==='bank').reduce((a,x)=>a+(x.type==='income'?x.amount:-x.amount),0);
- const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('finIncome',money(inc));set('finExpense',money(exp));set('finBalance',money(inc-exp));set('finCash','Cash '+money(cash));set('finBank','Bankë '+money(bank));
+ const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('finIncome',money(inc));set('finExpense',money(exp));set('finBalance',money(inc-exp));set('finCash','Cash '+money(cash));set('finBank','Bankë '+money(bank));refreshHomeRealData();
  const box=document.getElementById('financeItems');if(!box)return;if(!rows.length){box.innerHTML='<div class="card muted">Nuk ka transaksione të regjistruara.</div>';return}
  box.innerHTML=rows.slice().reverse().map(x=>'<div class="card row"><div class="grow"><b>'+esc(x.description)+'</b><div class="muted">'+esc(x.date)+' · '+esc(x.category)+' · '+(x.payment==='bank'?'Bankë/Kartë':'Cash')+'</div></div><b>'+(x.type==='income'?'+':'−')+money(x.amount)+'</b></div>').join('');
 }
