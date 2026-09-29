@@ -55,15 +55,7 @@ async function addShoppingItem(name){name=(name||'').trim();if(!name)return;cons
 async function toggleShoppingItem(id,done){await apiPost('shoppingUpdate',{itemId:id,status:done?'done':'open'});await loadShoppingList()}
 async function deleteShoppingItem(id){await apiPost('shoppingDelete',{itemId:id});await loadShoppingList()}
 setTimeout(()=>{loadShoppingList()},700);
-const LIVE_OFFERS=[
- {store:'Netto',name:'Milka Schokolade',size:'87–110 g',old:'1,99 €',price:'0,88 €',discount:'-55%',from:'28.09.2026',to:'02.10.2026',url:'https://www.netto-online.de/filialen/frankenthal-pfalz/eisenbahnstr-23/8168/?stores_id=8168'},
- {store:'Netto',name:'Kerrygold Butter / Extra',size:'250 g',old:'',price:'1,59 €',discount:'-54%',from:'28.09.2026',to:'02.10.2026',url:'https://www.netto-online.de/filialen/frankenthal-pfalz/eisenbahnstr-23/8168/?stores_id=8168'},
- {store:'Netto',name:'Iglo Fischstäbchen / Backfisch',size:'352–450 g',old:'4,89 €',price:'2,49 €',discount:'-49%',from:'28.09.2026',to:'02.10.2026',url:'https://www.netto-online.de/filialen/frankenthal-pfalz/eisenbahnstr-23/8168/?stores_id=8168'},
- {store:'Netto',name:'Minipflaumentomaten',size:'500 g',old:'2,79 €',price:'1,99 €',discount:'-28%',from:'28.09.2026',to:'02.10.2026',url:'https://www.netto-online.de/filialen/frankenthal-pfalz/eisenbahnstr-23/8168/?stores_id=8168'},
- {store:'ALDI SÜD',name:'MILSANI Premium-Joghurt',size:'200 g',old:'0,49 €',price:'0,39 €',discount:'-20%',from:'25.09.2026',to:'',url:'https://www.aldi-sued.de/produkte'},
- {store:'ALDI SÜD',name:'WONNEMEYER Baguette Kräuter',size:'175 g',old:'0,99 €',price:'0,69 €',discount:'-30%',from:'25.09.2026',to:'',url:'https://www.aldi-sued.de/produkte'}
-];
-let offerSlide=0;
+let LIVE_OFFERS=[];let offerSlide=0;
 function offerCard(x,big=false){return '<div class="card '+(big?'offerHero':'')+'"><div class="row"><div class="grow"><div class="badge ok">'+esc(x.store)+' · '+esc(x.discount)+'</div><h3 style="margin:10px 0 2px">'+esc(x.name)+'</h3><div class="muted">'+esc(x.size)+'</div></div><div style="text-align:right">'+(x.old?'<div class="old">'+esc(x.old)+'</div>':'')+'<div class="price">'+esc(x.price)+'</div></div></div><div class="muted" style="margin-top:10px">📅 '+esc(x.from)+(x.to?' – '+esc(x.to):'')+'</div><button class="chip" style="margin-top:10px" onclick="window.open(\''+x.url+'\',\'_blank\')">📖 '+(lang==='sq'?'Shiko prospektin / ofertat':'Prospekt / Angebote')+'</button></div>'}
 function renderOffers(){
  const root=document.getElementById('offerItems');if(!root)return;
@@ -75,7 +67,7 @@ function renderOffers(){
 }
 function nextOfferSlide(){const q=(document.getElementById('offerSearch')?.value||'').toLowerCase();const a=LIVE_OFFERS.filter(x=>(x.store+' '+x.name+' '+x.size).toLowerCase().includes(q));if(!a.length)return;offerSlide=(offerSlide+1)%a.length;const e=document.getElementById('offerSlider');if(e)e.innerHTML=offerCard(a[offerSlide],true)}
 setInterval(nextOfferSlide,4500);
-setTimeout(renderOffers,300);
+async function loadOffersReal(){const root=document.getElementById('offerItems');if(root)root.innerHTML='<div class="card muted">Po ngarkohen ofertat reale për Frankenthal…</div>';try{const d=await apiPost('offersList',{country:offerCountry||'DE',city:offerCity||'Frankenthal',postalCode:'67227',active:true});if(d&&d.ok){const x=d.data||d;LIVE_OFFERS=(x.items||x.offers||[]).map(o=>({store:o.store||o.Dyqani||'',name:o.name||o.product||o.Produkti||'',size:o.size||o.unit||o.Njësia||'',old:o.oldPrice||o.normalPrice||o['Çmimi normal']||'',price:o.price||o.offerPrice||o['Çmimi ofertë']||'',discount:o.discount||'',from:o.from||o['Nga data']||'',to:o.to||o['Deri data']||'',image:o.image||o.imageUrl||o['Foto URL']||'',url:o.url||o.link||o['Link oferta']||''})).filter(o=>o.name&&o.price)}}catch(e){}renderOffers()}setTimeout(loadOffersReal,300);
 document.getElementById('stockItems').innerHTML='<div class="card muted">Inventari yt do të shfaqet këtu. Nuk përdoren produkte demo.</div>';
 applyLang(); if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 if(localStorage.sessionToken){go('home')}else{go('auth')}
