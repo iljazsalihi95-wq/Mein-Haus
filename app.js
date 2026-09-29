@@ -15,20 +15,22 @@ function setLang(l){if(!SUPPORTED.includes(l))return;lang=l;localStorage.setItem
 function go(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id)?.classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('on',x.dataset.go===id));scrollTo(0,0)}
 let shoppingItems=[];
 async function loadShoppingList(){
- const e=document.getElementById('shopItems');if(!e)return;e.innerHTML='<div class="card muted">⏳ Po ngarkohet…</div>';
+ const e=document.getElementById('shopItems');if(!e)return;e.innerHTML='<div class="card muted">Po ngarkohet…</div>';
  try{const d=await apiPost('shoppingList',{});if(!d.ok)throw Error(d.error||'');shoppingItems=(d.data?.items||d.data||[]);renderShoppingList();}
- catch(err){shoppingItems=[];renderShoppingList('<div class="card muted">Lista është bosh. Shto produktin e parë.</div>');}
+ catch(err){e.innerHTML='<div class="card muted">Nuk u lidh me serverin. Provo përsëri.</div>';}
 }
-function renderShoppingList(emptyHtml){
+function renderShoppingList(){
  const e=document.getElementById('shopItems');if(!e)return;
- if(!shoppingItems.length){e.innerHTML=emptyHtml||'<div class="card muted">Lista është bosh.</div>';return}
- e.innerHTML=shoppingItems.map(x=>'<div class="card row"><input type="checkbox" '+(x.status==='done'?'checked':'')+' onchange="toggleShoppingItem(\''+esc(x.itemId||x.id||'')+'\',this.checked)"><div class="grow"><b>'+esc(x.Produkti||x.product||x.name||'')+'</b><div class="muted">'+esc(x.Sasia||x.quantity||1)+' '+esc(x['Njësia']||x.unit||'')+'</div></div><button class="chip" onclick="deleteShoppingItem(\''+esc(x.itemId||x.id||'')+'\')">🗑</button></div>').join('');
+ if(!shoppingItems.length){e.innerHTML='<div class="card muted">Nuk ka blerje të regjistruara.</div>';return}
+ e.innerHTML=shoppingItems.map(x=>'<div class="card"><div class="row"><div class="grow"><b>'+esc(x.Produkti||x.product||x.name||'')+'</b><div class="muted">'+esc(x.date||x.Data||'')+' · '+esc(x.store||x.Dyqani||'')+'</div></div><b>'+esc(String(x.total||x.Totali||x.price||''))+(x.total||x.Totali||x.price?' €':'')+'</b></div><div class="muted">'+esc(x.description||x.Pershkrimi||'')+'</div></div>').join('');
 }
-async function addShoppingManual(){const name=document.getElementById('shoppingAddName')?.value.trim(),qty=Number(document.getElementById('shoppingAddQty')?.value||1),unit=document.getElementById('shoppingAddUnit')?.value||'copë';if(!name)return alert(lang==='sq'?'Shkruaj emrin e produktit.':'Produktname eingeben.');try{const d=await apiPost('shoppingAdd',{product:name,quantity:qty,unit});if(!d.ok)throw Error(d.error||'Nuk u ruajt');document.getElementById('shoppingAddName').value='';await loadShoppingList()}catch(e){alert(e.message)}}
-async function addShoppingItem(name){
- name=(name||'').trim();if(!name)return;
- const d=await apiPost('shoppingAdd',{product:name,quantity:1,unit:'Stück'});if(!d.ok)throw Error(d.error||'Nuk u ruajt');await loadShoppingList();
+function calcPurchaseTotal(){const q=Number(document.getElementById('shoppingAddQty')?.value||1),p=Number(document.getElementById('shoppingAddPrice')?.value||0),t=document.getElementById('shoppingAddTotal');if(t)t.value=(q*p).toFixed(2)}
+async function addShoppingManual(){
+ const v=id=>document.getElementById(id),name=v('shoppingAddName')?.value.trim();if(!name)return alert('Shkruaj produktin.');
+ const payload={product:name,date:v('shoppingAddDate')?.value||new Date().toISOString().slice(0,10),store:v('shoppingAddStore')?.value.trim()||'',description:v('shoppingAddDescription')?.value.trim()||'',category:v('shoppingAddCategory')?.value||'',quantity:Number(v('shoppingAddQty')?.value||1),unit:v('shoppingAddUnit')?.value||'copë',unitPrice:Number(v('shoppingAddPrice')?.value||0),total:Number(v('shoppingAddTotal')?.value||0),paymentMethod:v('shoppingAddPayment')?.value||'cash'};
+ try{const d=await apiPost('shoppingAdd',payload);if(!d.ok)throw Error(d.error||'Nuk u ruajt');['shoppingAddName','shoppingAddStore','shoppingAddDescription','shoppingAddPrice','shoppingAddTotal'].forEach(id=>{if(v(id))v(id).value=''});await loadShoppingList()}catch(e){alert('Lidhja me serverin dështoi: '+e.message)}
 }
+async function addShoppingItem(name){name=(name||'').trim();if(!name)return;const d=await apiPost('shoppingAdd',{product:name,quantity:1,unit:'copë',date:new Date().toISOString().slice(0,10)});if(!d.ok)throw Error(d.error||'Nuk u ruajt');await loadShoppingList();}
 async function toggleShoppingItem(id,done){await apiPost('shoppingUpdate',{itemId:id,status:done?'done':'open'});await loadShoppingList()}
 async function deleteShoppingItem(id){await apiPost('shoppingDelete',{itemId:id});await loadShoppingList()}
 setTimeout(()=>{loadShoppingList()},700);
