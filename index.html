@@ -50,7 +50,7 @@ body{margin:0;background:var(--bg);font:15px system-ui,-apple-system,Segoe UI,Ro
 <div class="card"><b>Regjistro hyrje / dalje</b><div style="height:10px"></div>
 <input id="finDate" class="search" type="date"><div style="height:8px"></div>
 <div class="row"><select id="finType" class="search"><option value="expense">Dalje</option><option value="income">Hyrje</option></select><select id="finPayment" class="search"><option value="cash">Cash</option><option value="bank">Bankë / Kartë</option></select></div><div style="height:8px"></div>
-<input id="finDescription" class="search" placeholder="Përshkrimi"><div style="height:8px"></div>
+<select id="finMember" class="search"><option value="">Familja / e përbashkët</option></select><div style="height:8px"></div><input id="finDescription" class="search" placeholder="Përshkrimi"><div style="height:8px"></div>
 <div class="row"><select id="finCategory" class="search"><option>Ushqime</option><option>Shtëpi</option><option>Fatura</option><option>Transport</option><option>Shëndet</option><option>Të ardhura</option><option>Tjetër</option></select><input id="finAmount" class="search" type="number" min="0" step="0.01" placeholder="Shuma €"></div><div style="height:10px"></div>
 <button class="primary" onclick="saveFinanceEntry()">Ruaj transaksionin</button></div>
 <div class="section"><h3>Transaksionet</h3></div><div id="financeItems"><div class="card muted">Nuk ka transaksione të regjistruara.</div></div></section>
