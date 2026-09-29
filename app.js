@@ -107,7 +107,8 @@ async function sendHouseAI(){
  const box=document.getElementById('aiChat'),loading=box?.lastElementChild;
  try{
   const context={finance:getFinanceEntries().slice(-50),shopping:shoppingItems.slice(-50),inventory:(typeof inventoryItems!=='undefined'?inventoryItems:[]).slice(-100),family:getFamily().slice(-30),bills:getBills().slice(-30),receiptDraft:JSON.parse(sessionStorage.getItem('receiptDraft')||'null'),language:lang,app:'Shtëpia Ime / Mein Haus'};
-  const d=await apiPost('householdAI',{task:'chat',message:q,question:q,language:lang,context});
+  const systemInstruction='Ti je asistenti i integruar i aplikacionit Shtëpia Ime / Mein Haus. Çdo pyetje për kassenbon/faturë, Blerjet, Inventarin, Financat, Familjen, ofertat ose ruajtjen i referohet këtij aplikacioni dhe të dhënave në context, përveç kur përdoruesi thotë shprehimisht ndryshe. Mos shpik arsye për personel, dyqan, mungesë hapësire apo procese jashtë aplikacionit. Kur një veprim nuk është kryer, thuaj konkretisht çfarë tregon context-i dhe çfarë moduli/action-i i aplikacionit lidhet me të. Përgjigju në gjuhën e zgjedhur nga përdoruesi.';
+  const d=await apiPost('householdAI',{task:'chat',message:q,question:q,language:lang,systemInstruction,context});
   if(loading)loading.remove();if(!d.ok)throw Error(d.error||'Asistenti nuk u përgjigj.');
   const x=d.data||d,answer=x.answer||x.reply||x.text||x.message;if(!answer)throw Error('Nuk erdhi përgjigje nga AI.');aiBubble(answer,'ai');
  }catch(e){if(loading)loading.remove();aiBubble('Gabim në lidhjen me AI: '+e.message,'ai')}
