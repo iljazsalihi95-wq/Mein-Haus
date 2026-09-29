@@ -60,10 +60,13 @@ async function deleteShoppingItem(id){await apiPost('shoppingDelete',{itemId:id}
 setTimeout(()=>{loadShoppingList()},700);
 let LIVE_OFFERS=[];let offerSlide=0;
 function offerCard(x,big=false){return '<div class="card '+(big?'offerHero':'')+'"><div class="row"><div class="grow"><div class="badge ok">'+esc(x.store)+' · '+esc(x.discount)+'</div><h3 style="margin:10px 0 2px">'+esc(x.name)+'</h3><div class="muted">'+esc(x.size)+'</div></div><div style="text-align:right">'+(x.old?'<div class="old">'+esc(x.old)+'</div>':'')+'<div class="price">'+esc(x.price)+'</div></div></div><div class="muted" style="margin-top:10px">📅 '+esc(x.from)+(x.to?' – '+esc(x.to):'')+'</div><button class="chip" style="margin-top:10px" onclick="window.open(\''+x.url+'\',\'_blank\')">📖 '+(lang==='sq'?'Shiko prospektin / ofertat':'Prospekt / Angebote')+'</button></div>'}
+let offerStoreFilter='';
+function setOfferStore(s){offerStoreFilter=s||'';renderOffers()}
+function openProspect(name){const s=OFFER_SOURCES.find(x=>x.country===(offerCountry||'DE')&&x.name===name);if(!s||!s.url)return alert(lang==='sq'?'Prospekti nuk është konfiguruar.':'Prospekt nicht konfiguriert.');window.open(s.url,'_blank')}
 function renderOffers(){
  const root=document.getElementById('offerItems');if(!root)return;
  const q=(document.getElementById('offerSearch')?.value||'').toLowerCase();
- const filtered=LIVE_OFFERS.filter(x=>(x.store+' '+x.name+' '+x.size).toLowerCase().includes(q));
+ const filtered=LIVE_OFFERS.filter(x=>(!offerStoreFilter||String(x.store).toLowerCase().includes(offerStoreFilter.toLowerCase()))&&(x.store+' '+x.name+' '+x.size).toLowerCase().includes(q));
  if(!filtered.length){root.innerHTML='<div class="card muted">Nuk u gjet ofertë.</div>';return}
  offerSlide%=filtered.length;
  root.innerHTML='<div class="muted" style="margin:8px 2px">🔥 '+(lang==='sq'?'Ofertat interesante të verifikuara':'Verifizierte interessante Angebote')+'</div><div id="offerSlider">'+offerCard(filtered[offerSlide],true)+'</div><div class="section"><h3>'+(lang==='sq'?'Të gjitha ofertat':'Alle Angebote')+'</h3></div>'+filtered.map(x=>offerCard(x)).join('');
