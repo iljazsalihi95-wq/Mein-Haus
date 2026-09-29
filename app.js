@@ -106,7 +106,7 @@ async function sendHouseAI(){
  const input=document.getElementById('aiInput'),q=input?.value.trim();if(!q)return;aiBubble(q,'user');input.value='';aiBubble('Po analizoj të dhënat e shtëpisë…','ai');
  const box=document.getElementById('aiChat'),loading=box?.lastElementChild;
  try{
-  const context={finance:getFinanceEntries().slice(-50),shopping:shoppingItems.slice(-50),language:lang};
+  const context={finance:getFinanceEntries().slice(-50),shopping:shoppingItems.slice(-50),inventory:(typeof inventoryItems!=='undefined'?inventoryItems:[]).slice(-100),family:getFamily().slice(-30),bills:getBills().slice(-30),receiptDraft:JSON.parse(sessionStorage.getItem('receiptDraft')||'null'),language:lang,app:'Shtëpia Ime / Mein Haus'};
   const d=await apiPost('householdAI',{task:'chat',message:q,question:q,language:lang,context});
   if(loading)loading.remove();if(!d.ok)throw Error(d.error||'Asistenti nuk u përgjigj.');
   const x=d.data||d,answer=x.answer||x.reply||x.text||x.message;if(!answer)throw Error('Nuk erdhi përgjigje nga AI.');aiBubble(answer,'ai');
