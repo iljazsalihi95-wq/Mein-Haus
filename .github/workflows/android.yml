@@ -33,11 +33,11 @@ jobs:
           cat > android/app/build.gradle <<'EOF'
           plugins { id 'com.android.application' }
           android { namespace 'com.meinhaushalt.ft'; compileSdk 35
-            defaultConfig { applicationId 'com.meinhaushalt.ft'; minSdk 24; targetSdk 35; versionCode 6; versionName '0.6.0' }
+            defaultConfig { applicationId 'com.meinhaushalt.ft'; minSdk 24; targetSdk 35; versionCode 7; versionName '0.7.0' }
           }
           EOF
           cat > android/app/src/main/AndroidManifest.xml <<'EOF'
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/><uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/><uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/><uses-permission android:name="android.permission.POST_NOTIFICATIONS"/><application android:theme="@style/AppTheme" android:label="MeinHaushalt FT" android:icon="@drawable/app_icon" android:usesCleartextTraffic="false"><activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/><uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/><uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/><uses-permission android:name="android.permission.POST_NOTIFICATIONS"/><uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/><uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/><application android:theme="@style/AppTheme" android:label="MeinHaushalt FT" android:icon="@drawable/app_icon" android:usesCleartextTraffic="false"><activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>
           EOF
           mkdir -p android/app/src/main/res/values
           cat > android/app/src/main/res/values/styles.xml <<'EOF'
@@ -60,7 +60,7 @@ jobs:
                 return true;
               }
             });
-            w.loadUrl("https://mein-haus-shtepia-ime.netlify.app/?app=android&v=6");}
+            w.loadUrl("https://mein-haus-shtepia-ime.netlify.app/?app=android&v=7");}
             @Override protected void onActivityResult(int requestCode,int resultCode,Intent data){super.onActivityResult(requestCode,resultCode,data);if(requestCode==FILE_CHOOSER&&filePathCallback!=null){Uri[] results=WebChromeClient.FileChooserParams.parseResult(resultCode,data);filePathCallback.onReceiveValue(results);filePathCallback=null;}}
             @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults){super.onRequestPermissionsResult(requestCode,permissions,grantResults);}
             public void onBackPressed(){if(w.canGoBack())w.goBack();else super.onBackPressed();}
