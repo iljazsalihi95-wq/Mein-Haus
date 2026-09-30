@@ -16,7 +16,7 @@ const H={
  Sessions:['tokenHash','userId','householdId','createdAt','expiresAt','device','lastSeenAt','active'],
  Invitations:['inviteId','householdId','email','role','tokenHash','invitedBy','createdAt','expiresAt','status','acceptedBy','acceptedAt'],
  PasswordReset:['resetId','userId','email','tokenHash','createdAt','expiresAt','used','usedAt'],
- ShoppingList:['householdId','itemId','productKey','Produkti','Kategoria','Sasia','Njësia','priority','source','assignedTo','status','storeHint','offerId','createdBy','createdAt','updatedAt'],
+ ShoppingList:['householdId','itemId','productKey','Produkti','Kategoria','Sasia','Njësia','priority','source','assignedTo','status','storeHint','offerId','targetDate','createdBy','createdAt','updatedAt'],
  Inventari:['userId','householdId','ID','productKey','Produkti','Kategoria','Sasia','Njësia','Minimumi','Statusi','Duhet blerë','Njoftim ofertë','Shënim','updatedAt','lastPurchase','previousPurchase','averageDays','sampleCount','predictedEmptyDate','warningDays','predictionStatus','lastPrice','lastStore','expiryDate'],
  Blerjet:['userId','householdId','memberId','ID','Data','Ora','Dyqani','Produkti','productKey','Kategoria','Sasia','Njësia','Çmimi njësi','Totali','Në ofertë','Shënim','createdAt','daysSincePrevious','receiptScanId'],
  Financat:['userId','householdId','memberId','ID','Data','Ora','Muaji','Lloji','Kategoria','Nënkategoria','Përshkrimi','Shuma','Pagesa','Burimi','Dyqani','Shënim','createdAt'],
@@ -110,7 +110,7 @@ function exp_(days){const d=new Date();d.setDate(d.getDate()+days);return d.toIS
 
 function route_(q){const publicA=['register','login','passwordResetRequest','passwordResetConfirm','emailVerify','health','publicOffers','stores'];if(q.action==='health')return{ok:true,data:healthCheck()};if(publicA.includes(q.action))return dispatch_(q,null);const me=session_(q.token);return dispatch_(q,me)}
 
-function dispatch_(q,me){const m={register:register_,login:login_,sessionCheck:sessionCheck_,me:me_,dashboard:dashboard_,family:family_,members:family_,inviteCreate:inviteCreate_,inviteAccept:inviteAccept_,shoppingList:shoppingList_,shoppingAdd:shoppingAdd_,shoppingUpdate:shoppingUpdate_,shoppingDelete:shoppingDelete_,inventoryList:inventoryList_,inventorySave:inventorySave_,purchaseList:purchaseList_,purchaseSave:purchaseSave_,financeList:financeList_,financeSave:financeSave_,householdAI:householdAI_,confirmScan:confirmScan_,publicOffers:publicOffers_,stores:stores_,budgetList:budgetList_,budgetSave:budgetSave_,billList:billList_,billSave:billSave_,notifications:notifications_,notificationRead:notificationRead_,pushSubscribe:pushSubscribe_,passwordResetRequest:passwordResetRequest_,passwordResetConfirm:passwordResetConfirm_,
+function dispatch_(q,me){const m={register:register_,login:login_,sessionCheck:sessionCheck_,me:me_,dashboard:dashboard_,family:family_,members:family_,inviteCreate:inviteCreate_,inviteAccept:inviteAccept_,shoppingList:shoppingList_,shoppingAdd:shoppingAdd_,shoppingUpdate:shoppingUpdate_,shoppingDelete:shoppingDelete_,needBuyList:needBuyList_,needBuySave:needBuySave_,needBuyUpdate:needBuyUpdate_,inventoryList:inventoryList_,inventorySave:inventorySave_,purchaseList:purchaseList_,purchaseSave:purchaseSave_,financeList:financeList_,financeSave:financeSave_,householdAI:householdAI_,confirmScan:confirmScan_,publicOffers:publicOffers_,stores:stores_,budgetList:budgetList_,budgetSave:budgetSave_,billList:billList_,billSave:billSave_,notifications:notifications_,notificationRead:notificationRead_,pushSubscribe:pushSubscribe_,passwordResetRequest:passwordResetRequest_,passwordResetConfirm:passwordResetConfirm_,
  logout:logout_,
  profileUpdate:profileUpdate_,
  memberRoleUpdate:memberRoleUpdate_,
@@ -225,6 +225,26 @@ function shoppingAdd_(q,m){const name=String(q.product||q.Produkti||'').trim();i
 function shoppingUpdate_(q,m){const r=rows_('ShoppingList').find(x=>x.itemId===q.itemId&&x.householdId===m.householdId);if(!r)throw Error('ITEM_NOT_FOUND');patch_('ShoppingList',r._row,{status:q.status||r.status,Sasia:q.quantity??r.Sasia,'Njësia':q.unit??r['Njësia'],updatedAt:now_()});return true}
 
 function shoppingDelete_(q,m){const r=rows_('ShoppingList').find(x=>x.itemId===q.itemId&&x.householdId===m.householdId);if(!r)throw Error('ITEM_NOT_FOUND');patch_('ShoppingList',r._row,{status:'deleted',updatedAt:now_()});return true}
+
+function needBuyList_(q,m){
+  const date=String(q.date||'').trim();
+  return rows_('ShoppingList').filter(x=>x.householdId===m.householdId&&x.source==='needbuy'&&(!date||String(x.targetDate||'')===date));
+}
+function needBuySave_(q,m){
+  const date=String(q.date||day_()).slice(0,10),name=String(q.name||q.Produkti||'').trim();
+  if(!name)throw Error('PRODUCT_REQUIRED');
+  const o={householdId:m.householdId,itemId:id_('need'),productKey:key_(name),Produkti:name,Kategoria:q.category||'',Sasia:Number(q.quantity||1),Njësia:q.unit||'copë',priority:q.priority||'normal',source:'needbuy',assignedTo:'',status:q.status||'need',storeHint:q.storeHint||'',offerId:'',targetDate:date,createdBy:m.userId,createdAt:now_(),updatedAt:now_()};
+  append_('ShoppingList',o);return o;
+}
+function needBuyUpdate_(q,m){
+  const r=rows_('ShoppingList').find(x=>x.itemId===q.itemId&&x.householdId===m.householdId&&x.source==='needbuy');
+  if(!r)throw Error('ITEM_NOT_FOUND');
+  const p={updatedAt:now_()};
+  if(q.status!=null)p.status=q.status;
+  if(q.name!=null)p.Produkti=String(q.name).trim();
+  if(q.date!=null)p.targetDate=String(q.date).slice(0,10);
+  patch_('ShoppingList',r._row,p);return true;
+}
 
 function inventoryList_(q,m){return rows_('Inventari').filter(x=>x.householdId===m.householdId)}
 
