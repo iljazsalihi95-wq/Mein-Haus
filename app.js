@@ -13,7 +13,7 @@ function detectLanguage(){const raw=(navigator.languages&&navigator.languages[0]
 let lang=localStorage.getItem('lang')||'sq';
 function setLang(l){if(!SUPPORTED.includes(l))return;lang=l;localStorage.setItem('lang',l);localStorage.setItem('languageManual','1');applyLang();renderWeeklyChecks();renderAppointments();renderManualProducts();renderOfferSources()} function applyLang(){Object.keys({"de":{"familyAccount":"Familienkonto","name":"Name","email":"E-Mail","password":"Passwort","householdName":"Familienname / Haushalt","register":"Registrieren","login":"Anmelden"},"sq":{"familyAccount":"Llogaria familjare","name":"Emri","email":"E-mail","password":"Fjalëkalimi","householdName":"Emri i familjes / Shtëpisë","register":"Regjistrohu","login":"Hyr"},"en":{"familyAccount":"Family account","name":"Name","email":"Email","password":"Password","householdName":"Family / household name","register":"Register","login":"Sign in"},"it":{"familyAccount":"Account famiglia","name":"Nome","email":"E-mail","password":"Password","householdName":"Famiglia / casa","register":"Registrati","login":"Accedi"},"tr":{"familyAccount":"Aile hesabı","name":"Ad","email":"E-posta","password":"Şifre","householdName":"Aile / ev adı","register":"Kayıt ol","login":"Giriş yap"},"mk":{"familyAccount":"Семејна сметка","name":"Име","email":"Е-пошта","password":"Лозинка","householdName":"Семејство / домаќинство","register":"Регистрирај се","login":"Најави се"},"bs":{"familyAccount":"Porodični račun","name":"Ime","email":"E-mail","password":"Lozinka","householdName":"Porodica / domaćinstvo","register":"Registruj se","login":"Prijavi se"}}).forEach(k=>Object.assign(I18N[k],{"de":{"familyAccount":"Familienkonto","name":"Name","email":"E-Mail","password":"Passwort","householdName":"Familienname / Haushalt","register":"Registrieren","login":"Anmelden"},"sq":{"familyAccount":"Llogaria familjare","name":"Emri","email":"E-mail","password":"Fjalëkalimi","householdName":"Emri i familjes / Shtëpisë","register":"Regjistrohu","login":"Hyr"},"en":{"familyAccount":"Family account","name":"Name","email":"Email","password":"Password","householdName":"Family / household name","register":"Register","login":"Sign in"},"it":{"familyAccount":"Account famiglia","name":"Nome","email":"E-mail","password":"Password","householdName":"Famiglia / casa","register":"Registrati","login":"Accedi"},"tr":{"familyAccount":"Aile hesabı","name":"Ad","email":"E-posta","password":"Şifre","householdName":"Aile / ev adı","register":"Kayıt ol","login":"Giriş yap"},"mk":{"familyAccount":"Семејна сметка","name":"Име","email":"Е-пошта","password":"Лозинка","householdName":"Семејство / домаќинство","register":"Регистрирај се","login":"Најави се"},"bs":{"familyAccount":"Porodični račun","name":"Ime","email":"E-mail","password":"Lozinka","householdName":"Porodica / domaćinstvo","register":"Registruj se","login":"Prijavi se"}}[k]));const t=I18N[lang]||I18N.de;document.documentElement.lang=lang;document.title=t.app;document.querySelectorAll('[data-t]').forEach(e=>{if(t[e.dataset.t])e.textContent=t[e.dataset.t]});document.querySelectorAll('[data-ph]').forEach(e=>{if(t[e.dataset.ph])e.placeholder=t[e.dataset.ph]})}
 function restorePreferredLanguage(){const saved=localStorage.getItem('lang');if(saved&&SUPPORTED.includes(saved)){lang=saved}else{lang='sq';localStorage.setItem('lang','sq')}applyLang()}
-function go(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id)?.classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('on',x.dataset.go===id));applyLang();if(id==='needbuy')loadNeedBuy();if(id==='appointments')loadAppointmentsReal();if(id==='offers')loadOffersReal();scrollTo(0,0)}
+function go(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id)?.classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('on',x.dataset.go===id));applyLang();if(id==='needbuy')loadNeedBuy();if(id==='appointments')loadAppointmentsReal();if(id==='offers')loadOffersReal();if(id==='stock')loadInventoryReal();scrollTo(0,0)}
 let shoppingItems=[];
 async function loadShoppingList(){
  const e=document.getElementById('shopItems');if(!e)return;e.innerHTML='<div class="card muted">Po ngarkohet…</div>';
@@ -41,7 +41,7 @@ const FIN_KEY='meinHausFinanceEntries';
 function getFinanceEntries(){try{return JSON.parse(localStorage.getItem(FIN_KEY)||'[]')}catch(e){return []}}
 async function loadFinanceReal(){try{const d=await apiPost('financeList',{});if(d.ok){const a=(d.data||[]).map(x=>({id:x.ID||x.id,date:x.Data||x.date||'',type:String(x.Lloji||x.type||'dalje').toLowerCase()==='hyrje'?'income':'expense',payment:x.paymentMethod||x.payment||'cash',memberId:String(x.memberId||''),description:x['Përshkrimi']||x.description||'',category:x.Kategoria||x.category||'Tjetër',amount:Number(x.Shuma||x.amount||0)}));localStorage.setItem(FIN_KEY,JSON.stringify(a));renderFinance();renderFamily()}}catch(e){}}
 function money(v){return Number(v||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'}
-function refreshHomeRealData(){const pc=document.getElementById('homePurchaseCount');if(pc)pc.textContent=(shoppingItems?.length||0)+' të regjistruara';const sc=document.getElementById('homeStockCount');if(sc)sc.textContent=(typeof manualProducts!=='undefined'?manualProducts.length:0)+' produkte';const rows=getFinanceEntries(),bal=rows.reduce((a,x)=>a+(x.type==='income'?x.amount:-x.amount),0),fs=document.getElementById('homeFinanceSummary');if(fs)fs.textContent=money(bal);const rs=document.getElementById('homeRealSummary');if(rs)rs.textContent=(shoppingItems?.length||0)+' blerje · '+(typeof manualProducts!=='undefined'?manualProducts.length:0)+' produkte në inventar · gjendja '+money(bal)}
+function refreshHomeRealData(){const pc=document.getElementById('homePurchaseCount');if(pc)pc.textContent=(shoppingItems?.length||0)+' të regjistruara';const sc=document.getElementById('homeStockCount');if(sc)sc.textContent=(typeof inventoryItems!=='undefined'?inventoryItems.length:0)+' produkte';const rows=getFinanceEntries(),bal=rows.reduce((a,x)=>a+(x.type==='income'?x.amount:-x.amount),0),fs=document.getElementById('homeFinanceSummary');if(fs)fs.textContent=money(bal);const rs=document.getElementById('homeRealSummary');if(rs)rs.textContent=(shoppingItems?.length||0)+' blerje · '+(typeof inventoryItems!=='undefined'?inventoryItems.length:0)+' produkte në inventar · gjendja '+money(bal)}
 function renderFinance(){
  const rows=getFinanceEntries(),inc=rows.filter(x=>x.type==='income').reduce((a,x)=>a+x.amount,0),exp=rows.filter(x=>x.type==='expense').reduce((a,x)=>a+x.amount,0);
  const cash=rows.filter(x=>x.payment==='cash').reduce((a,x)=>a+(x.type==='income'?x.amount:-x.amount),0),bank=rows.filter(x=>x.payment==='bank').reduce((a,x)=>a+(x.type==='income'?x.amount:-x.amount),0);
@@ -86,7 +86,7 @@ async function startSecureSession(){
    const d=await apiPost('sessionCheck',{});
    if(!d||!d.ok)throw Error('invalid session');
    go('home');
-   setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal();loadNeedBuy();loadAppointmentsReal()},100);
+   setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal();loadNeedBuy();loadAppointmentsReal();loadInventoryReal()},100);
  }catch(e){
    localStorage.removeItem('sessionToken');
    go('auth');
@@ -330,16 +330,24 @@ function renderOfferSources(){
 }
 setTimeout(detectOfferCountryByGPS,500);
 
-let productLevel='full',productUsage='normal';
-function setProductLevel(v){productLevel=v;document.querySelectorAll('#stock .chips:first-of-type .chip').forEach(b=>b.classList.remove('on'));event?.target?.classList.add('on')}
-function setProductUsage(v){productUsage=v;event?.target?.classList.add('on')}
+let productLevel='full',productUsage='normal',inventoryItems=[];
+function setProductLevel(v){productLevel=v;document.querySelectorAll('#stock .chips:first-of-type .chip').forEach(b=>b.classList.remove('on'));if(window.event?.target)window.event.target.classList.add('on')}
+function setProductUsage(v){productUsage=v;document.querySelectorAll('#stock .chips:nth-of-type(2) .chip').forEach(b=>b.classList.remove('on'));if(window.event?.target)window.event.target.classList.add('on')}
 document.addEventListener('change',e=>{if(e.target.id==='prodPhoto'&&e.target.files?.[0]){const r=new FileReader();r.onload=()=>document.getElementById('prodPhotoPreview').innerHTML='<img src="'+r.result+'" style="width:100%;max-height:220px;object-fit:contain;border-radius:14px;margin-top:10px">';r.readAsDataURL(e.target.files[0])}});
-function saveManualProduct(){
- const name=document.getElementById('prodName')?.value.trim();if(!name)return alert('Shkruaj emrin e produktit / Produktname eingeben');
- const item={id:'p_'+Date.now(),name,level:productLevel,usage:productUsage,qty:Number(document.getElementById('prodQty')?.value||1),unit:document.getElementById('prodUnit')?.value||'Stück',photo:document.querySelector('#prodPhotoPreview img')?.src||'',createdAt:new Date().toISOString()};
- const arr=JSON.parse(localStorage.getItem('manualProductsV1')||'[]');arr.unshift(item);localStorage.setItem('manualProductsV1',JSON.stringify(arr));renderManualProducts();document.getElementById('prodName').value='';document.getElementById('prodPhotoPreview').innerHTML='';
+async function loadInventoryReal(){
+ const e=document.getElementById('stockItems');if(e)e.innerHTML='<div class="card muted">Po ngarkohet inventari…</div>';
+ try{const d=await apiPost('inventoryList',{});if(!d||!d.ok)throw Error(d?.error||'');inventoryItems=Array.isArray(d.data)?d.data:[];renderManualProducts();refreshHomeRealData()}catch(err){if(e)e.innerHTML='<div class="card muted">Inventari nuk u ngarkua. Provo përsëri.</div>'}
 }
-function renderManualProducts(){const e=document.getElementById('stockItems');if(!e)return;const arr=JSON.parse(localStorage.getItem('manualProductsV1')||'[]');const L={full:'🟢 Plot/Voll',half:'🟡 Gjysmë/Halb',low:'🔴 Pak/Wenig',empty:'⚫ Bosh/Leer'},U={frequent:'⚡ Shpesh/Häufig',normal:'↔ Normal',rare:'🐢 Rrallë/Selten'};e.innerHTML=arr.map(x=>'<div class="card row">'+(x.photo?'<img src="'+x.photo+'" style="width:64px;height:64px;object-fit:cover;border-radius:12px">':'📦')+'<div class="grow"><b>'+x.name+'</b><div class="muted">'+L[x.level]+' • '+U[x.usage]+' • '+x.qty+' '+x.unit+'</div></div></div>').join('')}
-setTimeout(renderManualProducts,600);
-
+async function saveManualProduct(){
+ const name=document.getElementById('prodName')?.value.trim();if(!name)return alert('Shkruaj emrin e produktit / Produktname eingeben');
+ const qty=Number(document.getElementById('prodQty')?.value||1),unit=document.getElementById('prodUnit')?.value||'Stück';
+ const status={full:'full',half:'half',low:'low',empty:'empty'}[productLevel]||'full';
+ const d=await apiPost('inventorySave',{product:name,quantity:qty,unit,status,note:'usage:'+productUsage,needBuy:status==='low'||status==='empty'?'po':''});
+ if(!d||!d.ok)return alert(d?.error||'Nuk u ruajt produkti.');
+ document.getElementById('prodName').value='';document.getElementById('prodPhotoPreview').innerHTML='';await loadInventoryReal();
+}
+function renderManualProducts(){
+ const e=document.getElementById('stockItems');if(!e)return;const arr=inventoryItems,L={full:'🟢 Plot/Voll',half:'🟡 Gjysmë/Halb',low:'🔴 Pak/Wenig',empty:'⚫ Bosh/Leer'};
+ e.innerHTML=arr.length?arr.map(x=>{const st=x.Statusi||'full',usage=String(x['Shënim']||'').replace('usage:','')||'normal';const U={frequent:'⚡ Shpesh/Häufig',normal:'↔ Normal',rare:'🐢 Rrallë/Selten'};return '<div class="card row"><div style="width:48px;height:48px;border-radius:14px;background:#eef4fb;display:grid;place-items:center;font-size:24px">📦</div><div class="grow"><b>'+esc(x.Produkti||'')+'</b><div class="muted">'+(L[st]||st)+' • '+(U[usage]||usage)+' • '+esc(String(x.Sasia||0))+' '+esc(x['Njësia']||'')+'</div></div></div>'}).join(''):'<div class="card muted">Inventari është bosh.</div>';
+}
 setTimeout(()=>{renderNeedBuy();renderAppointmentPage()},400);
