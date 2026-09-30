@@ -1156,32 +1156,4 @@ function TEST_MEINHAUS_OFFERS() {
       NGJITE NË FUND TË Code.gs
          ========================================================== */
 
-         function offersCountry_(q, me) {
-           q = q || {};
-
-             const country = String(
-                 q.country || q.shteti || 'DE'
-                   ).trim().toUpperCase();
-
-                     const city = String(
-                         q.city || q.qyteti || ''
-                           ).trim();
-
-                             return mhOffersForApp_(country, city);
-                             }
-
-
-                             /*
-                              TEST direkt nga Apps Script
-                              */
-                              function TEST_OFFERS_COUNTRY_API() {
-
-                                const result = offersCountry_({
-                                    country: 'DE',
-                                        city: 'Frankenthal'
-                                          }, null);
-
-                                            Logger.log(JSON.stringify(result, null, 2));
-
-                                              return result;
-                                              }
+         
