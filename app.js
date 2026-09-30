@@ -19,11 +19,24 @@ let purchaseItems=[]; // blerjet e kryera / kasenbonët
 function shoppingStateMap(){try{return JSON.parse(localStorage.getItem('meinHausShoppingStates')||'{}')||{}}catch(e){return{}}}
 function saveShoppingState(id,state){const m=shoppingStateMap();m[String(id)]=state;localStorage.setItem('meinHausShoppingStates',JSON.stringify(m));const x=shoppingItems.find(z=>String(z.ID||z.id||'')===String(id));if(x)x._state=state;renderShoppingList();refreshHomeRealData()}
 function shoppingState(x){return x._state||shoppingStateMap()[String(x.ID||x.id||'')]||String(x.status||x.Status||'missing').toLowerCase()}
+function clearLegacyReceiptShopping(){
+ try{
+  const m=shoppingStateMap();
+  Object.keys(m).filter(k=>/^receipt_/i.test(k)).forEach(k=>delete m[k]);
+  localStorage.setItem('meinHausShoppingStates',JSON.stringify(m));
+ }catch(e){}
+}
 async function loadShoppingList(){
+ clearLegacyReceiptShopping();
  const e=document.getElementById('shopItems');if(e)e.innerHTML='<div class="card muted">Po ngarkohet…</div>';
  try{
   const [d,p]=await Promise.all([apiPost('shoppingList',{}),apiPost('purchaseList',{}).catch(()=>({ok:false}))]);
-  const raw=d&&d.ok?(d.data?.items||d.data||[]):[]; shoppingItems=Array.isArray(raw)?raw:[];
+  const raw=d&&d.ok?(d.data?.items||d.data||[]):[];
+  shoppingItems=(Array.isArray(raw)?raw:[]).filter(x=>{
+    const source=String(x.source||x.Source||x.Burimi||x.description||x.Pershkrimi||'').toLowerCase();
+    const id=String(x.ID||x.id||'').toLowerCase();
+    return !id.startsWith('receipt_')&&!source.includes('fatur')&&!source.includes('kassenbon')&&!source.includes('receipt');
+  });
   const pr=p&&p.ok?(p.data?.items||p.data||[]):[]; purchaseItems=Array.isArray(pr)?pr:[];
   try{const rp=JSON.parse(localStorage.getItem('meinHausReceiptPurchases')||'[]');if(Array.isArray(rp)){const ids=new Set(purchaseItems.map(x=>String(x.ID||x.id||'')));purchaseItems=[...rp.filter(x=>!ids.has(String(x.ID||x.id||''))),...purchaseItems]}}catch(_){}
   renderShoppingList();refreshHomeRealData();
