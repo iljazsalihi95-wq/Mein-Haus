@@ -133,32 +133,19 @@ async function forgotPasswordUI(){try{const email=authEmail.value.trim();if(!ema
 async function confirmPasswordReset(){try{const token=document.getElementById('resetToken').value.trim(),password=document.getElementById('resetNewPass').value;if(!token)throw Error('Token mungon.');if(password.length<8)throw Error(lang==='sq'?'Fjalëkalimi duhet të ketë së paku 8 shenja.':'Password must have at least 8 characters.');authMessage('…');const d=await apiPost('passwordResetConfirm',{resetToken:token,password});if(!d.ok)throw Error(d.error||'Reset failed');document.getElementById('resetBox').style.display='none';authPass.value=password;authMessage(lang==='sq'?'✓ Fjalëkalimi u ndryshua. Tani shtyp Hyr.':'✓ Password changed. You can now sign in.')}catch(e){authMessage(e.message,true)}}
 
 const APPOINTMENT_KEY='familyAppointmentsV1';
-function getAppointments(){try{return JSON.parse(localStorage.getItem(APPOINTMENT_KEY)||'[]')}catch(e){return[]}}
-function addAppointment(){
- const x={id:Date.now(),first:aptFirst.value.trim(),last:aptLast.value.trim(),date:aptDate.value,time:aptTime.value,place:aptPlace.value.trim(),alerted:false};
- if(!x.first||!x.date||!x.time||!x.place){alert(lang==='sq'?'Plotëso emrin, datën, orën dhe vendin.':lang==='en'?'Fill in name, date, time and place.':'Name, Datum, Uhrzeit und Ort ausfüllen.');return}
- const arr=getAppointments();arr.push(x);arr.sort((p,q)=>(p.date+p.time).localeCompare(q.date+q.time));localStorage.setItem(APPOINTMENT_KEY,JSON.stringify(arr));renderAppointments();requestAppNotifications();
-}
-function deleteAppointment(id){localStorage.setItem(APPOINTMENT_KEY,JSON.stringify(getAppointments().filter(x=>x.id!==id)));renderAppointments()}
-function renderAppointments(){
- const e=document.getElementById('aptList');if(!e)return;const arr=getAppointments();
- e.innerHTML=arr.length?arr.map(x=>'<div class="card"><b>👤 '+escA(x.first+' '+x.last)+'</b><div>📅 '+x.date+' · ⏰ '+x.time+'</div><div>📍 '+escA(x.place)+'</div><button class="chip" onclick="deleteAppointment('+x.id+')">🗑</button></div>').join(''):'<div class="card muted">Keine Termine / Nuk ka termine</div>';
-}
+const SHEET_APPOINTMENTS=[
+ {id:'apt_20261008_ilaz',first:'Ilaz',last:'Salihi',date:'2026-10-08',time:'07:30',place:'Te Doktori Sheqerit Analizat'},
+ {id:'apt_20261013_ilaz',first:'Ilaz',last:'Salihi',date:'2026-10-13',time:'08:00',place:'Te Doktori Sheqerit Analizat'},
+ {id:'apt_20261015_sufjan',first:'Sufjan',last:'Salihi',date:'2026-10-15',time:'08:00',place:'Doktor Maura Analizat'},
+ {id:'apt_20261019_merjem',first:'Merjem',last:'Salihi',date:'2026-10-19',time:'09:00',place:'Analizat'}
+];
+function getAppointments(){try{const local=JSON.parse(localStorage.getItem(APPOINTMENT_KEY)||'[]');const all=[...SHEET_APPOINTMENTS,...local],seen=new Set();return all.filter(x=>{const k=String(x.id||[x.first,x.last,x.date,x.time,x.place].join('|'));if(seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))}catch(e){return SHEET_APPOINTMENTS.slice()}}
+function addAppointment(){const x={id:'local_'+Date.now(),first:aptFirst.value.trim(),last:aptLast.value.trim(),date:aptDate.value,time:aptTime.value,place:aptPlace.value.trim()};if(!x.first||!x.date||!x.time||!x.place){alert('Plotëso emrin, datën, orën dhe vendin.');return}const local=JSON.parse(localStorage.getItem(APPOINTMENT_KEY)||'[]');local.push(x);localStorage.setItem(APPOINTMENT_KEY,JSON.stringify(local));renderAppointments();requestAppNotifications()}
+function deleteAppointment(id){const local=JSON.parse(localStorage.getItem(APPOINTMENT_KEY)||'[]').filter(x=>String(x.id)!==String(id));localStorage.setItem(APPOINTMENT_KEY,JSON.stringify(local));renderAppointments()}
+function renderAppointments(){const e=document.getElementById('aptList');if(!e)return;const arr=getAppointments();e.innerHTML=arr.length?arr.map(x=>'<div class="card"><b>👤 '+escA(x.first+' '+x.last)+'</b><div>📅 '+x.date+' · ⏰ '+x.time+'</div><div>📍 '+escA(x.place)+'</div></div>').join(''):'<div class="card muted">Nuk ka termine</div>'}
 function escA(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function appointmentAlarm(x){
- const sq='🔔 Termini: '+x.first+' '+x.last+'\n⏰ '+x.time+'\n📍 '+x.place;
- const de='🔔 Termin: '+x.first+' '+x.last+'\n⏰ '+x.time+'\n📍 '+x.place;
- const en='🔔 Appointment: '+x.first+' '+x.last+'\n⏰ '+x.time+'\n📍 '+x.place;
- const msg=lang==='sq'?sq:lang==='en'?en:de;
- try{const ac=new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=880;g.gain.value=.15;o.start();setTimeout(()=>{o.stop();ac.close()},1200)}catch(e){}
- if('Notification'in window&&Notification.permission==='granted')new Notification('Mein Haus',{body:msg.replace(/\n/g,' · ')});
- alert(msg);
-}
-function checkAppointments(){
- const now=Date.now(),arr=getAppointments();let changed=false;
- arr.forEach(x=>{const t=new Date(x.date+'T'+x.time).getTime();if(!x.alerted&&now>=t-30*60000&&now<t+5*60000){x.alerted=true;changed=true;appointmentAlarm(x)}});
- if(changed)localStorage.setItem(APPOINTMENT_KEY,JSON.stringify(arr));
-}
+function appointmentAlarm(x,label){const msg='🔔 '+label+': '+x.first+' '+x.last+' · '+x.date+' '+x.time+' · '+x.place;try{const ac=new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=880;g.gain.value=.15;o.start();setTimeout(()=>{o.stop();ac.close()},1200)}catch(e){}if('Notification'in window&&Notification.permission==='granted')new Notification('Shtëpia Ime',{body:msg});}
+function checkAppointments(){const now=Date.now();getAppointments().forEach(x=>{const t=new Date(x.date+'T'+x.time).getTime();[['1 ditë para',24*60*60*1000],['1 orë para',60*60*1000]].forEach(([label,off])=>{const key='aptAlert_'+x.id+'_'+off;if(!localStorage.getItem(key)&&now>=t-off&&now<t-off+60000){localStorage.setItem(key,'1');appointmentAlarm(x,label)}})})}
 setInterval(checkAppointments,30000);setTimeout(()=>{renderAppointments();checkAppointments()},700);
 
 async function scanReceipt(){const input=document.getElementById('receiptFile'),p=document.getElementById('receiptPreview'),file=input?.files?.[0];if(!file){p.innerHTML='<p class="muted">Zgjidh ose fotografo faturën.</p>';return}p.innerHTML='<p class="muted">Po përgatitet fotografia…</p>';try{const img=await new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(file);i.onload=()=>{URL.revokeObjectURL(u);ok(i)};i.onerror=no;i.src=u});const max=1800,scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);const dataUrl=c.toDataURL('image/jpeg',.78);sessionStorage.setItem('receiptImage',dataUrl);p.innerHTML='<div class="card"><img src="'+dataUrl+'" style="width:100%;max-height:320px;object-fit:contain;border-radius:12px"><p><b>Fotoja u përgatit.</b></p><button class="primary" onclick="analyzeReceiptAI()">Analizo faturën me AI</button><div id="receiptStatus" class="muted"></div></div>'}catch(e){p.innerHTML='<p class="muted">Fotografia nuk u përpunua: '+esc(e.message)+'</p>'}}
