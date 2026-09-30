@@ -273,7 +273,7 @@ setTimeout(detectOfferCountryByGPS,500);
 let productLevel='full',productUsage='normal';
 function setProductLevel(v){productLevel=v;document.querySelectorAll('#stock .chips:first-of-type .chip').forEach(b=>b.classList.remove('on'));event?.target?.classList.add('on')}
 function setProductUsage(v){productUsage=v;event?.target?.classList.add('on')}
-document.addEventListener('change',e=>{if(e.target.id==='prodPhoto'&&e.target.files?.[0]){const r=new FileReader();r.onload=()=>document.getElementById('prodPhotoPreview').innerHTML='<img src="'+r.result+'" style="width:100%;max-height:220px;object-fit:contain;border-radius:14px;margin-top:10px">';r.readAsDataURL(e.target.files[0])}});
+document.addEventListener('change',e=>{if(e.target.id==='prodPhoto'&&e.target.files?.[0]){const f=e.target.files[0],r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const max=900,scale=Math.min(1,max/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*scale);cv.height=Math.round(im.height*scale);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);const src=cv.toDataURL('image/jpeg',.72);document.getElementById('prodPhotoPreview').innerHTML='<img src="'+src+'" style="width:100%;max-height:220px;object-fit:contain;border-radius:14px;margin-top:10px">'};im.src=r.result};r.readAsDataURL(f)}});
 function getManualProducts(){try{const a=JSON.parse(localStorage.getItem('manualProductsV1')||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
 async function saveManualProduct(){
  const name=document.getElementById('prodName')?.value.trim();if(!name)return alert('Shkruaj emrin e produktit / Produktname eingeben');
