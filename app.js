@@ -275,10 +275,14 @@ function setProductLevel(v){productLevel=v;document.querySelectorAll('#stock .ch
 function setProductUsage(v){productUsage=v;event?.target?.classList.add('on')}
 document.addEventListener('change',e=>{if(e.target.id==='prodPhoto'&&e.target.files?.[0]){const r=new FileReader();r.onload=()=>document.getElementById('prodPhotoPreview').innerHTML='<img src="'+r.result+'" style="width:100%;max-height:220px;object-fit:contain;border-radius:14px;margin-top:10px">';r.readAsDataURL(e.target.files[0])}});
 function getManualProducts(){try{const a=JSON.parse(localStorage.getItem('manualProductsV1')||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
-function saveManualProduct(){
+async function saveManualProduct(){
  const name=document.getElementById('prodName')?.value.trim();if(!name)return alert('Shkruaj emrin e produktit / Produktname eingeben');
  const item={id:'p_'+Date.now(),name,level:productLevel,usage:productUsage,qty:Number(document.getElementById('prodQty')?.value||1),unit:document.getElementById('prodUnit')?.value||'Stück',photo:document.querySelector('#prodPhotoPreview img')?.src||'',createdAt:new Date().toISOString()};
- const arr=getManualProducts();arr.unshift(item);localStorage.setItem('manualProductsV1',JSON.stringify(arr));renderManualProducts();document.getElementById('prodName').value='';document.getElementById('prodPhotoPreview').innerHTML='';
+ const arr=getManualProducts();arr.unshift(item);
+ try{localStorage.setItem('manualProductsV1',JSON.stringify(arr))}catch(e){item.photo='';try{localStorage.setItem('manualProductsV1',JSON.stringify(arr))}catch(_){return alert('Produkti nuk u ruajt. Memoria lokale është plot.')} }
+ renderManualProducts();refreshHomeRealData();
+ document.getElementById('prodName').value='';document.getElementById('prodQty').value='';document.getElementById('prodPhoto').value='';document.getElementById('prodPhotoPreview').innerHTML='';
+ try{await apiPost('inventorySave',{product:item})}catch(e){}
 }
 function renderManualProducts(){const e=document.getElementById('stockItems');if(!e)return;const arr=getManualProducts();const L={full:'🟢 Plot/Voll',half:'🟡 Gjysmë/Halb',low:'🔴 Pak/Wenig',empty:'⚫ Bosh/Leer'},U={frequent:'⚡ Shpesh/Häufig',normal:'↔ Normal',rare:'🐢 Rrallë/Selten'};e.innerHTML=arr.map(x=>'<div class="card row">'+(x.photo?'<img src="'+x.photo+'" style="width:64px;height:64px;object-fit:cover;border-radius:12px">':'📦')+'<div class="grow"><b>'+x.name+'</b><div class="muted">'+L[x.level]+' • '+U[x.usage]+' • '+x.qty+' '+x.unit+'</div></div></div>').join('')}
 setTimeout(renderManualProducts,600);
