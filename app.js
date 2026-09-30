@@ -76,7 +76,24 @@ setInterval(nextOfferSlide,4500);
 async function loadOffersReal(){const root=document.getElementById('offerItems');if(root)root.innerHTML='<div class="card muted">Po ngarkohen ofertat reale për Frankenthal…</div>';try{const d=await apiPost('offersList',{country:offerCountry||'DE',city:offerCity||'Frankenthal',postalCode:'67227',active:true});if(d&&d.ok){const x=d.data||d;LIVE_OFFERS=(x.items||x.offers||[]).map(o=>({store:o.store||o.Dyqani||'',name:o.name||o.product||o.Produkti||'',size:o.size||o.unit||o.Njësia||'',old:o.oldPrice||o.normalPrice||o['Çmimi normal']||'',price:o.price||o.offerPrice||o['Çmimi ofertë']||'',discount:o.discount||'',from:o.from||o['Nga data']||'',to:o.to||o['Deri data']||'',image:o.image||o.imageUrl||o['Foto URL']||'',url:o.url||o.link||o['Link oferta']||''})).filter(o=>o.name&&o.price)}}catch(e){}renderOffers()}setTimeout(loadOffersReal,300);
 document.getElementById('stockItems').innerHTML='<div class="card muted">Inventari yt do të shfaqet këtu. Nuk përdoren produkte demo.</div>';
 applyLang(); if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
-restorePreferredLanguage();const rememberedEmail=localStorage.getItem('rememberedEmail');if(rememberedEmail&&document.getElementById('authEmail'))document.getElementById('authEmail').value=rememberedEmail;const savedToken=localStorage.getItem('sessionToken');if(savedToken){go('home');setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal()},250)}else{go('auth')}
+restorePreferredLanguage();
+const rememberedEmail=localStorage.getItem('rememberedEmail');
+if(rememberedEmail&&document.getElementById('authEmail'))document.getElementById('authEmail').value=rememberedEmail;
+async function startSecureSession(){
+ const token=localStorage.getItem('sessionToken');
+ if(!token){go('auth');return}
+ try{
+   const d=await apiPost('sessionCheck',{});
+   if(!d||!d.ok)throw Error('invalid session');
+   go('home');
+   setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal()},100);
+ }catch(e){
+   localStorage.removeItem('sessionToken');
+   go('auth');
+   authMessage(lang==='sq'?'Sesioni ka skaduar. Hyr përsëri.':'Sitzung abgelaufen. Bitte erneut anmelden.',true);
+ }
+}
+startSecureSession();
 
 /* Weekly household checks — staples such as oil/salt */
 const WEEKLY_CHECKS=[
