@@ -86,7 +86,7 @@ async function startSecureSession(){
    const d=await apiPost('sessionCheck',{});
    if(!d||!d.ok)throw Error('invalid session');
    go('home');
-   setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal()},100);
+   setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal();loadNeedBuy();loadAppointmentsReal()},100);
  }catch(e){
    localStorage.removeItem('sessionToken');
    go('auth');
@@ -107,14 +107,60 @@ function renderHomeOfferSlider(){
  if(dots)dots.innerHTML=rows.map((_,i)=>'<span class="'+(i===homeOfferSlideIndex?'on':'')+'"></span>').join('');
  clearTimeout(homeOfferTimer);homeOfferTimer=setTimeout(()=>{homeOfferSlideIndex=(homeOfferSlideIndex+1)%rows.length;renderHomeOfferSlider()},5000)
 }
-const NEED_BUY_KEY='meinHausNeedBuyV1';
-function needBuyRows(){try{const x=JSON.parse(localStorage.getItem(NEED_BUY_KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+let NEED_BUY_ROWS=[];
 function needBuySelectedDate(){return document.getElementById('needBuyPageDate')?.value||document.getElementById('needBuyDate')?.value||new Date().toISOString().slice(0,10)}
-function addNeedBuyItem(){const n=document.getElementById('needBuyName')?.value.trim(),date=needBuySelectedDate();if(!n)return;const x=needBuyRows();x.push({id:Date.now(),date,name:n,status:'need'});localStorage.setItem(NEED_BUY_KEY,JSON.stringify(x));document.getElementById('needBuyName').value='';renderNeedBuy()}
-function markNoShoppingToday(){const date=needBuySelectedDate(),x=needBuyRows().filter(r=>r.date!==date);x.push({id:Date.now(),date,name:'Sot nuk blej asgjë',status:'none'});localStorage.setItem(NEED_BUY_KEY,JSON.stringify(x));renderNeedBuy()}
-function setNeedBuyDone(id){const x=needBuyRows();const r=x.find(z=>String(z.id)===String(id));if(r)r.status=r.status==='done'?'need':'done';localStorage.setItem(NEED_BUY_KEY,JSON.stringify(x));renderNeedBuy()}
-function renderNeedBuy(){const today=new Date().toISOString().slice(0,10);['needBuyDate','needBuyPageDate'].forEach(id=>{const e=document.getElementById(id);if(e&&!e.value)e.value=today});const date=needBuySelectedDate(),rows=needBuyRows().filter(x=>x.date===date),html=rows.length?rows.map(x=>'<div class="row" style="padding:9px 0"><button class="chip" onclick="setNeedBuyDone('+x.id+')">'+(x.status==='done'?'🟢':'⚫')+'</button><span class="grow" style="'+(x.status==='done'?'text-decoration:line-through;opacity:.6':'')+'">'+esc(x.name)+'</span></div>').join(''):'Nuk ka artikuj për këtë ditë.';const h=document.getElementById('homeNeedBuy');if(h)h.innerHTML=html;const p=document.getElementById('needBuyItems');if(p)p.innerHTML='<div class="card">'+html+'</div>'}
-function renderAppointmentPage(){const box=document.getElementById('appointmentPageItems');if(!box)return;const rows=typeof getAppointments==='function'?getAppointments():[];box.innerHTML=rows.length?rows.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))).map(x=>'<div class="card"><b>📅 '+esc(x.title||x.name||x.description||'Termin')+'</b><div class="muted">'+esc(x.date||'')+' '+esc(x.time||'')+'</div></div>').join(''):'<div class="card muted">Nuk ka termine të regjistruara.</div>';const n=document.getElementById('homeNextAppointment');if(n&&rows.length){const x=rows.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')))[0];n.textContent=(x.date||'')+' '+(x.time||'')+' · '+(x.title||x.name||'Termin')}}
+async function loadNeedBuy(){
+ const date=needBuySelectedDate();
+ try{const d=await apiPost('needBuyList',{date});if(d&&d.ok)NEED_BUY_ROWS=Array.isArray(d.data)?d.data:[]}catch(e){console.warn('needBuyList',e)}
+ renderNeedBuy();
+}
+async function addNeedBuyItem(){
+ const n=document.getElementById('needBuyName')?.value.trim(),date=needBuySelectedDate();if(!n)return;
+ const d=await apiPost('needBuySave',{date,name:n,status:'need'});if(!d||!d.ok)return alert(d?.error||'Gabim');
+ document.getElementById('needBuyName').value='';await loadNeedBuy();
+}
+async function markNoShoppingToday(){
+ const date=needBuySelectedDate(),d=await apiPost('needBuySave',{date,name:'Sot nuk blej asgjë',status:'none'});
+ if(!d||!d.ok)return alert(d?.error||'Gabim');await loadNeedBuy();
+}
+async function setNeedBuyDone(id){
+ const r=NEED_BUY_ROWS.find(z=>String(z.itemId)===String(id));if(!r)return;
+ const d=await apiPost('needBuyUpdate',{itemId:id,status:r.status==='done'?'need':'done'});if(!d||!d.ok)return alert(d?.error||'Gabim');await loadNeedBuy();
+}
+function renderNeedBuy(){
+ const today=new Date().toISOString().slice(0,10);['needBuyDate','needBuyPageDate'].forEach(id=>{const e=document.getElementById(id);if(e&&!e.value)e.value=today});
+ const date=needBuySelectedDate(),rows=NEED_BUY_ROWS.filter(x=>!x.targetDate||String(x.targetDate).slice(0,10)===date);
+ const html=rows.length?rows.map(x=>'<div class="row" style="padding:9px 0"><button class="chip" onclick="setNeedBuyDone(\''+esc(x.itemId)+'\')">'+(x.status==='done'?'🟢':x.status==='none'?'🚫':'🔴')+'</button><span class="grow" style="'+(x.status==='done'?'text-decoration:line-through;opacity:.6':'')+'">'+esc(x.Produkti||x.name||'')+'</span></div>').join(''):'Nuk ka artikuj për këtë ditë.';
+ const h=document.getElementById('homeNeedBuy');if(h)h.innerHTML=html;const p=document.getElementById('needBuyItems');if(p)p.innerHTML='<div class="card">'+html+'</div>';
+}
+let APPOINTMENTS=[];
+async function loadAppointmentsReal(){
+ try{const d=await apiPost('appointmentList',{});if(d&&d.ok)APPOINTMENTS=Array.isArray(d.data)?d.data:[]}catch(e){console.warn('appointmentList',e)}
+ renderAppointments();renderAppointmentPage();
+}
+async function addAppointment(){
+ const first=aptFirst.value.trim(),last=aptLast.value.trim(),date=aptDate.value,time=aptTime.value,place=aptPlace.value.trim();
+ if(!first||!date||!time||!place){alert(lang==='sq'?'Plotëso emrin, datën, orën dhe vendin.':lang==='en'?'Fill in name, date, time and place.':'Name, Datum, Uhrzeit und Ort ausfüllen.');return}
+ const d=await apiPost('appointmentSave',{firstName:first,lastName:last,title:(first+' '+last).trim(),date,time,location:place,remindMinutes:1440,status:'active'});
+ if(!d||!d.ok)return alert(d?.error||'Gabim');await loadAppointmentsReal();requestAppNotifications();
+}
+async function deleteAppointment(id){const d=await apiPost('appointmentDelete',{appointmentId:id});if(!d||!d.ok)return alert(d?.error||'Gabim');await loadAppointmentsReal()}
+function getAppointments(){return APPOINTMENTS}
+function renderAppointments(){
+ const e=document.getElementById('aptList');if(!e)return;const arr=APPOINTMENTS;
+ e.innerHTML=arr.length?arr.map(x=>'<div class="card"><b>👤 '+escA((x.firstName||'')+' '+(x.lastName||''))+'</b><div>📅 '+escA(x.date)+' · ⏰ '+escA(x.time)+'</div><div>📍 '+escA(x.location)+'</div><button class="chip" onclick="deleteAppointment(\''+escA(x.appointmentId)+'\')">🗑</button></div>').join(''):'<div class="card muted">Keine Termine / Nuk ka termine</div>';
+}
+function escA(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function appointmentAlarm(x){
+ const who=((x.firstName||'')+' '+(x.lastName||'')).trim()||x.title||'Termin',place=x.location||'';
+ const sq='🔔 Termini: '+who+'\n⏰ '+x.time+'\n📍 '+place,de='🔔 Termin: '+who+'\n⏰ '+x.time+'\n📍 '+place,en='🔔 Appointment: '+who+'\n⏰ '+x.time+'\n📍 '+place,msg=lang==='sq'?sq:lang==='en'?en:de;
+ if('Notification'in window&&Notification.permission==='granted')new Notification('Mein Haus',{body:msg.replace(/\n/g,' · ')});
+}
+function checkAppointments(){
+ const now=Date.now();APPOINTMENTS.forEach(x=>{const t=new Date(String(x.date).slice(0,10)+'T'+x.time).getTime();if(t&&now>=t-24*60*60000&&now<t-24*60*60000+60000)appointmentAlarm(x)});
+}
+function renderAppointmentPage(){const box=document.getElementById('appointmentPageItems');if(!box)return;const now=new Date().toISOString().slice(0,10),rows=APPOINTMENTS.filter(x=>String(x.date||'').slice(0,10)>=now).sort((a,b)=>(String(a.date)+String(a.time)).localeCompare(String(b.date)+String(b.time)));box.innerHTML=rows.length?rows.map(x=>'<div class="card"><b>📅 '+esc(x.title||((x.firstName||'')+' '+(x.lastName||''))||'Termin')+'</b><div class="muted">'+esc(String(x.date||'').slice(0,10))+' '+esc(x.time||'')+' · '+esc(x.location||'')+'</div></div>').join(''):'<div class="card muted">Nuk ka termine të regjistruara.</div>';const n=document.getElementById('homeNextAppointment');if(n){if(rows.length){const x=rows[0];n.textContent=String(x.date||'').slice(0,10)+' '+(x.time||'')+' · '+(x.title||x.firstName||'Termin');n.closest('.appointmentCard')?.classList.toggle('urgent',new Date(String(x.date).slice(0,10)+'T'+x.time).getTime()-Date.now()<24*60*60*1000)}else n.textContent='Nuk ka termin të ardhshëm'}}
+setInterval(checkAppointments,60000);
 /* Weekly household checks — staples such as oil/salt */
 const WEEKLY_CHECKS=[
  {key:'vaj',de:'Öl prüfen',sq:'Kontrollo vajin',en:'Check the oil',it:"Controlla l’olio",tr:'Yağı kontrol et',mk:'Провери го маслото',bs:'Provjeri ulje'},
@@ -161,35 +207,6 @@ async function loginUser(){const email=document.getElementById('authEmail')?.val
 
 async function forgotPasswordUI(){try{const email=authEmail.value.trim();if(!email)throw Error(lang==='sq'?'Shkruaj emailin.':'Enter your email.');authMessage('…');const d=await apiPost('passwordResetRequest',{email});if(!d.ok)throw Error(d.error||'Reset failed');const x=d.data||d;document.getElementById('resetBox').style.display='block';if(x.resetToken)document.getElementById('resetToken').value=x.resetToken;authMessage(lang==='sq'?'✓ Kërkesa u pranua. Vendos fjalëkalimin e ri.':'✓ Reset request accepted. Set a new password.')}catch(e){authMessage(e.message,true)}}
 async function confirmPasswordReset(){try{const token=document.getElementById('resetToken').value.trim(),password=document.getElementById('resetNewPass').value;if(!token)throw Error('Token mungon.');if(password.length<8)throw Error(lang==='sq'?'Fjalëkalimi duhet të ketë së paku 8 shenja.':'Password must have at least 8 characters.');authMessage('…');const d=await apiPost('passwordResetConfirm',{resetToken:token,password});if(!d.ok)throw Error(d.error||'Reset failed');document.getElementById('resetBox').style.display='none';authPass.value=password;authMessage(lang==='sq'?'✓ Fjalëkalimi u ndryshua. Tani shtyp Hyr.':'✓ Password changed. You can now sign in.')}catch(e){authMessage(e.message,true)}}
-
-const APPOINTMENT_KEY='familyAppointmentsV1';
-function getAppointments(){try{return JSON.parse(localStorage.getItem(APPOINTMENT_KEY)||'[]')}catch(e){return[]}}
-function addAppointment(){
- const x={id:Date.now(),first:aptFirst.value.trim(),last:aptLast.value.trim(),date:aptDate.value,time:aptTime.value,place:aptPlace.value.trim(),alerted:false};
- if(!x.first||!x.date||!x.time||!x.place){alert(lang==='sq'?'Plotëso emrin, datën, orën dhe vendin.':lang==='en'?'Fill in name, date, time and place.':'Name, Datum, Uhrzeit und Ort ausfüllen.');return}
- const arr=getAppointments();arr.push(x);arr.sort((p,q)=>(p.date+p.time).localeCompare(q.date+q.time));localStorage.setItem(APPOINTMENT_KEY,JSON.stringify(arr));renderAppointments();requestAppNotifications();
-}
-function deleteAppointment(id){localStorage.setItem(APPOINTMENT_KEY,JSON.stringify(getAppointments().filter(x=>x.id!==id)));renderAppointments()}
-function renderAppointments(){
- const e=document.getElementById('aptList');if(!e)return;const arr=getAppointments();
- e.innerHTML=arr.length?arr.map(x=>'<div class="card"><b>👤 '+escA(x.first+' '+x.last)+'</b><div>📅 '+x.date+' · ⏰ '+x.time+'</div><div>📍 '+escA(x.place)+'</div><button class="chip" onclick="deleteAppointment('+x.id+')">🗑</button></div>').join(''):'<div class="card muted">Keine Termine / Nuk ka termine</div>';
-}
-function escA(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function appointmentAlarm(x){
- const sq='🔔 Termini: '+x.first+' '+x.last+'\n⏰ '+x.time+'\n📍 '+x.place;
- const de='🔔 Termin: '+x.first+' '+x.last+'\n⏰ '+x.time+'\n📍 '+x.place;
- const en='🔔 Appointment: '+x.first+' '+x.last+'\n⏰ '+x.time+'\n📍 '+x.place;
- const msg=lang==='sq'?sq:lang==='en'?en:de;
- try{const ac=new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=880;g.gain.value=.15;o.start();setTimeout(()=>{o.stop();ac.close()},1200)}catch(e){}
- if('Notification'in window&&Notification.permission==='granted')new Notification('Mein Haus',{body:msg.replace(/\n/g,' · ')});
- alert(msg);
-}
-function checkAppointments(){
- const now=Date.now(),arr=getAppointments();let changed=false;
- arr.forEach(x=>{const t=new Date(x.date+'T'+x.time).getTime();if(!x.alerted&&now>=t-30*60000&&now<t+5*60000){x.alerted=true;changed=true;appointmentAlarm(x)}});
- if(changed)localStorage.setItem(APPOINTMENT_KEY,JSON.stringify(arr));
-}
-setInterval(checkAppointments,30000);setTimeout(()=>{renderAppointments();checkAppointments()},700);
 
 async function scanReceipt(){const input=document.getElementById('receiptFile'),p=document.getElementById('receiptPreview'),file=input?.files?.[0];if(!file){p.innerHTML='<p class="muted">Zgjidh ose fotografo faturën.</p>';return}p.innerHTML='<p class="muted">Po përgatitet fotografia…</p>';try{const img=await new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(file);i.onload=()=>{URL.revokeObjectURL(u);ok(i)};i.onerror=no;i.src=u});const max=1800,scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);const dataUrl=c.toDataURL('image/jpeg',.78);sessionStorage.setItem('receiptImage',dataUrl);p.innerHTML='<div class="card"><img src="'+dataUrl+'" style="width:100%;max-height:320px;object-fit:contain;border-radius:12px"><p><b>Fotoja u përgatit.</b></p><button class="primary" onclick="analyzeReceiptAI()">Analizo faturën me AI</button><div id="receiptStatus" class="muted"></div></div>'}catch(e){p.innerHTML='<p class="muted">Fotografia nuk u përpunua: '+esc(e.message)+'</p>'}}
 async function analyzeReceiptAI(){
