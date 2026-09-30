@@ -132,7 +132,7 @@ function renderNeedBuy(){
 }
 let APPOINTMENTS=[];
 async function loadAppointmentsReal(){
- try{const d=await apiPost('appointmentList',{});if(d&&d.ok)APPOINTMENTS=Array.isArray(d.data)?d.data:[]}catch(e){console.warn('appointmentList',e)}
+ try{const d=await apiPost('appointmentList',{});if(d&&d.ok){const rows=Array.isArray(d.data)?d.data:[];if(rows.length||!APPOINTMENTS.length)APPOINTMENTS=rows}}catch(e){console.warn('appointmentList',e)}
  renderAppointments();renderAppointmentPage();
 }
 async function addAppointment(){
