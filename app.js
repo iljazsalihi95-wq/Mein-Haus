@@ -110,12 +110,12 @@ async function loadOffersReal(){const root=document.getElementById('offerItems')
 document.getElementById('stockItems').innerHTML='<div class="card muted">Inventari yt do të shfaqet këtu. Nuk përdoren produkte demo.</div>';
 applyLang(); if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 restorePreferredLanguage();
-const rememberedEmail=localStorage.getItem('rememberedEmail');
-if(rememberedEmail&&document.getElementById('authEmail'))document.getElementById('authEmail').value=rememberedEmail;
+const rememberedLogin=localStorage.getItem('rememberedLogin')||localStorage.getItem('rememberedEmail')||'';
+if(rememberedLogin&&document.getElementById('authLogin'))document.getElementById('authLogin').value=rememberedLogin;
 const savedToken=localStorage.getItem('sessionToken');
 function setAuthMode(isAuth){document.body.classList.toggle('authOnly',!!isAuth);const nav=document.querySelector('.bottom');if(nav)nav.style.display=isAuth?'none':''}
 if(savedToken){setAuthMode(false);go('home');setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal();renderNeedBuy?.();refreshHomeNeedBuy?.();refreshHomeAppointment?.()},250)}
-else{setAuthMode(true);go('auth');setTimeout(()=>document.getElementById('authEmail')?.focus(),150)}
+else{setAuthMode(true);go('auth');setTimeout(()=>document.getElementById('authLogin')?.focus(),150)}
 
 /* Weekly household checks — staples such as oil/salt */
 const WEEKLY_CHECKS=[
@@ -158,8 +158,22 @@ async function sendHouseAI(){
 }
 async function apiPost(action,payload={}){const body={action,...payload};const token=localStorage.sessionToken;if(token)body.token=token;const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});const raw=await r.text();try{return JSON.parse(raw)}catch(e){const cleaned=raw.replace(/[\\](?!["\\/bfnrtu])/g,'');try{return JSON.parse(cleaned)}catch(_){throw Error('Përgjigjja e serverit/AI ka JSON të dëmtuar. Provo analizën përsëri.')}}}
 function authMessage(m,bad=false){const e=document.getElementById('authMsg');if(e){e.textContent=m;e.style.color=bad?'#c12626':'#11834f'}}
-async function registerUser(){try{authMessage('…');const d=await apiPost('register',{displayName:authName.value.trim(),email:authEmail.value.trim(),password:authPass.value,householdName:houseName.value.trim(),language:lang});if(!d.ok)throw Error(d.error||'Registrierung fehlgeschlagen');const x=d.data||d;if(x.token)localStorage.sessionToken=x.token;authMessage('✓ Konto erstellt');go('home')}catch(e){authMessage(e.message,true)}}
-async function loginUser(){const email=document.getElementById('authEmail')?.value.trim()||'',password=document.getElementById('authPass')?.value||'';try{if(!email||!password)throw Error(lang==='sq'?'Shkruaj emailin dhe fjalëkalimin.':'E-Mail und Passwort eingeben.');authMessage('…');const d=await apiPost('login',{email,password});if(!d||!d.ok)throw Error(d?.error||(lang==='sq'?'Hyrja dështoi.':'Anmeldung fehlgeschlagen.'));const x=d.data||d;if(!x.token)throw Error(lang==='sq'?'Serveri nuk ktheu sesion.':'Keine Sitzung vom Server.');localStorage.setItem('sessionToken',x.token);localStorage.setItem('rememberedEmail',email);authMessage(lang==='sq'?'✓ U kyçe':'✓ Angemeldet');setAuthMode(false);go('home');setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal()},100)}catch(e){authMessage(e.message,true)}}
+async function registerUser(){try{authMessage('…');const regPass=document.getElementById('registerPass')?.value||'';const d=await apiPost('register',{displayName:authName.value.trim(),email:authEmail.value.trim(),password:regPass,householdName:houseName.value.trim(),language:lang});if(!d.ok)throw Error(d.error||'Registrierung fehlgeschlagen');const x=d.data||d;if(x.token)localStorage.sessionToken=x.token;authMessage('✓ Konto erstellt');go('home')}catch(e){authMessage(e.message,true)}}
+async function loginUser(){
+ const login=document.getElementById('authLogin')?.value.trim()||'',password=document.getElementById('authPass')?.value||'';
+ try{
+  if(!login||!password)throw Error(lang==='sq'?'Shkruaj emrin ose emailin dhe fjalëkalimin.':'Name oder E-Mail und Passwort eingeben.');
+  authMessage('…');
+  const payload={password}; if(login.includes('@'))payload.email=login; else payload.username=login;
+  let d=await apiPost('login',payload);
+  if((!d||!d.ok)&&!login.includes('@')) d=await apiPost('login',{email:login,username:login,password});
+  if(!d||!d.ok)throw Error(d?.error||(lang==='sq'?'Hyrja dështoi.':'Anmeldung fehlgeschlagen.'));
+  const x=d.data||d;if(!x.token)throw Error(lang==='sq'?'Serveri nuk ktheu sesion.':'Keine Sitzung vom Server.');
+  localStorage.setItem('sessionToken',x.token);localStorage.setItem('rememberedLogin',login);
+  authMessage(lang==='sq'?'✓ U kyçe':'✓ Angemeldet');setAuthMode(false);go('home');
+  setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal()},100)
+ }catch(e){authMessage(e.message,true)}
+}
 
 async function forgotPasswordUI(){try{const email=authEmail.value.trim();if(!email)throw Error(lang==='sq'?'Shkruaj emailin.':'Enter your email.');authMessage('…');const d=await apiPost('passwordResetRequest',{email});if(!d.ok)throw Error(d.error||'Reset failed');const x=d.data||d;document.getElementById('resetBox').style.display='block';if(x.resetToken)document.getElementById('resetToken').value=x.resetToken;authMessage(lang==='sq'?'✓ Kërkesa u pranua. Vendos fjalëkalimin e ri.':'✓ Reset request accepted. Set a new password.')}catch(e){authMessage(e.message,true)}}
 async function confirmPasswordReset(){try{const token=document.getElementById('resetToken').value.trim(),password=document.getElementById('resetNewPass').value;if(!token)throw Error('Token mungon.');if(password.length<8)throw Error(lang==='sq'?'Fjalëkalimi duhet të ketë së paku 8 shenja.':'Password must have at least 8 characters.');authMessage('…');const d=await apiPost('passwordResetConfirm',{resetToken:token,password});if(!d.ok)throw Error(d.error||'Reset failed');document.getElementById('resetBox').style.display='none';authPass.value=password;authMessage(lang==='sq'?'✓ Fjalëkalimi u ndryshua. Tani shtyp Hyr.':'✓ Password changed. You can now sign in.')}catch(e){authMessage(e.message,true)}}
