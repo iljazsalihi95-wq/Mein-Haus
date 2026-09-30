@@ -17,7 +17,7 @@ function go(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove
 let shoppingItems=[];
 async function loadShoppingList(){
  const e=document.getElementById('shopItems');if(!e)return;e.innerHTML='<div class="card muted">Po ngarkohet…</div>';
- try{const d=await apiPost('shoppingList',{});if(!d.ok)throw Error(d.error||'');{const raw=d.data?.items||d.data||[];shoppingItems=Array.isArray(raw)?raw:[];}try{const rp=JSON.parse(localStorage.getItem('meinHausReceiptPurchases')||'[]');const ids=new Set(shoppingItems.map(x=>String(x.ID||x.id||'')));shoppingItems=[...rp.filter(x=>!ids.has(String(x.ID||x.id||''))),...shoppingItems]}catch(e){}renderShoppingList();refreshHomeRealData();}
+ try{const [d,p]=await Promise.all([apiPost('shoppingList',{}),apiPost('purchaseList',{}).catch(()=>({ok:false}))]);if(!d.ok)throw Error(d.error||'');{const raw=d.data?.items||d.data||[];shoppingItems=Array.isArray(raw)?raw:[];const pr=p&&p.ok?(p.data?.items||p.data||[]):[];if(Array.isArray(pr))shoppingItems=[...pr,...shoppingItems];}try{const rp=JSON.parse(localStorage.getItem('meinHausReceiptPurchases')||'[]');const ids=new Set(shoppingItems.map(x=>String(x.ID||x.id||'')));shoppingItems=[...rp.filter(x=>!ids.has(String(x.ID||x.id||''))),...shoppingItems]}catch(e){}renderShoppingList();refreshHomeRealData();}
  catch(err){e.innerHTML='<div class="card muted">Nuk u lidh me serverin. Provo përsëri.</div>';}
 }
 function renderShoppingList(){
