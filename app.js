@@ -100,12 +100,12 @@ startSecureSession();
 let homeOfferSlideIndex=0,homeOfferTimer=null;
 function renderHomeOfferSlider(){
  const box=document.getElementById('homeOfferSlider'),dots=document.getElementById('homeOfferDots');if(!box)return;
- const rows=(typeof offers!=='undefined'?offers:[]).filter(x=>x&&x.name).slice(0,12);
- if(!rows.length){box.innerHTML='<div class="offerSlide"><small>OFERTAT LIVE</small><b>Nuk ka ende oferta aktive për zonën tënde.</b></div>';if(dots)dots.innerHTML='';return}
- homeOfferSlideIndex=Math.min(homeOfferSlideIndex,rows.length-1);const o=rows[homeOfferSlideIndex];
- box.innerHTML='<div class="offerSlide">'+(o.image?'<img src="'+esc(o.image)+'" style="width:100%;height:105px;object-fit:contain;background:#fff;border-radius:14px;margin-bottom:10px">':'')+'<small>'+esc(o.store||'OFERTË')+'</small><b style="font-size:20px">'+esc(o.name)+'</b><div class="price">'+esc(String(o.price||''))+(o.price?' €':'')+'</div><small>'+esc(o.from||'')+(o.to?' – '+esc(o.to):'')+'</small></div>';
+ const rows=(typeof offers!=='undefined'?offers:[]).filter(x=>x&&x.name).slice(0,20);
+ if(!rows.length){box.innerHTML='<div class="offerTvRow"><div class="offerTvLabel"><small>DYQANI</small><div class="store">—</div><div class="cat">Kategoria</div></div><div class="offerTvContent"><div><small>OFERTA</small><div class="product">Nuk ka oferta aktive.</div></div></div></div>';if(dots)dots.innerHTML='';return}
+ homeOfferSlideIndex=Math.min(homeOfferSlideIndex,rows.length-1);const o=rows[homeOfferSlideIndex],cat=o.category||o.kategoria||'Ofertë';
+ box.innerHTML='<div class="offerTvRow"><div class="offerTvLabel"><small>DYQANI</small><div class="store">'+esc(o.store||'Dyqani')+'</div><div class="cat">🏷️ '+esc(cat)+'</div></div><div class="offerTvContent">'+(o.image?'<img src="'+esc(o.image)+'" alt="">':'')+'<div><small>OFERTA</small><div class="product">'+esc(o.name)+'</div><div class="price">'+esc(String(o.price||''))+(o.price?' €':'')+'</div>'+(o.oldPrice?'<small><s>'+esc(String(o.oldPrice))+' €</s></small>':'')+'<small style="display:block;margin-top:5px">'+esc(o.from||'')+(o.to?' – '+esc(o.to):'')+'</small></div></div></div>';
  if(dots)dots.innerHTML=rows.map((_,i)=>'<span class="'+(i===homeOfferSlideIndex?'on':'')+'"></span>').join('');
- clearTimeout(homeOfferTimer);homeOfferTimer=setTimeout(()=>{homeOfferSlideIndex=(homeOfferSlideIndex+1)%rows.length;renderHomeOfferSlider()},4500)
+ clearTimeout(homeOfferTimer);homeOfferTimer=setTimeout(()=>{homeOfferSlideIndex=(homeOfferSlideIndex+1)%rows.length;renderHomeOfferSlider()},5000)
 }
 const NEED_BUY_KEY='meinHausNeedBuyV1';
 function needBuyRows(){try{const x=JSON.parse(localStorage.getItem(NEED_BUY_KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
