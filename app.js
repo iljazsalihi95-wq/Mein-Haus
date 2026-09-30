@@ -73,7 +73,7 @@ function renderOffers(){
 }
 function nextOfferSlide(){const q=(document.getElementById('offerSearch')?.value||'').toLowerCase();const a=LIVE_OFFERS.filter(x=>(x.store+' '+x.name+' '+x.size).toLowerCase().includes(q));if(!a.length)return;offerSlide=(offerSlide+1)%a.length;const e=document.getElementById('offerSlider');if(e)e.innerHTML=offerCard(a[offerSlide],true)}
 setInterval(nextOfferSlide,4500);
-async function loadOffersReal(){const root=document.getElementById('offerItems');if(root)root.innerHTML='<div class="card muted">Po ngarkohen ofertat reale për Frankenthal…</div>';try{const d=await apiPost('offersList',{country:offerCountry||'DE',city:offerCity||'Frankenthal',postalCode:'67227',active:true});if(d&&d.ok){const x=d.data||d;LIVE_OFFERS=(x.items||x.offers||[]).map(o=>({store:o.store||o.Dyqani||'',name:o.name||o.product||o.Produkti||'',size:o.size||o.unit||o.Njësia||'',old:o.oldPrice||o.normalPrice||o['Çmimi normal']||'',price:o.price||o.offerPrice||o['Çmimi ofertë']||'',discount:o.discount||'',from:o.from||o['Nga data']||'',to:o.to||o['Deri data']||'',image:o.image||o.imageUrl||o['Foto URL']||'',url:o.url||o.link||o['Link oferta']||''})).filter(o=>o.name&&o.price)}}catch(e){}renderOffers()}setTimeout(loadOffersReal,300);
+async function loadOffersReal(){const root=document.getElementById('offerItems');if(root)root.innerHTML='<div class="card muted">Po ngarkohen ofertat reale për Frankenthal…</div>';try{const d=await apiPost('offersList',{country:offerCountry||'DE',city:offerCity||'Frankenthal',postalCode:'67227',active:true});if(d&&d.ok){const x=d.data||d;LIVE_OFFERS=(x.items||x.offers||[]).map(o=>({store:o.store||o.Dyqani||'',name:o.name||o.product||o.Produkti||'',size:o.size||o.unit||o.Njësia||'',old:o.oldPrice||o.normalPrice||o['Çmimi normal']||'',price:o.price||o.offerPrice||o['Çmimi ofertë']||'',discount:o.discount||'',from:o.from||o['Nga data']||'',to:o.to||o['Deri data']||'',image:o.image||o.imageUrl||o['Foto URL']||'',url:o.url||o.link||o['Link oferta']||''})).filter(o=>o.name&&o.price)}}catch(e){}renderOffers();renderHomeOfferSlider()}setTimeout(loadOffersReal,300);
 document.getElementById('stockItems').innerHTML='<div class="card muted">Inventari yt do të shfaqet këtu. Nuk përdoren produkte demo.</div>';
 applyLang(); if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 if(!localStorage.getItem('languageManual')){localStorage.setItem('lang','sq');lang='sq'}restorePreferredLanguage();
@@ -96,6 +96,17 @@ async function startSecureSession(){
 startSecureSession();
 
 
+
+let homeOfferSlideIndex=0,homeOfferTimer=null;
+function renderHomeOfferSlider(){
+ const box=document.getElementById('homeOfferSlider'),dots=document.getElementById('homeOfferDots');if(!box)return;
+ const rows=(typeof offers!=='undefined'?offers:[]).filter(x=>x&&x.name).slice(0,12);
+ if(!rows.length){box.innerHTML='<div class="offerSlide"><small>OFERTAT LIVE</small><b>Nuk ka ende oferta aktive për zonën tënde.</b></div>';if(dots)dots.innerHTML='';return}
+ homeOfferSlideIndex=Math.min(homeOfferSlideIndex,rows.length-1);const o=rows[homeOfferSlideIndex];
+ box.innerHTML='<div class="offerSlide">'+(o.image?'<img src="'+esc(o.image)+'" style="width:100%;height:105px;object-fit:contain;background:#fff;border-radius:14px;margin-bottom:10px">':'')+'<small>'+esc(o.store||'OFERTË')+'</small><b style="font-size:20px">'+esc(o.name)+'</b><div class="price">'+esc(String(o.price||''))+(o.price?' €':'')+'</div><small>'+esc(o.from||'')+(o.to?' – '+esc(o.to):'')+'</small></div>';
+ if(dots)dots.innerHTML=rows.map((_,i)=>'<span class="'+(i===homeOfferSlideIndex?'on':'')+'"></span>').join('');
+ clearTimeout(homeOfferTimer);homeOfferTimer=setTimeout(()=>{homeOfferSlideIndex=(homeOfferSlideIndex+1)%rows.length;renderHomeOfferSlider()},4500)
+}
 const NEED_BUY_KEY='meinHausNeedBuyV1';
 function needBuyRows(){try{const x=JSON.parse(localStorage.getItem(NEED_BUY_KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
 function needBuySelectedDate(){return document.getElementById('needBuyPageDate')?.value||document.getElementById('needBuyDate')?.value||new Date().toISOString().slice(0,10)}
