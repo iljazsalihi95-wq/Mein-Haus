@@ -110,7 +110,7 @@ function exp_(days){const d=new Date();d.setDate(d.getDate()+days);return d.toIS
 
 function route_(q){const publicA=['register','login','passwordResetRequest','passwordResetConfirm','emailVerify','health','publicOffers','stores'];if(q.action==='health')return{ok:true,data:healthCheck()};if(publicA.includes(q.action))return dispatch_(q,null);const me=session_(q.token);return dispatch_(q,me)}
 
-function dispatch_(q,me){const m={register:register_,login:login_,me:me_,dashboard:dashboard_,family:family_,members:family_,inviteCreate:inviteCreate_,inviteAccept:inviteAccept_,shoppingList:shoppingList_,shoppingAdd:shoppingAdd_,shoppingUpdate:shoppingUpdate_,shoppingDelete:shoppingDelete_,inventoryList:inventoryList_,inventorySave:inventorySave_,purchaseList:purchaseList_,purchaseSave:purchaseSave_,financeList:financeList_,financeSave:financeSave_,householdAI:householdAI_,confirmScan:confirmScan_,publicOffers:publicOffers_,stores:stores_,budgetList:budgetList_,budgetSave:budgetSave_,billList:billList_,billSave:billSave_,notifications:notifications_,notificationRead:notificationRead_,pushSubscribe:pushSubscribe_,passwordResetRequest:passwordResetRequest_,passwordResetConfirm:passwordResetConfirm_,
+function dispatch_(q,me){const m={register:register_,login:login_,sessionCheck:sessionCheck_,me:me_,dashboard:dashboard_,family:family_,members:family_,inviteCreate:inviteCreate_,inviteAccept:inviteAccept_,shoppingList:shoppingList_,shoppingAdd:shoppingAdd_,shoppingUpdate:shoppingUpdate_,shoppingDelete:shoppingDelete_,inventoryList:inventoryList_,inventorySave:inventorySave_,purchaseList:purchaseList_,purchaseSave:purchaseSave_,financeList:financeList_,financeSave:financeSave_,householdAI:householdAI_,confirmScan:confirmScan_,publicOffers:publicOffers_,stores:stores_,budgetList:budgetList_,budgetSave:budgetSave_,billList:billList_,billSave:billSave_,notifications:notifications_,notificationRead:notificationRead_,pushSubscribe:pushSubscribe_,passwordResetRequest:passwordResetRequest_,passwordResetConfirm:passwordResetConfirm_,
  logout:logout_,
  profileUpdate:profileUpdate_,
  memberRoleUpdate:memberRoleUpdate_,
@@ -142,7 +142,9 @@ function dispatch_(q,me){const m={register:register_,login:login_,me:me_,dashboa
  pushMarkSent:pushMarkSent_,
  countryContext:countryContext_,
  familyMemberSave:familyMemberSave_,familyMemberDelete:familyMemberDelete_,
- offersList:publicOffers_,offersSync:offersSync_,offerSourcesSeed:offerSourcesSeed_};if(!m[q.action])throw Error('Action e panjohur: '+q.action);const data=m[q.action](q,me);log_(me,q.action,'ok',{});return{ok:true,data}}
+ offersList:publicOffers_,offersCountry:offersCountry_,offersSync:offersSync_,offerSourcesSeed:offerSourcesSeed_};if(!m[q.action])throw Error('Action e panjohur: '+q.action);const data=m[q.action](q,me);log_(me,q.action,'ok',{});return{ok:true,data}}
+
+function sessionCheck_(q,m){return {valid:true,userId:m.userId,householdId:m.householdId,role:m.role,language:m.language,email:m.email,displayName:m.displayName}}
 
 function session_(t){
   if(!t)throw Error('LOGIN_REQUIRED');
@@ -301,13 +303,42 @@ function price_(m,o){append_('Preisverlauf',{householdId:m.householdId,productKe
 function dashboard_(q,m){const inv=inventoryList_(q,m),fin=financeList_(q,m),shop=shoppingList_(q,m).items;return{inventoryCount:inv.length,shoppingOpen:shop.filter(x=>x.status==='open').length,financeMonth:fin.filter(x=>String(x.Data).slice(0,7)===day_().slice(0,7)).reduce((s,x)=>s+(x.Lloji==='hyrje'?1:-1)*Number(x.Shuma||0),0)}}
 
 function publicOffers_(q,m){
-  const c=effectiveCountry_(q,m),city=norm_(q.city||'');
-  const today=day_();
-  return rows_('Ofertat')
-    .filter(x=>String(x.country).toUpperCase()===c)
-    .filter(x=>!city||!x.city||norm_(x.city).includes(city))
-    .filter(x=>String(x.verified)!=='false')
-    .filter(x=>!x.validTo||String(x.validTo)>=today);
+  q=q||{};
+  const c=effectiveCountry_(q,m),city=String(q.city||q.qyteti||'').trim();
+  return offersCountry_(Object.assign({},q,{country:c,city:city}),m);
+}
+function offersCountry_(q,m){
+  q=q||{};
+  const c=String(q.country||q.shteti||effectiveCountry_(q,m)||'DE').trim().toUpperCase();
+  const city=String(q.city||q.qyteti||'').trim();
+  const raw=offersListByCountry(c,city);
+  return {
+    country:c,
+    city:city,
+    items:raw.map(o=>({
+      id:String(o.ID||''),
+      country:String(o.Shteti||c),
+      city:String(o.Rajoni_Qyteti||''),
+      store:String(o.Dyqani||''),
+      category:String(o.Kategoria||''),
+      name:String(o.Produkti||''),
+      description:String(o.Pershkrimi||''),
+      size:String(o.Sasia||''),
+      price:String(o.Cmimi||''),
+      oldPrice:String(o.Cmimi_Vjeter||''),
+      discount:String(o.Zbritja||''),
+      from:offerDateIso_(o.Nga),
+      to:offerDateIso_(o.Deri),
+      image:String(o.Foto_URL||''),
+      url:String(o.Oferta_URL||'')
+    }))
+  };
+}
+function offerDateIso_(v){
+  if(!v)return '';
+  if(v instanceof Date&&!isNaN(v))return Utilities.formatDate(v,Session.getScriptTimeZone()||'Europe/Berlin','yyyy-MM-dd');
+  const d=new Date(v);
+  return isNaN(d)?String(v):Utilities.formatDate(d,Session.getScriptTimeZone()||'Europe/Berlin','yyyy-MM-dd');
 }
 function stores_(q,m){
   const c=effectiveCountry_(q,m),city=norm_(q.city||'');
