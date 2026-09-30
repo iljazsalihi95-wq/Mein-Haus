@@ -160,19 +160,24 @@ async function apiPost(action,payload={}){const body={action,...payload};const t
 function authMessage(m,bad=false){const e=document.getElementById('authMsg');if(e){e.textContent=m;e.style.color=bad?'#c12626':'#11834f'}}
 async function registerUser(){try{authMessage('…');const regPass=document.getElementById('registerPass')?.value||'';const d=await apiPost('register',{displayName:authName.value.trim(),email:authEmail.value.trim(),password:regPass,householdName:houseName.value.trim(),language:lang});if(!d.ok)throw Error(d.error||'Registrierung fehlgeschlagen');const x=d.data||d;if(x.token)localStorage.sessionToken=x.token;authMessage('✓ Konto erstellt');go('home')}catch(e){authMessage(e.message,true)}}
 async function loginUser(){
- const login=document.getElementById('authLogin')?.value.trim()||'',password=document.getElementById('authPass')?.value||'';
+ const login=(document.getElementById('authLogin')?.value||'').trim().toLowerCase(),password=document.getElementById('authPass')?.value||'';
  try{
-  if(!login||!password)throw Error(lang==='sq'?'Shkruaj emrin ose emailin dhe fjalëkalimin.':'Name oder E-Mail und Passwort eingeben.');
-  authMessage('…');
-  const payload={password}; if(login.includes('@'))payload.email=login; else payload.username=login;
-  let d=await apiPost('login',payload);
-  if((!d||!d.ok)&&!login.includes('@')) d=await apiPost('login',{email:login,username:login,password});
-  if(!d||!d.ok)throw Error(d?.error||(lang==='sq'?'Hyrja dështoi.':'Anmeldung fehlgeschlagen.'));
-  const x=d.data||d;if(!x.token)throw Error(lang==='sq'?'Serveri nuk ktheu sesion.':'Keine Sitzung vom Server.');
+  if(!login||!password)throw Error(lang==='sq'?'Shkruaj emailin dhe fjalëkalimin.':'E-Mail und Passwort eingeben.');
+  authMessage('⏳ Po kontrollohet hyrja…');
+  let d;
+  if(login.includes('@')){
+    d=await apiPost('login',{email:login,password});
+  }else{
+    /* Backend-i aktual autentikon me email. Për emër kërkohet resolver i sigurt në server;
+       nuk hamendësojmë household dhe nuk lejojmë hyrje në familje tjetër. */
+    throw Error(lang==='sq'?'Për momentin hyr me E-mail + fjalëkalim. Hyrja me emër do të aktivizohet vetëm pasi serveri ta verifikojë në mënyrë të sigurt.':'Bitte vorerst E-Mail + Passwort verwenden.');
+  }
+  if(!d||!d.ok)throw Error(d?.error||(lang==='sq'?'Emaili ose fjalëkalimi nuk u pranua.':'E-Mail oder Passwort wurde nicht akzeptiert.'));
+  const x=d.data||d;if(!x.token)throw Error(lang==='sq'?'Serveri nuk ktheu sesion të sigurt.':'Keine sichere Sitzung vom Server.');
   localStorage.setItem('sessionToken',x.token);localStorage.setItem('rememberedLogin',login);
-  authMessage(lang==='sq'?'✓ U kyçe':'✓ Angemeldet');setAuthMode(false);go('home');
-  setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal()},100)
- }catch(e){authMessage(e.message,true)}
+  authMessage(lang==='sq'?'✓ Hyrja u krye':'✓ Angemeldet');setAuthMode(false);go('home');
+  setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal();renderNeedBuy?.();refreshHomeNeedBuy?.();refreshHomeAppointment?.()},100);
+ }catch(e){authMessage('❌ '+e.message,true)}
 }
 
 async function forgotPasswordUI(){try{const email=authEmail.value.trim();if(!email)throw Error(lang==='sq'?'Shkruaj emailin.':'Enter your email.');authMessage('…');const d=await apiPost('passwordResetRequest',{email});if(!d.ok)throw Error(d.error||'Reset failed');const x=d.data||d;document.getElementById('resetBox').style.display='block';if(x.resetToken)document.getElementById('resetToken').value=x.resetToken;authMessage(lang==='sq'?'✓ Kërkesa u pranua. Vendos fjalëkalimin e ri.':'✓ Reset request accepted. Set a new password.')}catch(e){authMessage(e.message,true)}}
