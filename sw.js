@@ -1,4 +1,4 @@
-const C='mein-haus-stable-28';
+const C='mein-haus-recovery-29';
 const CORE=['./','./index.html','./app.js','./manifest.json','./logo.jpg','./icon-128.jpg'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(CORE)))});
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))),self.clients.claim()])));
