@@ -103,7 +103,7 @@ async function addShoppingItem(name){name=(name||'').trim();if(!name)return;cons
 async function toggleShoppingItem(id,done){await apiPost('shoppingUpdate',{itemId:id,status:done?'done':'open'});await loadShoppingList()}
 async function deleteShoppingItem(id){await apiPost('shoppingDelete',{itemId:id});await loadShoppingList()}
 setTimeout(()=>{loadShoppingList()},700);
-let LIVE_OFFERS=[];let offers=[];let offerSlide=0;const VERIFIED_OFFERS_DE=[
+let LIVE_OFFERS=[];let offers=[];let offerSlide=0;let offerCountry='DE',offerCity='Frankenthal';const VERIFIED_OFFERS_DE=[
 {store:'ALDI SÜD',category:'Obst & Gemüse',name:'Äpfel Krumme Dinger',size:'2 kg',price:'1,89',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
 {store:'ALDI SÜD',category:'Obst & Gemüse',name:'Suppengemüse',size:'800 g',price:'1,49',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
 {store:'ALDI SÜD',category:'Obst & Gemüse',name:'Bio Naturland Hokkaido',size:'1 kg',price:'0,99',oldPrice:'1,39',discount:'28%',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
@@ -210,7 +210,7 @@ const APPOINTMENTS_KEY='meinHausAppointmentsBackup';
 let APPOINTMENTS=[];try{APPOINTMENTS=JSON.parse(localStorage.getItem(APPOINTMENTS_KEY)||'[]')}catch(e){APPOINTMENTS=[]}
 function saveAppointmentsBackup(){try{localStorage.setItem(APPOINTMENTS_KEY,JSON.stringify(APPOINTMENTS))}catch(e){}}
 async function loadAppointmentsReal(){
- try{const d=await apiPost('appointmentList',{});if(d&&d.ok){const rows=Array.isArray(d.data)?d.data:[];const merged=[...APPOINTMENTS];rows.forEach(a=>{const key=x=>String(x.appointmentId||'')||[x.firstName,x.lastName,x.date,x.time,x.location].join('|').toLowerCase();const i=merged.findIndex(x=>key(x)===key(a));if(i>=0)merged[i]={...merged[i],...a};else merged.push(a)});APPOINTMENTS=merged;saveAppointmentsBackup()}}catch(e){console.warn('appointmentList',e)}
+ try{const request=apiPost('appointmentList',{}),timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('appointments timeout')),5000));const d=await Promise.race([request,timeout]);if(d&&d.ok){const rows=Array.isArray(d.data)?d.data:[];const merged=[...APPOINTMENTS];rows.forEach(a=>{const key=x=>String(x.appointmentId||'')||[x.firstName,x.lastName,x.date,x.time,x.location].join('|').toLowerCase();const i=merged.findIndex(x=>key(x)===key(a));if(i>=0)merged[i]={...merged[i],...a};else merged.push(a)});APPOINTMENTS=merged;saveAppointmentsBackup()}}catch(e){console.warn('appointmentList',e)}
  renderAppointments();renderAppointmentPage();
 }
 async function addAppointment(){
