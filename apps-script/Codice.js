@@ -659,13 +659,29 @@ function offersSync_(q,m){
   requireAdmin_(m);const country=effectiveCountry_(q,m),city=q.city||household_(m).city||'';let sources=offerSourceList_({country},m);if(!sources.length)sources=offerSourcesSeed_({country,city},m);
   const result=[];sources.filter(x=>String(x.active)!=='false').forEach(src=>{try{
     const res=UrlFetchApp.fetch(src.url,{muteHttpExceptions:true,followRedirects:true,headers:{'User-Agent':'Mozilla/5.0'}});if(res.getResponseCode()>=400)throw Error('HTTP '+res.getResponseCode());
-    let text=String(res.getContentText()).replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').slice(0,50000);
-    const prompt='Extract ONLY currently valid retail offers from this store page. Return JSON object {offers:[{product,category,oldPrice,price,discount,validFrom,validTo,imageUrl,sourceUrl}]}. Prices numbers only. Dates YYYY-MM-DD. Do not invent products or prices. Store: '+src.store+'; city: '+city+'; page URL: '+src.url+'; page text: '+text;
+    const html=String(res.getContentText());
+    const imageUrls=[...html.matchAll(/(?:src|data-src|data-original|content)=["']([^"']+\.(?:jpg|jpeg|png|webp)(?:\?[^"']*)?)["']/gi)].map(x=>x[1]).filter(x=>/^https?:\/\//i.test(x)).slice(0,120);
+    let text=html.replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').slice(0,50000);
+    const prompt='Extract ONLY currently valid retail offers from this store page. Return JSON object {offers:[{product,category,oldPrice,price,discount,validFrom,validTo,imageUrl,sourceUrl}]}. Match each product to its REAL product image URL from the supplied image URLs when possible; never invent an image URL. Prices numbers only. Dates YYYY-MM-DD. Do not invent products or prices. Store: '+src.store+'; city: '+city+'; page URL: '+src.url+'; image URLs: '+imageUrls.join(' | ')+'; page text: '+text;
     const j=openaiJson_(prompt,''),offers=Array.isArray(j.offers)?j.offers:[];
-    offers.forEach(o=>{if(!o.product||!Number(o.price))return;const key=norm_(o.product),found=rows_('Ofertat').find(z=>String(z.country).toUpperCase()===country&&norm_(z.city)===norm_(city)&&norm_(z.store)===norm_(src.store)&&z.productKey===key&&String(z.validTo||'')===String(o.validTo||''));const row={offerId:found?found.offerId:id_('off'),country,city,store:src.store,productKey:key,product:o.product,category:o.category||'',oldPrice:Number(o.oldPrice||0),price:Number(o.price||0),discount:Number(o.discount||0),validFrom:o.validFrom||'',validTo:o.validTo||'',imageUrl:o.imageUrl||'',sourceUrl:o.sourceUrl||src.url,sourceType:'auto',verified:true,createdAt:found?found.createdAt||now_():now_(),updatedAt:now_()};if(found)patch_('Ofertat',found._row,row);else append_('Ofertat',row);result.push(row)});
+    offers.forEach(o=>{if(!o.product||!Number(o.price))return;const key=norm_(o.product),found=rows_('Ofertat').find(z=>String(z.country).toUpperCase()===country&&norm_(z.city)===norm_(city)&&norm_(z.store)===norm_(src.store)&&z.productKey===key&&String(z.validTo||'')===String(o.validTo||''));const row={offerId:found?found.offerId:id_('off'),country,city,store:src.store,productKey:key,product:o.product,category:o.category||'',oldPrice:Number(o.oldPrice||0),price:Number(o.price||0),discount:Number(o.discount||0),validFrom:o.validFrom||'',validTo:o.validTo||'',imageUrl:o.imageUrl||'',sourceUrl:o.sourceUrl||src.url,sourceType:'auto',verified:true,createdAt:found?found.createdAt||now_():now_(),updatedAt:now_()};if(found)patch_('Ofertat',found._row,row);else append_('Ofertat',row);syncOfferImageToCountrySheet_(country,city,src.store,o.product,o.imageUrl||'',o.sourceUrl||src.url);result.push(row)});
     patch_('OfferSources',src._row,{lastCheckedAt:now_(),lastStatus:'ok:'+offers.length,updatedAt:now_()});
   }catch(e){patch_('OfferSources',src._row,{lastCheckedAt:now_(),lastStatus:'error:'+String(e.message||e).slice(0,120),updatedAt:now_()})}});
   return {imported:result.length,offers:publicOffers_({country,city},m)}
+}
+
+function syncOfferImageToCountrySheet_(country,city,store,product,imageUrl,sourceUrl){
+  if(!imageUrl)return;
+  try{
+    const sh=offersSheet_(country),vals=sh.getDataRange().getValues();if(vals.length<2)return;
+    const h=vals[0].map(String),ix={};h.forEach((k,i)=>ix[k]=i);
+    for(let r=1;r<vals.length;r++){
+      if(norm_(vals[r][ix.Dyqani])===norm_(store)&&norm_(vals[r][ix.Produkti])===norm_(product)){
+        if(ix.Foto_URL!=null)sh.getRange(r+1,ix.Foto_URL+1).setValue(imageUrl);
+        if(ix.Oferta_URL!=null&&sourceUrl)sh.getRange(r+1,ix.Oferta_URL+1).setValue(sourceUrl);
+      }
+    }
+  }catch(e){}
 }
 function offerSourceList_(q,m){
   return rows_('OfferSources').filter(x=>String(x.active)!=='false'&&(!q.country||String(x.country).toUpperCase()===String(q.country).toUpperCase()));
