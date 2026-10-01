@@ -111,7 +111,9 @@ let LIVE_OFFERS=[];let offers=[];let offerSlide=0;let offerCountry='DE',offerCit
 {store:'ALDI SÜD',category:'Haushalt',name:'PERWOLL Waschmittel XXL',size:'80 WL',price:'12,99',from:'01.10.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'},
 {store:'ALDI SÜD',category:'Wohnen',name:'NOVITESSE Winter-Seersucker-Bettwäsche',size:'1 Stück',price:'17,99',from:'01.10.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'},
 {store:'ALDI SÜD',category:'Wohnen',name:'HOME CREATION Klapptritt',size:'1 Stück',price:'2,49',from:'01.10.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'},
-{store:'ALDI SÜD',category:'Haushalt',name:'DR. BECKMANN Waschmaschinen-Pflege',size:'250 ml',price:'2,65',from:'28.09.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'}
+{store:'ALDI SÜD',category:'Haushalt',name:'DR. BECKMANN Waschmaschinen-Pflege',size:'250 ml',price:'2,65',from:'28.09.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'},
+{store:'LIDL',category:'Mode',name:'ESMARA Damen Pyjama',size:'1 Stück',price:'7,99',oldPrice:'11,99',discount:'33%',from:'28.09.2026',to:'02.10.2026',url:'https://www.lidl.de/c/cooler-sommer-heisse-deals/'},
+{store:'LIDL',category:'Werkzeug',name:'PARKSIDE 20 V Akku-Bohrschrauber Starterset',size:'1 Set',price:'29,99',oldPrice:'69,99',discount:'57%',from:'01.10.2026',to:'03.10.2026',url:'https://www.lidl.de/c/cooler-sommer-heisse-deals/'}
 ];
 
 // Immediate verified fallback: weekly offers must never remain on a loading placeholder.
@@ -129,20 +131,20 @@ function renderOffers(){const root=document.getElementById('offerItems');if(!roo
 function nextOfferSlide(){if(offerPaused||!document.getElementById('offers')?.classList.contains('active'))return;moveOfferSlide(1)}
 setInterval(nextOfferSlide,5500);
 async function loadOffersReal(){
- const root=document.getElementById('offerItems');
- // Germany: render verified current offers instantly; backend may refresh/extend them afterwards.
- if((offerCountry||'DE')==='DE'){
-   LIVE_OFFERS=VERIFIED_OFFERS_DE.slice();offers=LIVE_OFFERS.slice();
+ const root=document.getElementById('offerItems'),country=(typeof countryCode==='function'?countryCode():'DE');
+ // Frankenthal/Germany always has a verified local fallback. Never erase it on API failure.
+ if(country==='DE'){
+   LIVE_OFFERS=VERIFIED_OFFERS_DE.slice();offers=VERIFIED_OFFERS_DE.slice();
    renderOffers();renderHomeOfferSlider();
  }
  try{
-   const request=apiPost('offersCountry',{country:offerCountry||'DE',city:offerCity||'Frankenthal',postalCode:'67227',active:true});
+   const request=apiPost('offersCountry',{country:country,city:localStorage.getItem('offerCity')||offerCity||'Frankenthal',postalCode:'67227',active:true});
    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('offers timeout')),5000));
    const d=await Promise.race([request,timeout]);
    if(d&&d.ok){
      const x=d.data||d,raw=Array.isArray(x)?x:(x.items||x.offers||x.data?.items||[]);
      const fresh=raw.map(o=>({store:o.store||o.Dyqani||'',category:o.category||o.Kategoria||'',name:o.name||o.product||o.Produkti||'',size:o.size||o.unit||o.Sasia||o.Njësia||'',old:o.oldPrice||o.Cmimi_Vjeter||o.normalPrice||o['Çmimi normal']||'',oldPrice:o.oldPrice||o.Cmimi_Vjeter||o.normalPrice||o['Çmimi normal']||'',price:o.price||o.Cmimi||o.offerPrice||o['Çmimi ofertë']||'',discount:o.discount||o.Zbritja||'',from:o.from||o.Nga||o['Nga data']||'',to:o.to||o.Deri||o['Deri data']||'',image:o.image||o.Foto_URL||o.imageUrl||o['Foto URL']||'',url:o.url||o.Oferta_URL||o.link||o['Link oferta']||''})).filter(o=>o.name&&o.price);
-     if(fresh.length){LIVE_OFFERS=fresh;offers=fresh.slice();renderOffers();renderHomeOfferSlider()}
+     if(fresh.length){const base=country==='DE'?VERIFIED_OFFERS_DE:[],key=o=>[o.store,o.name,o.price].join('|').toLowerCase(),seen=new Set();const merged=[...fresh,...base].filter(o=>{const k=key(o);if(seen.has(k))return false;seen.add(k);return true});LIVE_OFFERS=merged;offers=merged.slice();renderOffers();renderHomeOfferSlider()}
    }
  }catch(e){console.warn('Verified offer fallback remains active',e)}
 }
@@ -174,7 +176,8 @@ startSecureSession();
 let homeOfferSlideIndex=0,homeOfferTimer=null,homeOfferPaused=false,homeOfferStoreIndex=0;
 function homeOfferText(k){const d={offer:{sq:'OFERTA',de:'ANGEBOT',en:'OFFER',it:'OFFERTA',tr:'KAMPANYA',mk:'ПОНУДА',bs:'PONUDA'},valid:{sq:'Vlen deri',de:'Gültig bis',en:'Valid until',it:'Valida fino al',tr:'Geçerli',mk:'Важи до',bs:'Važi do'},all:{sq:'Të gjitha',de:'Alle',en:'All',it:'Tutte',tr:'Tümü',mk:'Сите',bs:'Sve'},none:{sq:'Nuk ka oferta aktive.',de:'Keine aktiven Angebote.',en:'No active offers.',it:'Nessuna offerta attiva.',tr:'Aktif kampanya yok.',mk:'Нема активни понуди.',bs:'Nema aktivnih ponuda.'}};return d[k]?.[lang]||d[k]?.sq}
 function offerISODate(v){v=String(v||'').trim();if(!v)return'';let m=v.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return m[1]+'-'+m[2]+'-'+m[3];m=v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');return''}
-function activeHomeOffers(){const now=new Date().toISOString().slice(0,10),src=(typeof offers!=='undefined'&&offers.length?offers:(typeof LIVE_OFFERS!=='undefined'&&LIVE_OFFERS.length?LIVE_OFFERS:VERIFIED_OFFERS_DE));return src.filter(x=>{if(!x||!x.name)return false;const until=offerISODate(x.to);return !until||until>=now}).slice(0,40)}
+function localISODate(){const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day}
+function activeHomeOffers(){const now=localISODate(),base=(countryCode()==='DE'?VERIFIED_OFFERS_DE:[]),src=[...(typeof offers!=='undefined'?offers:[]),...(typeof LIVE_OFFERS!=='undefined'?LIVE_OFFERS:[]),...base],seen=new Set();return src.filter(x=>{if(!x||!x.name)return false;const k=[x.store,x.name,x.price].join('|').toLowerCase();if(seen.has(k))return false;seen.add(k);const from=offerISODate(x.from),until=offerISODate(x.to);return (!from||from<=now)&&(!until||until>=now)}).slice(0,40)}
 function homeOfferStores(rows){return [...new Set(rows.map(x=>String(x.store||'').trim()).filter(Boolean))]}
 function homeOfferCategories(rows,store){return [...new Set(rows.filter(x=>!store||x.store===store).map(x=>String(x.category||x.kategoria||'').trim()).filter(Boolean))]}
 function selectHomeOfferStore(i){homeOfferStoreIndex=i;homeOfferSlideIndex=0;renderHomeOfferSlider()}
