@@ -104,10 +104,10 @@ async function toggleShoppingItem(id,done){await apiPost('shoppingUpdate',{itemI
 async function deleteShoppingItem(id){await apiPost('shoppingDelete',{itemId:id});await loadShoppingList()}
 setTimeout(()=>{loadShoppingList()},700);
 let LIVE_OFFERS=[];let offers=[];let offerSlide=0;let offerCountry='DE',offerCity='Frankenthal';const VERIFIED_OFFERS_DE=[
-{store:'ALDI SÜD',category:'Obst & Gemüse',name:'Äpfel Krumme Dinger',size:'2 kg',price:'1,89',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
-{store:'ALDI SÜD',category:'Obst & Gemüse',name:'Suppengemüse',size:'800 g',price:'1,49',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
-{store:'ALDI SÜD',category:'Obst & Gemüse',name:'Bio Naturland Hokkaido',size:'1 kg',price:'0,99',oldPrice:'1,39',discount:'28%',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
-{store:'ALDI SÜD',category:'Obst & Gemüse',name:'Blumenkohl',size:'1 Stück',price:'0,99',oldPrice:'1,29',discount:'23%',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
+{store:'ALDI SÜD',category:'Obst & Gemüse',name:'Äpfel Krumme Dinger',size:'2 kg',price:'1,89',image:'https://img.offers-cdn.net/assets/uploads/offers/de/3000066/apfel-krumme-dinger-neue-ernte-2kg-normal.jpeg',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
+{store:'ALDI SÜD',category:'Obst & Gemüse',name:'Suppengemüse',size:'800 g',price:'1,49',image:'https://img.offers-cdn.net/assets/uploads/offers/de/31218583/suppengemuse-800-g-schale-normal-65835c1b70a5b.jpeg',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
+{store:'ALDI SÜD',category:'Obst & Gemüse',name:'Bio Naturland Hokkaido',size:'1 kg',price:'0,99',oldPrice:'1,39',discount:'28%',image:'https://static01.eu/1prospekte.de/images/uploads/021022/gut-bio-bio-hokkaido-kurbis-61131.jpg',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
+{store:'ALDI SÜD',category:'Obst & Gemüse',name:'Blumenkohl',size:'1 Stück',price:'0,99',oldPrice:'1,29',discount:'23%',image:'https://content-media.bonial.biz/d6d5b8d2-5710-4911-bf5f-fab5f779b03e/main.jpg',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
 {store:'ALDI SÜD',category:'Haushalt',name:'PERWOLL Waschmittel XXL',size:'80 WL',price:'12,99',from:'01.10.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'},
 {store:'ALDI SÜD',category:'Wohnen',name:'NOVITESSE Winter-Seersucker-Bettwäsche',size:'1 Stück',price:'17,99',from:'01.10.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'},
 {store:'ALDI SÜD',category:'Wohnen',name:'HOME CREATION Klapptritt',size:'1 Stück',price:'2,49',from:'01.10.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'},
