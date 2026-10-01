@@ -27,6 +27,15 @@ tr:{homeSummary:'Ev özeti',addToList:'Listeye ekle',receiptAI:'Fiş AI',newPurc
 mk:{homeSummary:'Преглед на домот',addToList:'Додај во листа',receiptAI:'Сметка AI',newPurchase:'Додај ново купување',savePurchase:'Зачувај купување',addReceiptAI:'Додај со Сметка AI',currentLeaflets:'Тековни каталози',addTransaction:'Додај приход / расход',saveTransaction:'Зачувај трансакција',transactions:'Трансакции',appointmentsAlerts:'Термини и потсетници',paymentsDeadlines:'Плаќања и рокови',aiHelp:'Помош за домашните податоци',familyFinance:'Членови и финансии по лице',profileLangPrivacy:'Профил, јазик и приватност',addMember:'Додај член',saveMember:'Зачувај член',familyControl:'Преглед на семејството',addBill:'Додај сметка / претплата',saveBill:'Зачувај сметка',homeAssistant:'Домашен асистент',send:'Испрати',notifications:'Известувања',familyData:'Семејни податоци'},
 bs:{homeSummary:'Pregled doma',addToList:'Dodaj na listu',receiptAI:'Račun AI',newPurchase:'Dodaj novu kupovinu',savePurchase:'Sačuvaj kupovinu',addReceiptAI:'Dodaj pomoću Račun AI',currentLeaflets:'Aktuelni katalozi',addTransaction:'Dodaj prihod / trošak',saveTransaction:'Sačuvaj transakciju',transactions:'Transakcije',appointmentsAlerts:'Termini i podsjetnici',paymentsDeadlines:'Plaćanja i rokovi',aiHelp:'Pomoć za podatke doma',familyFinance:'Članovi i finansije po osobi',profileLangPrivacy:'Profil, jezik i privatnost',addMember:'Dodaj člana',saveMember:'Sačuvaj člana',familyControl:'Pregled porodice',addBill:'Dodaj račun / pretplatu',saveBill:'Sačuvaj račun',homeAssistant:'Kućni asistent',send:'Pošalji',notifications:'Obavijesti',familyData:'Porodični podaci'}
 };Object.keys(UI_CORE).forEach(k=>Object.assign(I18N[k],UI_CORE[k]));
+const UI_HOTFIX={
+sq:{checkOffers:'Kontrollo ofertat aktuale',noItemsToday:'Nuk ka artikuj për këtë ditë.',chooseLanguage:'🌐 Zgjidh gjuhën'},
+de:{checkOffers:'Aktuelle Angebote ansehen',noItemsToday:'Keine Artikel für diesen Tag.',chooseLanguage:'🌐 Sprache wählen'},
+en:{checkOffers:'View current offers',noItemsToday:'No items for this day.',chooseLanguage:'🌐 Choose language'},
+it:{checkOffers:'Controlla le offerte attuali',noItemsToday:'Nessun articolo per questo giorno.',chooseLanguage:'🌐 Scegli la lingua'},
+tr:{checkOffers:'Güncel kampanyaları gör',noItemsToday:'Bu gün için ürün yok.',chooseLanguage:'🌐 Dil seç'},
+mk:{checkOffers:'Провери ги тековните понуди',noItemsToday:'Нема ставки за овој ден.',chooseLanguage:'🌐 Избери јазик'},
+bs:{checkOffers:'Pogledaj aktuelne ponude',noItemsToday:'Nema stavki za ovaj dan.',chooseLanguage:'🌐 Izaberi jezik'}
+};Object.keys(UI_HOTFIX).forEach(k=>Object.assign(I18N[k],UI_HOTFIX[k]));
 const SUPPORTED=['sq','de','en','it','tr','mk','bs'];
 function detectLanguage(){const raw=(navigator.languages&&navigator.languages[0]||navigator.language||'de').toLowerCase().split('-')[0];return SUPPORTED.includes(raw)?raw:'de'}
 
