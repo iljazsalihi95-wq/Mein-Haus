@@ -115,8 +115,7 @@ let LIVE_OFFERS=[];let offers=[];let offerSlide=0;let offerCountry='DE',offerCit
 {store:'LIDL',category:'Obst & Gemüse',name:'Bananen',size:'1 kg',price:'1,49',oldPrice:'1,99',discount:'25%',image:'https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg',from:'28.09.2026',to:'02.10.2026',url:'https://www.lidl.de/c/online-prospekte/s10005610'},
 {store:'REWE',category:'Obst & Gemüse',name:'Tomaten',size:'1 kg',price:'1,19',oldPrice:'1,99',discount:'40%',image:'https://upload.wikimedia.org/wikipedia/commons/8/89/Tomato_je.jpg',from:'28.09.2026',to:'03.10.2026',url:'https://www.rewe.de/angebote/'},
 {store:'ALDI SÜD',category:'Molkereiprodukte',name:'Milch',size:'1 Liter',price:'0,79',oldPrice:'0,99',discount:'20%',image:'https://upload.wikimedia.org/wikipedia/commons/0/0e/Milk_glass.jpg',from:'28.09.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'},
-{store:'EDEKA',category:'Molkereiprodukte',name:'Gouda',size:'400 g',price:'2,49',oldPrice:'3,49',discount:'28%',image:'https://upload.wikimedia.org/wikipedia/commons/1/15/Gouda.jpg',from:'28.09.2026',to:'03.10.2026',url:'https://www.edeka.de/maerkte/angebote.jsp'}
-
+{store:'EDEKA',category:'Molkereiprodukte',name:'Gouda',size:'400 g',price:'2,49',oldPrice:'3,49',discount:'28%',image:'https://upload.wikimedia.org/wikipedia/commons/1/15/Gouda.jpg',from:'28.09.2026',to:'03.10.2026',url:'https://www.edeka.de/maerkte/angebote.jsp'},
 {store:'LIDL',category:'Mode',name:'ESMARA Damen Pyjama',size:'1 Stück',price:'7,99',oldPrice:'11,99',discount:'33%',from:'28.09.2026',to:'02.10.2026',url:'https://www.lidl.de/c/cooler-sommer-heisse-deals/'},
 {store:'LIDL',category:'Werkzeug',name:'PARKSIDE 20 V Akku-Bohrschrauber Starterset',size:'1 Set',price:'29,99',oldPrice:'69,99',discount:'57%',from:'01.10.2026',to:'03.10.2026',url:'https://www.lidl.de/c/cooler-sommer-heisse-deals/'}
 ];
