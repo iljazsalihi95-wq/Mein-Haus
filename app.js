@@ -173,7 +173,8 @@ startSecureSession();
 
 let homeOfferSlideIndex=0,homeOfferTimer=null,homeOfferPaused=false,homeOfferStoreIndex=0;
 function homeOfferText(k){const d={offer:{sq:'OFERTA',de:'ANGEBOT',en:'OFFER',it:'OFFERTA',tr:'KAMPANYA',mk:'ПОНУДА',bs:'PONUDA'},valid:{sq:'Vlen deri',de:'Gültig bis',en:'Valid until',it:'Valida fino al',tr:'Geçerli',mk:'Важи до',bs:'Važi do'},all:{sq:'Të gjitha',de:'Alle',en:'All',it:'Tutte',tr:'Tümü',mk:'Сите',bs:'Sve'},none:{sq:'Nuk ka oferta aktive.',de:'Keine aktiven Angebote.',en:'No active offers.',it:'Nessuna offerta attiva.',tr:'Aktif kampanya yok.',mk:'Нема активни понуди.',bs:'Nema aktivnih ponuda.'}};return d[k]?.[lang]||d[k]?.sq}
-function activeHomeOffers(){const now=new Date().toISOString().slice(0,10);return (typeof offers!=='undefined'?offers:[]).filter(x=>x&&x.name&&(!x.to||String(x.to).slice(0,10)>=now)).slice(0,40)}
+function offerISODate(v){v=String(v||'').trim();if(!v)return'';let m=v.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return m[1]+'-'+m[2]+'-'+m[3];m=v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');return''}
+function activeHomeOffers(){const now=new Date().toISOString().slice(0,10),src=(typeof offers!=='undefined'&&offers.length?offers:(typeof LIVE_OFFERS!=='undefined'&&LIVE_OFFERS.length?LIVE_OFFERS:VERIFIED_OFFERS_DE));return src.filter(x=>{if(!x||!x.name)return false;const until=offerISODate(x.to);return !until||until>=now}).slice(0,40)}
 function homeOfferStores(rows){return [...new Set(rows.map(x=>String(x.store||'').trim()).filter(Boolean))]}
 function homeOfferCategories(rows,store){return [...new Set(rows.filter(x=>!store||x.store===store).map(x=>String(x.category||x.kategoria||'').trim()).filter(Boolean))]}
 function selectHomeOfferStore(i){homeOfferStoreIndex=i;homeOfferSlideIndex=0;renderHomeOfferSlider()}
