@@ -351,7 +351,7 @@ const OFFER_SOURCES=[
  {country:'CH',name:'Möbel Pfister',url:'https://www.pfister.ch/',mode:'offers',regional:true},
  {country:'CH',name:'Coop City',url:'https://www.coop-city.ch/',mode:'offers',regional:true}
 ];
-function countryCode(){return (localStorage.getItem('offerCountry')||'DE').toUpperCase()}
+function countryCode(){const c=(localStorage.getItem('offerCountry')||'DE').toUpperCase();return OFFER_COUNTRIES.includes(c)?c:'DE'}
 function offerCountryName(c){return ({DE:'Deutschland / Gjermani',CH:'Schweiz / Zvicër',IT:'Italia',MK:'Северна Македонија',TR:'Türkiye',RS:'Srbija',HR:'Hrvatska',AT:'Österreich',BA:'Bosna i Hercegovina',XK:'Kosovë',AL:'Shqipëri',SI:'Slovenija'})[c]||c}
 function detectOfferCountryByGPS(){
  const e=document.getElementById('verifiedOffers');if(e)e.innerHTML='<div class="card">📍 Po kërkoj vendndodhjen… / Standort wird ermittelt…</div>';
@@ -363,10 +363,13 @@ function detectOfferCountryByGPS(){
  }catch(err){renderOfferSources()}
  },()=>renderOfferSources(),{enableHighAccuracy:true,timeout:12000,maximumAge:300000});
 }
+function setOfferCountry(c){c=String(c||'DE').toUpperCase();localStorage.setItem('offerCountry',c);if(c==='DE'&&!localStorage.getItem('offerCity'))localStorage.setItem('offerCity','Frankenthal');renderOfferSources();loadOffersReal()}
 function renderOfferSources(){
  const e=document.getElementById('verifiedOffers');if(!e)return;const c=countryCode(),city=localStorage.getItem('offerCity')||'',src=OFFER_SOURCES.filter(x=>x.country===c);
- e.innerHTML='<div class="card"><b>📍 '+offerCountryName(c)+(city?' · '+city:'')+'</b><div class="muted">Prospektet sipas vendndodhjes / Angebote nach Standort</div><button class="chip" style="margin-top:8px" onclick="detectOfferCountryByGPS()">📍 GPS aktualisieren</button></div><div class="section"><h3>📚 Prospekte & Angebote</h3></div>'+
- (src.length?src.map(x=>'<div class="card row"><div class="grow"><b>'+x.name+'</b><div class="muted">'+(x.regional?'Filiale/Region auswählen':'Landesweite Angebote')+'</div></div><button class="chip" onclick="window.open(\''+x.url+'\',\'_blank\')">Prospekt ↗</button></div>').join(''):'<div class="card">Nuk ka ende burime për këtë shtet.</div>');
+ const countries=['DE','IT','MK','CH'];
+ const chooser='<div class="chips" style="margin-top:10px">'+countries.map(k=>'<button class="chip '+(k===c?'on':'')+'" onclick="setOfferCountry(\''+k+'\')">'+offerCountryName(k)+'</button>').join('')+'</div>';
+ e.innerHTML='<div class="card"><b>📍 '+offerCountryName(c)+(city?' · '+esc(city):'')+'</b><div class="muted">Zgjidh shtetin ose përdor GPS. Zgjedhja nuk është më e fiksuar në Itali.</div>'+chooser+'<button class="chip" style="margin-top:8px" onclick="detectOfferCountryByGPS()">📍 Përdor GPS / Standort</button></div><div class="section"><h3>📚 Prospekte & Angebote</h3></div>'+
+ (src.length?src.map(x=>'<div class="card row"><div class="grow"><b>'+esc(x.name)+'</b><div class="muted">'+(x.regional?'Filiale/Region auswählen':'Landesweite Angebote')+'</div></div><button class="chip" onclick="window.open(\''+x.url+'\',\'_blank\')">Prospekt ↗</button></div>').join(''):'<div class="card">Nuk ka ende burime për këtë shtet.</div>');
 }
 setTimeout(detectOfferCountryByGPS,500);
 
