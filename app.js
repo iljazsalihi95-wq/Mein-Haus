@@ -103,6 +103,13 @@ async function addShoppingItem(name){name=(name||'').trim();if(!name)return;cons
 async function toggleShoppingItem(id,done){await apiPost('shoppingUpdate',{itemId:id,status:done?'done':'open'});await loadShoppingList()}
 async function deleteShoppingItem(id){await apiPost('shoppingDelete',{itemId:id});await loadShoppingList()}
 setTimeout(()=>{loadShoppingList()},700);
+const APPOINTMENT_SEED_BACKUP=[
+{appointmentId:'apt_20261008_ilaz',firstName:'Ilaz',lastName:'Salihi',title:'Analizat',date:'2026-10-08',time:'07:30',location:'Te Doktori Sheqerit',remindMinutes:1440,status:'active'},
+{appointmentId:'apt_20261013_ilaz',firstName:'Ilaz',lastName:'Salihi',title:'Analizat',date:'2026-10-13',time:'08:00',location:'Te Doktori Sheqerit',remindMinutes:1440,status:'active'},
+{appointmentId:'apt_20261015_sufjan',firstName:'Sufjan',lastName:'Salihi',title:'Analizat',date:'2026-10-15',time:'08:00',location:'Doktor Maura',remindMinutes:1440,status:'active'},
+{appointmentId:'apt_20261019_merjem',firstName:'Merjem',lastName:'Salihi',title:'Analizat',date:'2026-10-19',time:'09:00',location:'',remindMinutes:1440,status:'active'},
+{appointmentId:'apt_20261028_sufjan',firstName:'Sufjan',lastName:'Salihi',title:'Schulspiel – Erkenbert-Grundschule',date:'2026-10-28',time:'14:00',location:'Erkenbert-Grundschule, Frankenthal',remindMinutes:1440,status:'active'}
+];
 let LIVE_OFFERS=[];let offers=[];let offerSlide=0;let offerCountry='DE',offerCity='Frankenthal';const VERIFIED_OFFERS_DE=[
 {store:'ALDI SÜD',category:'Obst & Gemüse',name:'Äpfel Krumme Dinger',size:'2 kg',price:'1,89',image:'https://img.offers-cdn.net/assets/uploads/offers/de/3000066/apfel-krumme-dinger-neue-ernte-2kg-normal.jpeg',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
 {store:'ALDI SÜD',category:'Obst & Gemüse',name:'Suppengemüse',size:'800 g',price:'1,49',image:'https://img.offers-cdn.net/assets/uploads/offers/de/31218583/suppengemuse-800-g-schale-normal-65835c1b70a5b.jpeg',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
@@ -224,7 +231,7 @@ function renderNeedBuy(){
  const h=document.getElementById('homeNeedBuy');if(h)h.innerHTML=html;const p=document.getElementById('needBuyItems');if(p)p.innerHTML='<div class="card">'+html+'</div>';
 }
 const APPOINTMENTS_KEY='meinHausAppointmentsBackup';
-let APPOINTMENTS=[];try{APPOINTMENTS=JSON.parse(localStorage.getItem(APPOINTMENTS_KEY)||'[]')}catch(e){APPOINTMENTS=[]}
+let APPOINTMENTS=[];try{APPOINTMENTS=JSON.parse(localStorage.getItem(APPOINTMENTS_KEY)||'[]')}catch(e){APPOINTMENTS=[]}if(!APPOINTMENTS.length&&typeof APPOINTMENT_SEED_BACKUP!=='undefined')APPOINTMENTS=APPOINTMENT_SEED_BACKUP.slice()
 function saveAppointmentsBackup(){try{localStorage.setItem(APPOINTMENTS_KEY,JSON.stringify(APPOINTMENTS))}catch(e){}}
 async function loadAppointmentsReal(){
  try{const request=apiPost('appointmentList',{}),timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('appointments timeout')),5000));const d=await Promise.race([request,timeout]);if(d&&d.ok){const rows=Array.isArray(d.data)?d.data:[];const merged=[...APPOINTMENTS];rows.forEach(a=>{const key=x=>String(x.appointmentId||'')||[x.firstName,x.lastName,x.date,x.time,x.location].join('|').toLowerCase();const i=merged.findIndex(x=>key(x)===key(a));if(i>=0)merged[i]={...merged[i],...a};else merged.push(a)});APPOINTMENTS=merged;saveAppointmentsBackup()}}catch(e){console.warn('appointmentList',e)}
