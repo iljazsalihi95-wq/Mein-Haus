@@ -114,6 +114,9 @@ let LIVE_OFFERS=[];let offers=[];let offerSlide=0;let offerCountry='DE',offerCit
 {store:'ALDI SÜD',category:'Haushalt',name:'DR. BECKMANN Waschmaschinen-Pflege',size:'250 ml',price:'2,65',from:'28.09.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'}
 ];
 
+// Immediate verified fallback: weekly offers must never remain on a loading placeholder.
+LIVE_OFFERS=VERIFIED_OFFERS_DE.slice();offers=VERIFIED_OFFERS_DE.slice();setTimeout(()=>{try{renderOffers();renderHomeOfferSlider()}catch(e){console.warn('offer fallback render',e)}},0);
+
 function offerMiniCard(x){return '<div class="card offerMini"><div><div class="offerMiniTop"><span class="offerMiniStore">'+esc(x.store||'')+'</span>'+(x.discount?'<span class="badge ok">'+esc(x.discount)+'</span>':'')+'</div><div class="offerMiniName">'+esc(x.name||'')+'</div><div class="muted">'+esc(x.size||'')+'</div></div><div><div class="price">'+esc(String(x.price||''))+' €</div>'+(x.oldPrice?'<span class="old">'+esc(String(x.oldPrice))+' €</span>':'')+'</div></div>'}
 function currentOfferRows(){const q=(document.getElementById('offerSearch')?.value||'').trim().toLowerCase();return LIVE_OFFERS.filter(x=>(!offerStoreFilter||String(x.store).toLowerCase().includes(offerStoreFilter.toLowerCase()))&&(!q||(x.store+' '+x.name+' '+x.size+' '+x.category).toLowerCase().includes(q)))}
 function offerSlideCard(x){const img=x.image?'<img src="'+esc(x.image)+'" alt="'+esc(x.name)+'">':'<div class="offerFallback">🛒</div>';return '<div class="offerSlideCard"><div><span class="offerStore">🏪 '+esc(x.store||'Oferta')+'</span><h3>'+esc(x.name||'')+'</h3><div class="offerMeta">'+esc(x.category||'')+(x.size?' · '+esc(x.size):'')+'</div><div class="offerPrice">'+esc(String(x.price||''))+' €'+(x.oldPrice?'<span class="offerOld">'+esc(String(x.oldPrice))+' €</span>':'')+'</div>'+(x.discount?'<span class="offerDiscount">− '+esc(String(x.discount))+'</span>':'')+'<div class="offerMeta" style="margin-top:11px">📅 '+esc(x.from||'')+(x.to?' – '+esc(x.to):'')+'</div>'+(x.url?'<button class="chip" style="margin-top:13px" onclick="window.open(\''+esc(x.url)+'\',\'_blank\')">Shiko ofertën ↗</button>':'')+'</div><div class="offerSlideMedia">'+img+'</div></div>'}
@@ -152,15 +155,16 @@ if(rememberedEmail&&document.getElementById('authEmail'))document.getElementById
 async function startSecureSession(){
  const token=localStorage.getItem('sessionToken');
  if(!token){go('auth');return}
+ // Do not leave the dashboard stuck on "loading" while Apps Script is slow.
+ go('home');renderHomeOfferSlider();renderAppointments();renderAppointmentPage();
+ setTimeout(()=>{loadOffersReal();loadAppointmentsReal();loadNeedBuy();loadInventoryReal()},30);
  try{
-   const d=await apiPost('sessionCheck',{});
+   const d=await Promise.race([apiPost('sessionCheck',{}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('session timeout')),6500))]);
    if(!d||!d.ok)throw Error('invalid session');
-   go('home');
-   setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal();loadNeedBuy();loadAppointmentsReal();loadInventoryReal()},100);
+   setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList()},50);
  }catch(e){
-   localStorage.removeItem('sessionToken');
-   go('auth');
-   authMessage(lang==='sq'?'Sesioni ka skaduar. Hyr përsëri.':'Sitzung abgelaufen. Bitte erneut anmelden.',true);
+   // Keep local verified offers/appointment backup visible on temporary backend timeout.
+   if(String(e.message)!=='session timeout'){localStorage.removeItem('sessionToken');go('auth');authMessage(lang==='sq'?'Sesioni ka skaduar. Hyr përsëri.':'Sitzung abgelaufen. Bitte erneut anmelden.',true)}
  }
 }
 startSecureSession();
@@ -279,7 +283,7 @@ async function sendHouseAI(){
 async function apiPost(action,payload={}){const body={action,...payload};const token=localStorage.sessionToken;if(token)body.token=token;const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});return r.json();}
 function authMessage(m,bad=false){const e=document.getElementById('authMsg');if(e){e.textContent=m;e.style.color=bad?'#c12626':'#11834f'}}
 async function registerUser(){try{authMessage('…');const d=await apiPost('register',{displayName:authName.value.trim(),email:authEmail.value.trim(),password:authPass.value,householdName:houseName.value.trim(),language:lang});if(!d.ok)throw Error(d.error||'Registrierung fehlgeschlagen');const x=d.data||d;if(x.token)localStorage.sessionToken=x.token;authMessage('✓ Konto erstellt');go('home')}catch(e){authMessage(e.message,true)}}
-async function loginUser(){const email=document.getElementById('authEmail')?.value.trim()||'',password=document.getElementById('authPass')?.value||'';try{if(!email||!password)throw Error(lang==='sq'?'Shkruaj emailin dhe fjalëkalimin.':'E-Mail und Passwort eingeben.');authMessage('…');const d=await apiPost('login',{email,password});if(!d||!d.ok)throw Error(d?.error||(lang==='sq'?'Hyrja dështoi.':'Anmeldung fehlgeschlagen.'));const x=d.data||d;if(!x.token)throw Error(lang==='sq'?'Serveri nuk ktheu sesion.':'Keine Sitzung vom Server.');localStorage.setItem('sessionToken',x.token);localStorage.setItem('rememberedEmail',email);authMessage(lang==='sq'?'✓ U kyçe':'✓ Angemeldet');go('home');setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal()},100)}catch(e){authMessage(e.message,true)}}
+async function loginUser(){const email=document.getElementById('authEmail')?.value.trim()||'',password=document.getElementById('authPass')?.value||'';try{if(!email||!password)throw Error(lang==='sq'?'Shkruaj emailin dhe fjalëkalimin.':'E-Mail und Passwort eingeben.');authMessage('…');const d=await apiPost('login',{email,password});if(!d||!d.ok)throw Error(d?.error||(lang==='sq'?'Hyrja dështoi.':'Anmeldung fehlgeschlagen.'));const x=d.data||d;if(!x.token)throw Error(lang==='sq'?'Serveri nuk ktheu sesion.':'Keine Sitzung vom Server.');localStorage.setItem('sessionToken',x.token);localStorage.setItem('rememberedEmail',email);authMessage(lang==='sq'?'✓ U kyçe':'✓ Angemeldet');go('home');setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal();loadNeedBuy();loadAppointmentsReal();loadInventoryReal()},100)}catch(e){authMessage(e.message,true)}}
 
 async function forgotPasswordUI(){try{const email=authEmail.value.trim();if(!email)throw Error(lang==='sq'?'Shkruaj emailin.':'Enter your email.');authMessage('…');const d=await apiPost('passwordResetRequest',{email});if(!d.ok)throw Error(d.error||'Reset failed');const x=d.data||d;document.getElementById('resetBox').style.display='block';if(x.resetToken)document.getElementById('resetToken').value=x.resetToken;authMessage(lang==='sq'?'✓ Kërkesa u pranua. Vendos fjalëkalimin e ri.':'✓ Reset request accepted. Set a new password.')}catch(e){authMessage(e.message,true)}}
 async function confirmPasswordReset(){try{const token=document.getElementById('resetToken').value.trim(),password=document.getElementById('resetNewPass').value;if(!token)throw Error('Token mungon.');if(password.length<8)throw Error(lang==='sq'?'Fjalëkalimi duhet të ketë së paku 8 shenja.':'Password must have at least 8 characters.');authMessage('…');const d=await apiPost('passwordResetConfirm',{resetToken:token,password});if(!d.ok)throw Error(d.error||'Reset failed');document.getElementById('resetBox').style.display='none';authPass.value=password;authMessage(lang==='sq'?'✓ Fjalëkalimi u ndryshua. Tani shtyp Hyr.':'✓ Password changed. You can now sign in.')}catch(e){authMessage(e.message,true)}}
