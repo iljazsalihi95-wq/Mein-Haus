@@ -114,15 +114,18 @@ startSecureSession();
 
 
 
-let homeOfferSlideIndex=0,homeOfferTimer=null;
+let homeOfferSlideIndex=0,homeOfferTimer=null,homeOfferPaused=false;
+function homeOfferText(k){const d={store:{sq:'DYQANI',de:'GESCHÄFT',en:'STORE',it:'NEGOZIO',tr:'MAĞAZA',mk:'ПРОДАВНИЦА',bs:'PRODAVNICA'},offer:{sq:'OFERTA',de:'ANGEBOT',en:'OFFER',it:'OFFERTA',tr:'KAMPANYA',mk:'ПОНУДА',bs:'PONUDA'},none:{sq:'Nuk ka oferta aktive.',de:'Keine aktiven Angebote.',en:'No active offers.',it:'Nessuna offerta attiva.',tr:'Aktif kampanya yok.',mk:'Нема активни понуди.',bs:'Nema aktivnih ponuda.'}};return d[k]?.[lang]||d[k]?.sq}
+function moveHomeOffer(n){const rows=(typeof offers!=='undefined'?offers:[]).filter(x=>x&&x.name).slice(0,20);if(!rows.length)return;homeOfferSlideIndex=(homeOfferSlideIndex+n+rows.length)%rows.length;renderHomeOfferSlider()}
 function renderHomeOfferSlider(){
  const box=document.getElementById('homeOfferSlider'),dots=document.getElementById('homeOfferDots');if(!box)return;
  const rows=(typeof offers!=='undefined'?offers:[]).filter(x=>x&&x.name).slice(0,20);
- if(!rows.length){box.innerHTML='<div class="offerTvRow"><div class="offerTvLabel"><small>DYQANI</small><div class="store">—</div><div class="cat">Kategoria</div></div><div class="offerTvContent"><div><small>OFERTA</small><div class="product">Nuk ka oferta aktive.</div></div></div></div>';if(dots)dots.innerHTML='';return}
- homeOfferSlideIndex=Math.min(homeOfferSlideIndex,rows.length-1);const o=rows[homeOfferSlideIndex],cat=o.category||o.kategoria||'Ofertë';
- box.innerHTML='<div class="offerTvRow"><div class="offerTvLabel"><small>DYQANI</small><div class="store">'+esc(o.store||'Dyqani')+'</div><div class="cat">🏷️ '+esc(cat)+'</div></div><div class="offerTvContent">'+(o.image?'<img src="'+esc(o.image)+'" alt="">':'')+'<div><small>OFERTA</small><div class="product">'+esc(o.name)+'</div><div class="price">'+esc(String(o.price||''))+(o.price?' €':'')+'</div>'+(o.oldPrice?'<small><s>'+esc(String(o.oldPrice))+' €</s></small>':'')+'<small style="display:block;margin-top:5px">'+esc(o.from||'')+(o.to?' – '+esc(o.to):'')+'</small></div></div></div>';
- if(dots)dots.innerHTML=rows.map((_,i)=>'<span class="'+(i===homeOfferSlideIndex?'on':'')+'"></span>').join('');
- clearTimeout(homeOfferTimer);homeOfferTimer=setTimeout(()=>{homeOfferSlideIndex=(homeOfferSlideIndex+1)%rows.length;renderHomeOfferSlider()},5000)
+ if(!rows.length){box.innerHTML='<div class="homeOfferEmpty">'+homeOfferText('none')+'</div>';if(dots)dots.innerHTML='';return}
+ homeOfferSlideIndex=((homeOfferSlideIndex%rows.length)+rows.length)%rows.length;const o=rows[homeOfferSlideIndex],cat=o.category||o.kategoria||'';
+ const media=o.image?'<img src="'+esc(o.image)+'" alt="">':'<div class="homeOfferIcon">🛍️</div>';
+ box.innerHTML='<article class="homeOfferPremium"><div class="homeOfferTop"><span class="homeOfferStore">'+esc(o.store||'')+'</span><span class="homeOfferNum">'+(homeOfferSlideIndex+1)+' / '+rows.length+'</span></div><div class="homeOfferBody"><div class="homeOfferInfo"><small>'+homeOfferText('offer')+'</small><h3>'+esc(o.name)+'</h3><div class="homeOfferCat">'+esc(cat)+(o.size?' · '+esc(o.size):'')+'</div><div class="homeOfferPrice">'+esc(String(o.price||''))+(o.price?' €':'')+(o.oldPrice?'<s>'+esc(String(o.oldPrice))+' €</s>':'')+(o.discount?'<b>−'+esc(String(o.discount))+'</b>':'')+'</div><div class="homeOfferDate">📅 '+esc(o.from||'')+(o.to?' – '+esc(o.to):'')+'</div></div><div class="homeOfferMedia">'+media+'</div></div><button class="homeOfferPrev" onclick="moveHomeOffer(-1)">‹</button><button class="homeOfferNext" onclick="moveHomeOffer(1)">›</button><div class="homeOfferProgress"><i></i></div></article>';
+ if(dots)dots.innerHTML=rows.map((_,i)=>'<button aria-label="'+(i+1)+'" onclick="homeOfferSlideIndex='+i+';renderHomeOfferSlider()" class="'+(i===homeOfferSlideIndex?'on':'')+'"></button>').join('');
+ clearTimeout(homeOfferTimer);if(!homeOfferPaused)homeOfferTimer=setTimeout(()=>moveHomeOffer(1),5200)
 }
 let NEED_BUY_ROWS=[];
 function needBuySelectedDate(){return document.getElementById('needBuyPageDate')?.value||document.getElementById('needBuyDate')?.value||new Date().toISOString().slice(0,10)}
