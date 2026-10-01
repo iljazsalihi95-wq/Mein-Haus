@@ -32,15 +32,15 @@ function detectLanguage(){const raw=(navigator.languages&&navigator.languages[0]
 
 let lang=localStorage.getItem('lang')||'sq';
 function setLang(l){
- if(!SUPPORTED.includes(l))return;
+ if(!SUPPORTED.includes(l))return false;
  lang=l;
- localStorage.setItem('lang',l);
- localStorage.setItem('languageManual','1');
- applyLang();
- syncLanguageControls();
- const refreshers=['renderWeeklyChecks','renderAppointments','renderAppointmentPage','renderManualProducts','renderOfferSources','renderNeedBuy','renderOffers','renderHomeOfferSlider','refreshHomeRealData'];
- refreshers.forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]()}catch(e){console.warn('Language refresh:',fn,e)}});
+ try{localStorage.setItem('lang',l);localStorage.setItem('languageManual','1')}catch(e){}
+ try{applyLang()}catch(e){console.warn('applyLang',e)}
+ try{syncLanguageControls()}catch(e){}
+ ['renderWeeklyChecks','renderAppointments','renderAppointmentPage','renderManualProducts','renderOfferSources','renderNeedBuy','renderOffers','renderHomeOfferSlider','refreshHomeRealData'].forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]()}catch(e){console.warn('Language refresh:',fn,e)}});
+ return true;
 }
+window.setLang=setLang;
 document.addEventListener('click',function(e){
  const b=e.target.closest&&e.target.closest('[data-lang-choice]');
  if(!b)return;
@@ -95,7 +95,17 @@ async function addShoppingItem(name){name=(name||'').trim();if(!name)return;cons
 async function toggleShoppingItem(id,done){await apiPost('shoppingUpdate',{itemId:id,status:done?'done':'open'});await loadShoppingList()}
 async function deleteShoppingItem(id){await apiPost('shoppingDelete',{itemId:id});await loadShoppingList()}
 setTimeout(()=>{loadShoppingList()},700);
-let LIVE_OFFERS=[];let offers=[];let offerSlide=0;
+let LIVE_OFFERS=[];let offers=[];let offerSlide=0;const VERIFIED_OFFERS_DE=[
+{store:'ALDI SÜD',category:'Obst & Gemüse',name:'Äpfel Krumme Dinger',size:'2 kg',price:'1,89',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
+{store:'ALDI SÜD',category:'Obst & Gemüse',name:'Suppengemüse',size:'800 g',price:'1,49',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
+{store:'ALDI SÜD',category:'Obst & Gemüse',name:'Bio Naturland Hokkaido',size:'1 kg',price:'0,99',oldPrice:'1,39',discount:'28%',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
+{store:'ALDI SÜD',category:'Obst & Gemüse',name:'Blumenkohl',size:'1 Stück',price:'0,99',oldPrice:'1,29',discount:'23%',from:'28.09.2026',to:'02.10.2026',url:'https://www.aldi-sued.de/angebote'},
+{store:'ALDI SÜD',category:'Haushalt',name:'PERWOLL Waschmittel XXL',size:'80 WL',price:'12,99',from:'01.10.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'},
+{store:'ALDI SÜD',category:'Wohnen',name:'NOVITESSE Winter-Seersucker-Bettwäsche',size:'1 Stück',price:'17,99',from:'01.10.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'},
+{store:'ALDI SÜD',category:'Wohnen',name:'HOME CREATION Klapptritt',size:'1 Stück',price:'2,49',from:'01.10.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'},
+{store:'ALDI SÜD',category:'Haushalt',name:'DR. BECKMANN Waschmaschinen-Pflege',size:'250 ml',price:'2,65',from:'28.09.2026',to:'03.10.2026',url:'https://www.aldi-sued.de/angebote'}
+];
+
 function offerMiniCard(x){return '<div class="card offerMini"><div><div class="offerMiniTop"><span class="offerMiniStore">'+esc(x.store||'')+'</span>'+(x.discount?'<span class="badge ok">'+esc(x.discount)+'</span>':'')+'</div><div class="offerMiniName">'+esc(x.name||'')+'</div><div class="muted">'+esc(x.size||'')+'</div></div><div><div class="price">'+esc(String(x.price||''))+' €</div>'+(x.oldPrice?'<span class="old">'+esc(String(x.oldPrice))+' €</span>':'')+'</div></div>'}
 function currentOfferRows(){const q=(document.getElementById('offerSearch')?.value||'').trim().toLowerCase();return LIVE_OFFERS.filter(x=>(!offerStoreFilter||String(x.store).toLowerCase().includes(offerStoreFilter.toLowerCase()))&&(!q||(x.store+' '+x.name+' '+x.size+' '+x.category).toLowerCase().includes(q)))}
 function offerSlideCard(x){const img=x.image?'<img src="'+esc(x.image)+'" alt="'+esc(x.name)+'">':'<div class="offerFallback">🛒</div>';return '<div class="offerSlideCard"><div><span class="offerStore">🏪 '+esc(x.store||'Oferta')+'</span><h3>'+esc(x.name||'')+'</h3><div class="offerMeta">'+esc(x.category||'')+(x.size?' · '+esc(x.size):'')+'</div><div class="offerPrice">'+esc(String(x.price||''))+' €'+(x.oldPrice?'<span class="offerOld">'+esc(String(x.oldPrice))+' €</span>':'')+'</div>'+(x.discount?'<span class="offerDiscount">− '+esc(String(x.discount))+'</span>':'')+'<div class="offerMeta" style="margin-top:11px">📅 '+esc(x.from||'')+(x.to?' – '+esc(x.to):'')+'</div>'+(x.url?'<button class="chip" style="margin-top:13px" onclick="window.open(\''+esc(x.url)+'\',\'_blank\')">Shiko ofertën ↗</button>':'')+'</div><div class="offerSlideMedia">'+img+'</div></div>'}
@@ -107,7 +117,7 @@ function moveOfferSlide(n){const rows=currentOfferRows();if(!rows.length)return;
 function renderOffers(){const root=document.getElementById('offerItems');if(!root)return;const rows=currentOfferRows();if(!rows.length){root.innerHTML='<div class="card muted">Nuk u gjet ofertë aktive për këtë filtër.</div>';return}offerSlide%=rows.length;root.innerHTML='<div class="muted" style="margin:10px 2px 8px">🔥 '+(lang==='sq'?'Ofertat aktuale':'Aktuelle Angebote')+'</div><div id="offerSlider" class="offerStage"></div><div class="section"><h3>'+(lang==='sq'?'Të gjitha ofertat':'Alle Angebote')+'</h3><span class="muted">'+rows.length+'</span></div><div class="offerGrid">'+rows.map(offerMiniCard).join('')+'</div>';renderOfferStage(rows)}
 function nextOfferSlide(){if(offerPaused||!document.getElementById('offers')?.classList.contains('active'))return;moveOfferSlide(1)}
 setInterval(nextOfferSlide,5500);
-async function loadOffersReal(){const root=document.getElementById('offerItems');if(root)root.innerHTML='<div class="card muted">Po ngarkohen ofertat reale për Frankenthal…</div>';try{const d=await apiPost('publicOffers',{country:offerCountry||'DE',city:offerCity||'Frankenthal',postalCode:'67227',active:true});if(d&&d.ok){const x=d.data||d;LIVE_OFFERS=(Array.isArray(x)?x:(x.items||x.offers||x.data?.items||[])).map(o=>({store:o.store||o.Dyqani||'',category:o.category||o.Kategoria||'',name:o.name||o.product||o.Produkti||'',size:o.size||o.unit||o.Njësia||'',old:o.oldPrice||o.normalPrice||o['Çmimi normal']||'',oldPrice:o.oldPrice||o.normalPrice||o['Çmimi normal']||'',price:o.price||o.offerPrice||o['Çmimi ofertë']||'',discount:o.discount||'',from:o.from||o['Nga data']||'',to:o.to||o['Deri data']||'',image:o.image||o.imageUrl||o['Foto URL']||'',url:o.url||o.link||o['Link oferta']||''})).filter(o=>o.name&&o.price);offers=LIVE_OFFERS.slice()}}catch(e){console.warn('offersList',e)}renderOffers();renderHomeOfferSlider()}setTimeout(loadOffersReal,300);
+async function loadOffersReal(){const root=document.getElementById('offerItems');if(root)root.innerHTML='<div class="card muted">Po ngarkohen ofertat reale për Frankenthal…</div>';try{const d=await apiPost('publicOffers',{country:offerCountry||'DE',city:offerCity||'Frankenthal',postalCode:'67227',active:true});if(d&&d.ok){const x=d.data||d;LIVE_OFFERS=(Array.isArray(x)?x:(x.items||x.offers||x.data?.items||[])).map(o=>({store:o.store||o.Dyqani||'',category:o.category||o.Kategoria||'',name:o.name||o.product||o.Produkti||'',size:o.size||o.unit||o.Njësia||'',old:o.oldPrice||o.normalPrice||o['Çmimi normal']||'',oldPrice:o.oldPrice||o.normalPrice||o['Çmimi normal']||'',price:o.price||o.offerPrice||o['Çmimi ofertë']||'',discount:o.discount||'',from:o.from||o['Nga data']||'',to:o.to||o['Deri data']||'',image:o.image||o.imageUrl||o['Foto URL']||'',url:o.url||o.link||o['Link oferta']||''})).filter(o=>o.name&&o.price);offers=LIVE_OFFERS.slice()}}catch(e){console.warn('offersList',e)}if(!(LIVE_OFFERS&&LIVE_OFFERS.length)&&(offerCountry||'DE')==='DE'){LIVE_OFFERS=VERIFIED_OFFERS_DE.slice();offers=LIVE_OFFERS.slice()}renderOffers();renderHomeOfferSlider()}setTimeout(loadOffersReal,300);
 document.getElementById('stockItems').innerHTML='<div class="card muted">Inventari yt do të shfaqet këtu. Nuk përdoren produkte demo.</div>';
 applyLang(); if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 if(!localStorage.getItem('languageManual')){localStorage.setItem('lang','sq');lang='sq'}restorePreferredLanguage();
