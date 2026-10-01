@@ -122,6 +122,8 @@ async function saveFinanceEntry(){
 }
 setTimeout(()=>{const d=new Date().toISOString().slice(0,10);if(document.getElementById('finDate'))document.getElementById('finDate').value=d;if(document.getElementById('shoppingAddDate'))document.getElementById('shoppingAddDate').value=d;renderFinance()},350);
 async function addShoppingItem(name){name=(name||'').trim();if(!name)return;const d=await apiPost('shoppingAdd',{product:name,quantity:1,unit:'copë',date:new Date().toISOString().slice(0,10)});if(!d.ok)throw Error(d.error||'Nuk u ruajt');await loadShoppingList();}
+async function addHomeQuickBuy(){const i=document.getElementById('homeQuickBuyInput'),m=document.getElementById('homeQuickBuyMsg'),name=(i?.value||'').trim();if(!name)return;try{if(m)m.textContent='Duke ruajtur…';await addShoppingItem(name);i.value='';if(m)m.textContent='✓ U shtua në listën e blerjeve';setTimeout(()=>{if(m)m.textContent=''},1800)}catch(e){if(m)m.textContent='Nuk u ruajt: '+e.message}}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target?.id==='homeQuickBuyInput'){e.preventDefault();addHomeQuickBuy()}});
 async function toggleShoppingItem(id,done){await apiPost('shoppingUpdate',{itemId:id,status:done?'done':'open'});await loadShoppingList()}
 async function deleteShoppingItem(id){await apiPost('shoppingDelete',{itemId:id});await loadShoppingList()}
 setTimeout(()=>{loadShoppingList()},700);
