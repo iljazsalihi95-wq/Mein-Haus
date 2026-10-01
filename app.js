@@ -116,7 +116,25 @@ function moveOfferSlide(n){const rows=currentOfferRows();if(!rows.length)return;
 function renderOffers(){const root=document.getElementById('offerItems');if(!root)return;const rows=currentOfferRows();if(!rows.length){root.innerHTML='<div class="card muted">Nuk u gjet ofertë aktive për këtë filtër.</div>';return}offerSlide%=rows.length;root.innerHTML='<div class="muted" style="margin:10px 2px 8px">🔥 '+(lang==='sq'?'Ofertat aktuale':'Aktuelle Angebote')+'</div><div id="offerSlider" class="offerStage"></div><div class="section"><h3>'+(lang==='sq'?'Të gjitha ofertat':'Alle Angebote')+'</h3><span class="muted">'+rows.length+'</span></div><div class="offerGrid">'+rows.map(offerMiniCard).join('')+'</div>';renderOfferStage(rows)}
 function nextOfferSlide(){if(offerPaused||!document.getElementById('offers')?.classList.contains('active'))return;moveOfferSlide(1)}
 setInterval(nextOfferSlide,5500);
-async function loadOffersReal(){const root=document.getElementById('offerItems');if(root)root.innerHTML='<div class="card muted">Po ngarkohen ofertat reale për Frankenthal…</div>';try{const d=await apiPost('offersCountry',{country:offerCountry||'DE',city:offerCity||'Frankenthal',postalCode:'67227',active:true});if(d&&d.ok){const x=d.data||d;LIVE_OFFERS=(Array.isArray(x)?x:(x.items||x.offers||x.data?.items||[])).map(o=>({store:o.store||o.Dyqani||'',category:o.category||o.Kategoria||'',name:o.name||o.product||o.Produkti||'',size:o.size||o.unit||o.Njësia||'',old:o.oldPrice||o.normalPrice||o['Çmimi normal']||'',oldPrice:o.oldPrice||o.normalPrice||o['Çmimi normal']||'',price:o.price||o.offerPrice||o['Çmimi ofertë']||'',discount:o.discount||'',from:o.from||o['Nga data']||'',to:o.to||o['Deri data']||'',image:o.image||o.imageUrl||o['Foto URL']||'',url:o.url||o.link||o['Link oferta']||''})).filter(o=>o.name&&o.price);offers=LIVE_OFFERS.slice()}}catch(e){console.warn('offersList',e)}if(!(LIVE_OFFERS&&LIVE_OFFERS.length)&&(offerCountry||'DE')==='DE'){LIVE_OFFERS=VERIFIED_OFFERS_DE.slice();offers=LIVE_OFFERS.slice()}renderOffers();renderHomeOfferSlider()}setTimeout(loadOffersReal,300);
+async function loadOffersReal(){
+ const root=document.getElementById('offerItems');
+ // Germany: render verified current offers instantly; backend may refresh/extend them afterwards.
+ if((offerCountry||'DE')==='DE'){
+   LIVE_OFFERS=VERIFIED_OFFERS_DE.slice();offers=LIVE_OFFERS.slice();
+   renderOffers();renderHomeOfferSlider();
+ }
+ try{
+   const request=apiPost('offersCountry',{country:offerCountry||'DE',city:offerCity||'Frankenthal',postalCode:'67227',active:true});
+   const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('offers timeout')),5000));
+   const d=await Promise.race([request,timeout]);
+   if(d&&d.ok){
+     const x=d.data||d,raw=Array.isArray(x)?x:(x.items||x.offers||x.data?.items||[]);
+     const fresh=raw.map(o=>({store:o.store||o.Dyqani||'',category:o.category||o.Kategoria||'',name:o.name||o.product||o.Produkti||'',size:o.size||o.unit||o.Sasia||o.Njësia||'',old:o.oldPrice||o.Cmimi_Vjeter||o.normalPrice||o['Çmimi normal']||'',oldPrice:o.oldPrice||o.Cmimi_Vjeter||o.normalPrice||o['Çmimi normal']||'',price:o.price||o.Cmimi||o.offerPrice||o['Çmimi ofertë']||'',discount:o.discount||o.Zbritja||'',from:o.from||o.Nga||o['Nga data']||'',to:o.to||o.Deri||o['Deri data']||'',image:o.image||o.Foto_URL||o.imageUrl||o['Foto URL']||'',url:o.url||o.Oferta_URL||o.link||o['Link oferta']||''})).filter(o=>o.name&&o.price);
+     if(fresh.length){LIVE_OFFERS=fresh;offers=fresh.slice();renderOffers();renderHomeOfferSlider()}
+   }
+ }catch(e){console.warn('Verified offer fallback remains active',e)}
+}
+setTimeout(loadOffersReal,300);
 document.getElementById('stockItems').innerHTML='<div class="card muted">Inventari yt do të shfaqet këtu. Nuk përdoren produkte demo.</div>';
 applyLang(); if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 restorePreferredLanguage();
