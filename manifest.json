@@ -1,1 +1,35 @@
-{"name":"Mein Haus / Shtëpia Ime","short_name":"Mein Haus","start_url":"./","display":"standalone","background_color":"#f8fbff","theme_color":"#0878ff","icons":[{"src":"icon-128.jpg","sizes":"128x128","type":"image/jpeg","purpose":"any maskable"}]}
+{
+  "id": "./",
+  "name": "Mein Haus / Shtëpia Ime",
+  "short_name": "Mein Haus",
+  "description": "Familja, terminet, lista e blerjeve dhe ofertat në një vend.",
+  "lang": "sq",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "orientation": "portrait-primary",
+  "background_color": "#f8fbff",
+  "theme_color": "#0878ff",
+  "categories": [
+    "lifestyle",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "icon-128.jpg",
+      "sizes": "128x128",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.jpg",
+      "sizes": "any",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
