@@ -652,7 +652,8 @@ function offerSourcesSeed_(q,m){
    {store:'REWE',name:'REWE Frankenthal',url:'https://www.rewe.de/marktseite/frankenthal/840226/rewe-markt-benderstr-3/'},
    {store:'ALDI SÜD',name:'ALDI SÜD Angebote',url:'https://www.aldi-sued.de/angebote'},
    {store:'Lidl',name:'Lidl Prospekte',url:'https://www.lidl.de/c/online-prospekte/s10005610'},
-   {store:'Kaufland',name:'Kaufland Angebote',url:'https://filiale.kaufland.de/angebote/aktuelle-woche.html'}];
+   {store:'Kaufland',name:'Kaufland Frankenthal',url:'https://filiale.kaufland.de/service/filiale/frankenthal-8510.html'},
+   {store:'EDEKA Stiegler',name:'EDEKA Stiegler Frankenthal',url:'https://www.edeka.de/eh/s%C3%BCdwest/edeka-stiegler-foltzring-33/index.jsp'}];
   const existing=rows_('OfferSources');src.forEach(x=>{if(!existing.some(e=>e.url===x.url))append_('OfferSources',{sourceId:id_('src'),country,city,store:x.store,name:x.name,url:x.url,mode:'offers',regional:true,active:true,lastCheckedAt:'',lastStatus:'new',updatedAt:now_()})});return offerSourceList_({country},m)
 }
 function offersSync_(q,m){
