@@ -195,8 +195,11 @@ async function startSecureSession(){
    if(!d||!d.ok)throw Error('invalid session');
    setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList()},50);
  }catch(e){
-   // Keep local verified offers/appointment backup visible on temporary backend timeout.
-   if(String(e.message)!=='session timeout'){localStorage.removeItem('sessionToken');go('auth');authMessage(lang==='sq'?'Sesioni ka skaduar. Hyr përsëri.':'Sitzung abgelaufen. Bitte erneut anmelden.',true)}
+   // Temporary Apps Script/network failures must not destroy a valid local login.
+   const msg=String(e&&e.message||e||'').toLowerCase();
+   const explicitInvalid=/session_expired|invalid_token|unauthorized|auth_required/.test(msg);
+   if(explicitInvalid){localStorage.removeItem('sessionToken');go('auth');authMessage(lang==='sq'?'Sesioni ka skaduar. Hyr përsëri.':'Sitzung abgelaufen. Bitte erneut anmelden.',true)}
+   else{console.warn('Session check unavailable; keeping login',e);go('home')}
  }
 }
 startSecureSession();
