@@ -658,16 +658,35 @@ function offerSourcesSeed_(q,m){
 function offersSync_(q,m){
   requireAdmin_(m);const country=effectiveCountry_(q,m),city=q.city||household_(m).city||'';let sources=offerSourceList_({country},m);if(!sources.length)sources=offerSourcesSeed_({country,city},m);
   const result=[];sources.filter(x=>String(x.active)!=='false').forEach(src=>{try{
-    const res=UrlFetchApp.fetch(src.url,{muteHttpExceptions:true,followRedirects:true,headers:{'User-Agent':'Mozilla/5.0'}});if(res.getResponseCode()>=400)throw Error('HTTP '+res.getResponseCode());
+    const res=UrlFetchApp.fetch(src.url,{muteHttpExceptions:true,followRedirects:true,headers:{'User-Agent':'Mozilla/5.0 (compatible; MeinHausOffers/1.0)','Accept-Language':'de-DE,de;q=0.9'}});if(res.getResponseCode()>=400)throw Error('HTTP '+res.getResponseCode());
     const html=String(res.getContentText());
-    const imageUrls=[...html.matchAll(/(?:src|data-src|data-original|content)=["']([^"']+\.(?:jpg|jpeg|png|webp)(?:\?[^"']*)?)["']/gi)].map(x=>x[1]).filter(x=>/^https?:\/\//i.test(x)).slice(0,120);
-    let text=html.replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').slice(0,50000);
-    const prompt='Extract ONLY currently valid retail offers from this store page. Return JSON object {offers:[{product,category,oldPrice,price,discount,validFrom,validTo,imageUrl,sourceUrl}]}. Match each product to its REAL product image URL from the supplied image URLs when possible; never invent an image URL. Prices numbers only. Dates YYYY-MM-DD. Do not invent products or prices. Store: '+src.store+'; city: '+city+'; page URL: '+src.url+'; image URLs: '+imageUrls.join(' | ')+'; page text: '+text;
+    const imageUrls=extractOfferImages_(html,src.url).slice(0,350);
+    let pageText=html.replace(/<script[\\s\\S]*?<\\/script>/gi,' ').replace(/<style[\\s\\S]*?<\\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\\s+/g,' ').slice(0,80000);
+    const prompt='Extract as MANY currently valid retail offers as are explicitly present in this page/prospect, not only 3. Return JSON object {offers:[{product,category,description,size,oldPrice,price,discount,validFrom,validTo,imageUrl,sourceUrl}]}. IMPORTANT: imageUrl must be the REAL matching product image selected ONLY from the supplied candidate image URLs; never invent a URL and never use logos/icons. Prefer 15-60 offers when the page contains them. Prices numbers only. Dates YYYY-MM-DD. Store: '+src.store+'; city: '+city+'; page URL: '+src.url+'; candidate images: '+imageUrls.join(' | ')+'; page text: '+pageText;
     const j=openaiJson_(prompt,''),offers=Array.isArray(j.offers)?j.offers:[];
-    offers.forEach(o=>{if(!o.product||!Number(o.price))return;const key=norm_(o.product),found=rows_('Ofertat').find(z=>String(z.country).toUpperCase()===country&&norm_(z.city)===norm_(city)&&norm_(z.store)===norm_(src.store)&&z.productKey===key&&String(z.validTo||'')===String(o.validTo||''));const row={offerId:found?found.offerId:id_('off'),country,city,store:src.store,productKey:key,product:o.product,category:o.category||'',oldPrice:Number(o.oldPrice||0),price:Number(o.price||0),discount:Number(o.discount||0),validFrom:o.validFrom||'',validTo:o.validTo||'',imageUrl:o.imageUrl||'',sourceUrl:o.sourceUrl||src.url,sourceType:'auto',verified:true,createdAt:found?found.createdAt||now_():now_(),updatedAt:now_()};if(found)patch_('Ofertat',found._row,row);else append_('Ofertat',row);syncOfferImageToCountrySheet_(country,city,src.store,o.product,o.imageUrl||'',o.sourceUrl||src.url);result.push(row)});
-    patch_('OfferSources',src._row,{lastCheckedAt:now_(),lastStatus:'ok:'+offers.length,updatedAt:now_()});
+    offers.forEach(o=>{if(!o.product||!Number(o.price))return;const key=norm_(o.product),found=rows_('Ofertat').find(z=>String(z.country).toUpperCase()===country&&norm_(z.city)===norm_(city)&&norm_(z.store)===norm_(src.store)&&z.productKey===key&&String(z.validTo||'')===String(o.validTo||''));const row={offerId:found?found.offerId:id_('off'),country,city,store:src.store,productKey:key,product:o.product,category:o.category||'',oldPrice:Number(o.oldPrice||0),price:Number(o.price||0),discount:Number(o.discount||0),validFrom:o.validFrom||'',validTo:o.validTo||'',imageUrl:o.imageUrl||'',sourceUrl:o.sourceUrl||src.url,sourceType:'auto',verified:true,createdAt:found?found.createdAt||now_():now_(),updatedAt:now_()};if(found)patch_('Ofertat',found._row,row);else append_('Ofertat',row);upsertCountryOffer_(country,city,src.store,o,row);result.push(row)});
+    patch_('OfferSources',src._row,{lastCheckedAt:now_(),lastStatus:'ok:'+offers.length+' photos:'+offers.filter(x=>x.imageUrl).length,updatedAt:now_()});
   }catch(e){patch_('OfferSources',src._row,{lastCheckedAt:now_(),lastStatus:'error:'+String(e.message||e).slice(0,120),updatedAt:now_()})}});
-  return {imported:result.length,offers:publicOffers_({country,city},m)}
+  return {imported:result.length,withPhotos:result.filter(x=>x.imageUrl).length,offers:publicOffers_({country,city},m)}
+}
+function absOfferUrl_(u,base){
+  u=String(u||'').replace(/&amp;/g,'&').trim();if(!u)return '';
+  if(/^https?:\\/\\//i.test(u))return u;if(/^\\/\\//.test(u))return 'https:'+u;
+  try{const m=String(base||'').match(/^(https?:\\/\\/[^\\/]+)/i);return m?(u.charAt(0)==='/'?m[1]+u:m[1]+'/'+u.replace(/^\\.\\//,'')):''}catch(e){return ''}
+}
+function extractOfferImages_(html,base){
+  const out=[],seen={};String(html||'').replace(/(?:src|data-src|data-original|data-lazy-src|content|image|imageUrl|image_url)[=:]["']([^"']+)["']/gi,(m,u)=>{u=absOfferUrl_(u,base);if(u&&/\\.(?:jpg|jpeg|png|webp)(?:[?#].*)?$/i.test(u)&&!/(logo|icon|sprite|favicon|badge|tracking|pixel)/i.test(u)&&!seen[u]){seen[u]=1;out.push(u)}return m});
+  String(html||'').replace(/https?:\\/\\/[^"'<>\\s]+?\\.(?:jpg|jpeg|png|webp)(?:\\?[^"'<>\\s]*)?/gi,u=>{u=u.replace(/\\\\u002F/g,'/').replace(/\\\\/g,'');if(!/(logo|icon|sprite|favicon|badge|tracking|pixel)/i.test(u)&&!seen[u]){seen[u]=1;out.push(u)}return u});
+  return out
+}
+function upsertCountryOffer_(country,city,store,o,row){
+  try{
+    const sh=offersSheet_(country),vals=sh.getDataRange().getValues(),h=vals[0].map(String),ix={};h.forEach((k,i)=>ix[k]=i);let target=-1;
+    for(let r=1;r<vals.length;r++)if(norm_(vals[r][ix.Dyqani])===norm_(store)&&norm_(vals[r][ix.Produkti])===norm_(o.product)){target=r+1;break}
+    const data={Shteti:country,Rajoni_Qyteti:city,Dyqani:store,Kategoria:o.category||'',Produkti:o.product||'',Pershkrimi:o.description||'',Sasia:o.size||'',Cmimi:o.price||'',Cmimi_Vjeter:o.oldPrice||'',Zbritja:o.discount||'',Nga:o.validFrom||'',Deri:o.validTo||'',Foto_URL:o.imageUrl||'',Oferta_URL:o.sourceUrl||row.sourceUrl||'',Aktive:'TRUE'};
+    if(target>0){Object.keys(data).forEach(k=>{if(ix[k]!=null&&data[k]!=='' )sh.getRange(target,ix[k]+1).setValue(data[k])})}
+    else{const id='auto_'+country.toLowerCase()+'_'+Utilities.getUuid().replace(/-/g,'').slice(0,12);sh.appendRow(h.map(k=>k==='ID'?id:(data[k]??'')))}
+  }catch(e){}
 }
 
 function syncOfferImageToCountrySheet_(country,city,store,product,imageUrl,sourceUrl){
