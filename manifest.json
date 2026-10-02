@@ -1,17 +1,1 @@
-{
-  "name": "Mein Haus / Shtëpia Ime / My Home",
-  "short_name": "MeinHaushalt FT",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#f5f8fd",
-  "theme_color": "#2878f0",
-  "description": "Haushalt, Einkauf, Angebote, Vorräte, Finanzen und KI.",
-  "icons": [
-    {
-      "src": "icon-128.jpg",
-      "sizes": "128x128",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
-    }
-  ]
-}
+{"name":"Mein Haus / Shtëpia Ime","short_name":"Mein Haus","start_url":"./","display":"standalone","background_color":"#f8fbff","theme_color":"#0878ff","icons":[{"src":"icon-128.jpg","sizes":"128x128","type":"image/jpeg","purpose":"any maskable"}]}
