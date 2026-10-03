@@ -49,28 +49,30 @@ public class MainActivity extends Activity {
   }
   private void section(String s){TextView t=txt(s,17,true);t.setTextColor(BLUE);body.addView(t);}
 
+  private void tile(LinearLayout row,String icon,String title,String sub,View.OnClickListener l){
+    LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(dp(15),dp(14),dp(15),dp(14));box.setBackground(bg(Color.WHITE,18));box.setElevation(dp(2));
+    TextView i=txt(icon,26,false);i.setPadding(0,0,0,dp(4));box.addView(i);TextView h=txt(title,15,true);h.setPadding(0,0,0,dp(3));box.addView(h);TextView s=txt(sub,11,false);s.setTextColor(MUTED);s.setPadding(0,0,0,0);box.addView(s);box.setOnClickListener(l);
+    LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(120),1);p.setMargins(dp(5),dp(5),dp(5),dp(5));row.addView(box,p);
+  }
   private void showHome(){
     shell("MeinHaushalt FT");
     String date=new SimpleDateFormat("EEEE, dd.MM.yyyy",Locale.GERMANY).format(new Date());
+    TextView hero=txt("MEIN HAUS  •  SHTËPIA IME  •  MY HOME",13,true);hero.setTextColor(Color.WHITE);hero.setGravity(Gravity.CENTER);hero.setBackground(bg(BLUE,18));hero.setPadding(dp(12),dp(15),dp(12),dp(15));body.addView(hero);
     TextView welcome=txt("Mirë se vini / Willkommen\n"+date,16,false);welcome.setTextColor(MUTED);body.addView(welcome);
-    card("👨‍👩‍👧‍👦  Familja","Anëtarët, profilet dhe detyrat e shtëpisë",v->showFamily());
-    card("📅  Terminat","Takimet e ardhshme dhe paralajmërimet",v->showAppointments());
-    card("🛒  Lista ime e Blerjeve","Produktet që mungojnë dhe ato të blera",v->showShopping());
-    card("🏷️  Ofertat Ditore","Oferta sipas dyqaneve dhe kategorive",v->showOffers());
-    card("📦  Inventari","Gjendja, skadimet automatike dhe paralajmërimi kur mbarojnë",v->showInventory());
-    card("💶  Financat","Hyrje, dalje dhe bilanci i familjes",v->showFinance());
-    card("🏠  Detyrat e Shtëpisë","Pastrimi, detyrat ditore dhe kujtimet familjare",v->showTasks());
-    card("📄  Dokumentet & Garancitë","Faturat, kontratat, garancitë dhe skadimet",v->showDocuments());
-    card("🧾  Faturat & Abonimet","Rryma, interneti, sigurimet dhe pagesat periodike",v->showBills());
-    card("🚮  Kalendari i Mbeturinave","Gelber Sack, Restmüll, Bio dhe Papier",v->showWaste());
-    card("🚨  Emergjenca","Kontaktet e shpejta dhe informacioni i shtëpisë",v->showEmergency());
-    card("💳  Portofoli i Kartave","Kartat e besnikërisë dhe barkodet gjithmonë në telefon",v->showWallet());
-    card("🧾  Kassenbon Scanner","Skanim fature, kontroll gabimesh/dublimesh dhe regjistrim automatik",v->showReceipt());
-    card("☪️  Halal Check","Lexim përbërësish, E-numrash dhe verifikim certifikate",v->showHalalCheck());
-    card("↩️  Kthimet & Garancitë","Ruaj afatin e kthimit dhe faturën e produktit",v->showReturns());
-    card("⭐  Pikët & Cashback","Programet e pikëve, cashback dhe historiku",v->showRewards());
-    card("🧠  Smart Home Assistant","Sugjerime nga inventari, skadimet, ofertat dhe buxheti",v->showSmartAssistant());
-    card("🛡️  Qendra e Privatësisë","Kontrolli i të dhënave, backup dhe eksporti",v->showPrivacy());
+    LinearLayout r1=new LinearLayout(this);r1.setOrientation(LinearLayout.HORIZONTAL);body.addView(r1,new LinearLayout.LayoutParams(-1,-2));
+    tile(r1,"👨‍👩‍👧‍👦","Familja","Anëtarët & detyrat",v->showFamily());tile(r1,"📅","Terminat","Kalendari & kujtesat",v->showAppointments());
+    LinearLayout r2=new LinearLayout(this);r2.setOrientation(LinearLayout.HORIZONTAL);body.addView(r2,new LinearLayout.LayoutParams(-1,-2));
+    tile(r2,"🛒","Çka të blej sot?","Lista inteligjente",v->showShopping());tile(r2,"🏷️","Ofertat","Oferta reale pranë teje",v->showOffers());
+    card("🌤️  Sot në shtëpi","Terminet, detyrat, skadimet dhe njoftimet e rëndësishme në një vend.",v->showNotifications());
+    section("Sot");
+    card("📦  Inventari & skadimet","Shiko çfarë po mbaron ose skadon së shpejti.",v->showInventory());
+    card("🧠  Smart Home Assistant","Lidh inventarin, ofertat, blerjet dhe buxhetin.",v->showSmartAssistant());
+    section("Më shumë");
+    LinearLayout r3=new LinearLayout(this);r3.setOrientation(LinearLayout.HORIZONTAL);body.addView(r3,new LinearLayout.LayoutParams(-1,-2));
+    tile(r3,"💶","Financat","Hyrje, dalje, bilanc",v->showFinance());tile(r3,"🧾","Kassenbon","OCR & kontroll",v->showReceipt());
+    LinearLayout r4=new LinearLayout(this);r4.setOrientation(LinearLayout.HORIZONTAL);body.addView(r4,new LinearLayout.LayoutParams(-1,-2));
+    tile(r4,"💳","Kartat","Loyalty wallet",v->showWallet());tile(r4,"☪️","Halal Check","Certifikata & GTIN",v->showHalalCheck());
+    card("☰  Të gjitha funksionet","Detyrat • Dokumentet • Faturat • Mbeturinat • Emergjenca • Kthimet • Pikët • Privatësia",v->showMore());
   }
 
   private void showFamily(){shell("Familja");section("Anëtarët e familjes");card("👤 Ilaz","Profili kryesor • Administrator",null);body.addView(button("+ Shto anëtar"));}
