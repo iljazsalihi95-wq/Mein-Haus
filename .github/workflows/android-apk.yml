@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "android/**"\n      - ".github/workflows/android-apk.yml"
+      - "android/**"
       - "icon-128.jpg"
       - ".github/workflows/android-apk.yml"
 jobs:
