@@ -50,6 +50,11 @@ public class MainActivity extends Activity {
     card("🏷️  Ofertat Ditore","Oferta sipas dyqaneve dhe kategorive",v->showOffers());
     card("📦  Inventari","Gjendja e produkteve dhe paralajmërimi kur mbarojnë",v->showInventory());
     card("💶  Financat","Hyrje, dalje dhe bilanci i familjes",v->showFinance());
+    card("🏠  Detyrat e Shtëpisë","Pastrimi, detyrat ditore dhe kujtimet familjare",v->showTasks());
+    card("📄  Dokumentet & Garancitë","Faturat, kontratat, garancitë dhe skadimet",v->showDocuments());
+    card("🧾  Faturat & Abonimet","Rryma, interneti, sigurimet dhe pagesat periodike",v->showBills());
+    card("🚮  Kalendari i Mbeturinave","Gelber Sack, Restmüll, Bio dhe Papier",v->showWaste());
+    card("🚨  Emergjenca","Kontaktet e shpejta dhe informacioni i shtëpisë",v->showEmergency());
   }
 
   private void showFamily(){shell("Familja");section("Anëtarët e familjes");card("👤 Ilaz","Profili kryesor • Administrator",null);body.addView(button("+ Shto anëtar"));}
@@ -58,7 +63,12 @@ public class MainActivity extends Activity {
   private void showOffers(){shell("Ofertat Ditore");section("Dyqanet");card("🛍️ Ofertat","Këtu do të lidhen ofertat reale sipas dyqanit.",null);}
   private void showInventory(){shell("Inventari");section("Produktet në shtëpi");card("📦 Inventari","Sasi, kategori dhe minimumi për paralajmërim.",null);}
   private void showFinance(){shell("Financat");section("Bilanci");card("💶 Hyrjet","Regjistro të ardhurat.",null);card("💳 Daljet","Regjistro shpenzimet.",null);card("📊 Gjendja","Përmbledhja mujore dhe vjetore.",null);}
+  private void showTasks(){shell("Detyrat e Shtëpisë");section("Sot");card("🧹 Pastrimi","Ndaj detyrat sipas anëtarit dhe shëno përfundimin.",null);card("🔁 Detyrat periodike","Ditore, javore dhe mujore.",null);}
+  private void showDocuments(){shell("Dokumentet & Garancitë");section("Arkiva familjare");card("📄 Dokumentet","Kontrata, fatura, dokumente dhe fotografi.",null);card("🛡️ Garancitë","Data e blerjes, skadimi dhe kujtesa para skadimit.",null);}
+  private void showBills(){shell("Faturat & Abonimet");section("Pagesat periodike");card("⚡ Shërbimet","Rrymë, gaz, ujë, internet dhe telefon.",null);card("🔁 Abonimet","Shuma, data e pagesës dhe paralajmërimi.",null);}
+  private void showWaste(){shell("Kalendari i Mbeturinave");section("Frankenthal");card("♻️ Ditët e grumbullimit","Gelber Sack • Restmüll • Bio • Papier",null);card("🔔 Kujtesë","Paralajmërim një ditë përpara.",null);}
+  private void showEmergency(){shell("Emergjenca");section("Qasje e shpejtë");card("☎️ Kontaktet","Numrat dhe kontaktet e zgjedhura të familjes.",null);card("🏠 Informacioni i shtëpisë","Të dhëna të rëndësishme për raste urgjente.",null);}
   private void showNotifications(){shell("Njoftimet");card("🔔 Qendra e njoftimeve","Terminat, lista e blerjeve, inventari dhe familja.",null);}
   private void showProfile(){shell("Profili");card("👤 MeinHaushalt FT","Profili, gjuha, pamja dhe siguria.",null);}
-  private void showMore(){shell("Më shumë");card("🏷️ Ofertat", "Ofertat ditore",v->showOffers());card("📦 Inventari","Menaxhimi i stokut",v->showInventory());card("💶 Financat","Hyrje, dalje, bilanci",v->showFinance());card("🔔 Njoftimet","Qendra e lajmërimeve",v->showNotifications());card("👤 Profili","Llogaria dhe cilësimet",v->showProfile());}
+  private void showMore(){shell("Më shumë");card("🏷️ Ofertat", "Ofertat ditore",v->showOffers());card("📦 Inventari","Menaxhimi i stokut",v->showInventory());card("💶 Financat","Hyrje, dalje, bilanci",v->showFinance());card("🔔 Njoftimet","Qendra e lajmërimeve",v->showNotifications());card("🏠 Detyrat","Detyrat e shtëpisë",v->showTasks());card("📄 Dokumentet","Dokumentet & garancitë",v->showDocuments());card("🧾 Faturat","Faturat & abonimet",v->showBills());card("🚮 Mbeturinat","Kalendari i mbeturinave",v->showWaste());card("🚨 Emergjenca","Qasje e shpejtë",v->showEmergency());card("👤 Profili","Llogaria dhe cilësimet",v->showProfile());}
 }
