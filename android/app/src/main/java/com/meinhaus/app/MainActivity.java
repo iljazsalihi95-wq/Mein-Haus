@@ -17,11 +17,12 @@ import com.google.zxing.common.BitMatrix;
 
 public class MainActivity extends Activity {
   private LinearLayout body;
+  private android.content.SharedPreferences auth;
   private String lang="sq";
   private String country="AUTO";
   private final int BLUE=Color.rgb(8,120,255), TEXT=Color.rgb(16,24,40), MUTED=Color.rgb(102,112,133), BG=Color.rgb(248,251,255);
 
-  @Override public void onCreate(Bundle b){super.onCreate(b);detectLanguage();getWindow().setStatusBarColor(Color.WHITE);getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);showHome();}
+  @Override public void onCreate(Bundle b){super.onCreate(b);detectLanguage();auth=getSharedPreferences("auth",MODE_PRIVATE);getWindow().setStatusBarColor(Color.WHITE);getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);if(auth.getBoolean("logged_in",false))showHome();else showLogin();}
 
   private void detectLanguage(){String l=Locale.getDefault().getLanguage();if(l.equals("de"))lang="de";else if(l.equals("en"))lang="en";else if(l.equals("tr"))lang="tr";else if(l.equals("it"))lang="it";else if(l.equals("bs")||l.equals("hr")||l.equals("sr"))lang="bs";else lang="sq";}
   private String tr(String sq,String de,String en){return lang.equals("de")?de:lang.equals("en")?en:sq;}
@@ -54,6 +55,22 @@ public class MainActivity extends Activity {
     TextView i=txt(icon,26,false);i.setPadding(0,0,0,dp(4));box.addView(i);TextView h=txt(title,15,true);h.setPadding(0,0,0,dp(3));box.addView(h);TextView s=txt(sub,11,false);s.setTextColor(MUTED);s.setPadding(0,0,0,0);box.addView(s);box.setOnClickListener(l);
     LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(120),1);p.setMargins(dp(5),dp(5),dp(5),dp(5));row.addView(box,p);
   }
+  private void showLogin(){
+    LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setGravity(Gravity.CENTER_HORIZONTAL);root.setPadding(dp(24),dp(46),dp(24),dp(28));root.setBackgroundColor(BG);
+    ImageView logo=new ImageView(this);logo.setImageResource(R.drawable.install_icon);logo.setScaleType(ImageView.ScaleType.CENTER_CROP);root.addView(logo,new LinearLayout.LayoutParams(dp(92),dp(92)));
+    TextView h=txt("Mein Haus",30,true);h.setGravity(Gravity.CENTER);h.setPadding(0,dp(14),0,0);root.addView(h);
+    TextView s=txt("Shtëpia Ime",17,false);s.setTextColor(MUTED);s.setGravity(Gravity.CENTER);s.setPadding(0,0,0,dp(24));root.addView(s);
+    LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(dp(18),dp(18),dp(18),dp(18));box.setBackground(bg(Color.WHITE,20));box.setElevation(dp(3));
+    TextView title=txt("Hyr / Anmelden",20,true);title.setPadding(0,0,0,dp(10));box.addView(title);
+    EditText email=input("Email");email.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);box.addView(email);
+    EditText pass=input("Fjalëkalimi / Passwort");pass.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);box.addView(pass);
+    Button enter=button("Anmelden");enter.setTextColor(Color.WHITE);enter.setTextSize(16);GradientDrawable eg=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{Color.rgb(18,108,255),Color.rgb(4,165,237)});eg.setCornerRadius(dp(16));enter.setBackground(eg);
+    enter.setOnClickListener(v->{if(email.getText().toString().trim().isEmpty()||pass.getText().toString().isEmpty()){Toast.makeText(this,"Shkruaj emailin dhe fjalëkalimin",Toast.LENGTH_SHORT).show();return;}auth.edit().putBoolean("logged_in",true).putString("email",email.getText().toString().trim()).apply();showHome();});
+    LinearLayout.LayoutParams ep=new LinearLayout.LayoutParams(-1,dp(54));ep.setMargins(0,dp(8),0,0);box.addView(enter,ep);
+    TextView note=txt("Të dhënat ekzistuese do të merren nga llogaria jote.",12,false);note.setTextColor(MUTED);note.setGravity(Gravity.CENTER);box.addView(note);
+    root.addView(box,new LinearLayout.LayoutParams(-1,-2));setContentView(root);
+  }
+
   private void showHome(){
     shell("MeinHaushalt FT");
     String date=new SimpleDateFormat("EEEE, dd.MM.yyyy",Locale.GERMANY).format(new Date());
