@@ -19,7 +19,7 @@ public class MainActivity extends Activity {
   private LinearLayout body;
   private String lang="sq";
   private String country="AUTO";
-  private final int BLUE=Color.rgb(20,105,235), TEXT=Color.rgb(24,36,56), MUTED=Color.rgb(93,108,130), BG=Color.rgb(245,248,253);
+  private final int BLUE=Color.rgb(8,120,255), TEXT=Color.rgb(16,24,40), MUTED=Color.rgb(102,112,133), BG=Color.rgb(248,251,255);
 
   @Override public void onCreate(Bundle b){super.onCreate(b);detectLanguage();getWindow().setStatusBarColor(Color.WHITE);getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);showHome();}
 
@@ -28,7 +28,7 @@ public class MainActivity extends Activity {
   private int dp(int v){return (int)(v*getResources().getDisplayMetrics().density+.5f);}
   private GradientDrawable bg(int color,int radius){GradientDrawable g=new GradientDrawable();g.setColor(color);g.setCornerRadius(dp(radius));return g;}
   private TextView txt(String s,float sp,boolean bold){TextView v=new TextView(this);v.setText(s);v.setTextSize(sp);v.setTextColor(TEXT);v.setPadding(dp(14),dp(10),dp(14),dp(10));if(bold)v.setTypeface(null,1);return v;}
-  private Button button(String s){Button b=new Button(this);b.setText(s);b.setAllCaps(false);b.setTextSize(15);return b;}
+  private Button button(String s){Button b=new Button(this);b.setText(s);b.setAllCaps(false);b.setTextSize(14);b.setTextColor(TEXT);b.setBackground(bg(Color.TRANSPARENT,14));b.setPadding(dp(6),dp(5),dp(6),dp(5));b.setStateListAnimator(null);return b;}
   private EditText input(String hint){EditText e=new EditText(this);e.setHint(hint);e.setSingleLine(true);e.setPadding(dp(14),dp(12),dp(14),dp(12));e.setBackground(bg(Color.WHITE,14));LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.setMargins(0,dp(6),0,dp(8));e.setLayoutParams(p);return e;}
 
   private void shell(String heading){
@@ -36,10 +36,10 @@ public class MainActivity extends Activity {
     LinearLayout top=new LinearLayout(this);top.setGravity(Gravity.CENTER_VERTICAL);top.setPadding(dp(18),dp(12),dp(18),dp(12));top.setBackgroundColor(Color.WHITE);
     TextView t=txt(heading,20,true);top.addView(t,new LinearLayout.LayoutParams(0,-2,1));TextView bell=txt("🔔",22,false);bell.setOnClickListener(v->showNotifications());top.addView(bell);root.addView(top);
     ScrollView sv=new ScrollView(this);body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(16),dp(18),dp(24));sv.addView(body);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));
-    LinearLayout nav=new LinearLayout(this);nav.setPadding(dp(3),dp(3),dp(3),dp(6));nav.setBackgroundColor(Color.WHITE);
+    LinearLayout nav=new LinearLayout(this);nav.setPadding(dp(4),dp(5),dp(4),dp(7));nav.setBackgroundColor(Color.WHITE);nav.setElevation(dp(10));
     String[] n={"🏠\nBallina","👨‍👩‍👧\nFamilja","📅\nTerminat","🛒\nBlerjet","☰\nMë shumë"};
     View.OnClickListener[] l={v->showHome(),v->showFamily(),v->showAppointments(),v->showShopping(),v->showMore()};
-    for(int i=0;i<n.length;i++){Button b=button(n[i]);b.setTextSize(11);b.setOnClickListener(l[i]);nav.addView(b,new LinearLayout.LayoutParams(0,dp(58),1));}root.addView(nav);setContentView(root);
+    for(int i=0;i<n.length;i++){Button b=button(n[i]);b.setTextSize(10);b.setTextColor(i==0?BLUE:Color.rgb(137,148,165));b.setGravity(Gravity.CENTER);b.setOnClickListener(l[i]);nav.addView(b,new LinearLayout.LayoutParams(0,dp(60),1));}root.addView(nav);setContentView(root);
   }
 
   private void card(String h,String d,View.OnClickListener l){
@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
   private void showHome(){
     shell("MeinHaushalt FT");
     String date=new SimpleDateFormat("EEEE, dd.MM.yyyy",Locale.GERMANY).format(new Date());
-    TextView hero=txt("MEIN HAUS  •  SHTËPIA IME  •  MY HOME",13,true);hero.setTextColor(Color.WHITE);hero.setGravity(Gravity.CENTER);hero.setBackground(bg(BLUE,18));hero.setPadding(dp(12),dp(15),dp(12),dp(15));body.addView(hero);
+    TextView hero=txt("MEIN HAUS  •  SHTËPIA IME  •  MY HOME",13,true);hero.setTextColor(Color.WHITE);hero.setGravity(Gravity.CENTER);GradientDrawable hg=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{Color.rgb(18,108,255),Color.rgb(4,165,237)});hg.setCornerRadius(dp(18));hero.setBackground(hg);hero.setPadding(dp(12),dp(16),dp(12),dp(16));hero.setElevation(dp(3));body.addView(hero);
     TextView welcome=txt("Mirë se vini / Willkommen\n"+date,16,false);welcome.setTextColor(MUTED);body.addView(welcome);
     LinearLayout r1=new LinearLayout(this);r1.setOrientation(LinearLayout.HORIZONTAL);body.addView(r1,new LinearLayout.LayoutParams(-1,-2));
     tile(r1,"👨‍👩‍👧‍👦","Familja","Anëtarët & detyrat",v->showFamily());tile(r1,"📅","Terminat","Kalendari & kujtesat",v->showAppointments());
