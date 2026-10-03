@@ -33,26 +33,26 @@ public class MainActivity extends Activity {
 
   private void shell(String heading){
     LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(BG);
-    LinearLayout top=new LinearLayout(this);top.setGravity(Gravity.CENTER_VERTICAL);top.setPadding(dp(16),dp(10),dp(10),dp(8));
-    TextView t=txt(heading,25,true);top.addView(t,new LinearLayout.LayoutParams(0,-2,1));TextView bell=txt("🔔",22,false);bell.setOnClickListener(v->showNotifications());top.addView(bell);root.addView(top);
-    ScrollView sv=new ScrollView(this);body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(14),0,dp(14),dp(24));sv.addView(body);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));
+    LinearLayout top=new LinearLayout(this);top.setGravity(Gravity.CENTER_VERTICAL);top.setPadding(dp(18),dp(12),dp(18),dp(12));top.setBackgroundColor(Color.WHITE);
+    TextView t=txt(heading,20,true);top.addView(t,new LinearLayout.LayoutParams(0,-2,1));TextView bell=txt("🔔",22,false);bell.setOnClickListener(v->showNotifications());top.addView(bell);root.addView(top);
+    ScrollView sv=new ScrollView(this);body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(16),dp(18),dp(24));sv.addView(body);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));
     LinearLayout nav=new LinearLayout(this);nav.setPadding(dp(3),dp(3),dp(3),dp(6));nav.setBackgroundColor(Color.WHITE);
-    String[] n={"🏠\\nBallina","👨‍👩‍👧\\nFamilja","📅\\nTerminat","🛒\\nBlerjet","☰\\nMë shumë"};
+    String[] n={"🏠\nBallina","👨‍👩‍👧\nFamilja","📅\nTerminat","🛒\nBlerjet","☰\nMë shumë"};
     View.OnClickListener[] l={v->showHome(),v->showFamily(),v->showAppointments(),v->showShopping(),v->showMore()};
     for(int i=0;i<n.length;i++){Button b=button(n[i]);b.setTextSize(11);b.setOnClickListener(l[i]);nav.addView(b,new LinearLayout.LayoutParams(0,dp(58),1));}root.addView(nav);setContentView(root);
   }
 
   private void card(String h,String d,View.OnClickListener l){
-    LinearLayout c=new LinearLayout(this);c.setOrientation(LinearLayout.VERTICAL);c.setPadding(dp(10),dp(8),dp(10),dp(8));c.setBackground(bg(Color.WHITE,18));c.setElevation(dp(2));
-    TextView a=txt(h,19,true),x=txt(d,14,false);x.setTextColor(MUTED);c.addView(a);c.addView(x);if(l!=null)c.setOnClickListener(l);
-    LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.setMargins(0,dp(6),0,dp(9));body.addView(c,p);
+    LinearLayout c=new LinearLayout(this);c.setOrientation(LinearLayout.VERTICAL);c.setPadding(dp(16),dp(15),dp(16),dp(15));c.setBackground(bg(Color.WHITE,18));c.setElevation(dp(2));
+    TextView a=txt(h,16,true),x=txt(d,12,false);x.setTextColor(MUTED);c.addView(a);c.addView(x);if(l!=null)c.setOnClickListener(l);
+    LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.setMargins(0,dp(6),0,dp(10));body.addView(c,p);
   }
   private void section(String s){TextView t=txt(s,17,true);t.setTextColor(BLUE);body.addView(t);}
 
   private void showHome(){
     shell("MeinHaushalt FT");
     String date=new SimpleDateFormat("EEEE, dd.MM.yyyy",Locale.GERMANY).format(new Date());
-    TextView welcome=txt("Mirë se vini / Willkommen\\n"+date,16,false);welcome.setTextColor(MUTED);body.addView(welcome);
+    TextView welcome=txt("Mirë se vini / Willkommen\n"+date,16,false);welcome.setTextColor(MUTED);body.addView(welcome);
     card("👨‍👩‍👧‍👦  Familja","Anëtarët, profilet dhe detyrat e shtëpisë",v->showFamily());
     card("📅  Terminat","Takimet e ardhshme dhe paralajmërimet",v->showAppointments());
     card("🛒  Lista ime e Blerjeve","Produktet që mungojnë dhe ato të blera",v->showShopping());
