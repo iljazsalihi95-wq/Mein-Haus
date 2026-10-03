@@ -5,6 +5,7 @@ import android.content.*;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.content.res.Configuration;
 import android.view.*;
 import android.widget.*;
 import java.text.SimpleDateFormat;
@@ -12,10 +13,13 @@ import java.util.*;
 
 public class MainActivity extends Activity {
   private LinearLayout body;
+  private String lang="sq";
   private final int BLUE=Color.rgb(20,105,235), TEXT=Color.rgb(24,36,56), MUTED=Color.rgb(93,108,130), BG=Color.rgb(245,248,253);
 
-  @Override public void onCreate(Bundle b){super.onCreate(b);getWindow().setStatusBarColor(Color.WHITE);getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);showHome();}
+  @Override public void onCreate(Bundle b){super.onCreate(b);detectLanguage();getWindow().setStatusBarColor(Color.WHITE);getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);showHome();}
 
+  private void detectLanguage(){String l=Locale.getDefault().getLanguage();if(l.equals("de"))lang="de";else if(l.equals("en"))lang="en";else if(l.equals("tr"))lang="tr";else if(l.equals("it"))lang="it";else if(l.equals("bs")||l.equals("hr")||l.equals("sr"))lang="bs";else lang="sq";}
+  private String tr(String sq,String de,String en){return lang.equals("de")?de:lang.equals("en")?en:sq;}
   private int dp(int v){return (int)(v*getResources().getDisplayMetrics().density+.5f);}
   private GradientDrawable bg(int color,int radius){GradientDrawable g=new GradientDrawable();g.setColor(color);g.setCornerRadius(dp(radius));return g;}
   private TextView txt(String s,float sp,boolean bold){TextView v=new TextView(this);v.setText(s);v.setTextSize(sp);v.setTextColor(TEXT);v.setPadding(dp(14),dp(10),dp(14),dp(10));if(bold)v.setTypeface(null,1);return v;}
