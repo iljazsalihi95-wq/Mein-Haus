@@ -42,12 +42,7 @@ public class MainActivity extends Activity {
     TextView t=txt(heading,20,true);top.addView(t,new LinearLayout.LayoutParams(0,-2,1));TextView bell=txt("🔔",22,false);bell.setOnClickListener(v->showNotifications());top.addView(bell);root.addView(top);
     ScrollView sv=new ScrollView(this);body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(16),dp(18),dp(24));sv.addView(body);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));
     LinearLayout nav=new LinearLayout(this);nav.setPadding(dp(4),dp(5),dp(4),dp(7));nav.setBackgroundColor(Color.WHITE);nav.setElevation(dp(10));
-    String[] n={"🏠
-Ballina","👨‍👩‍👧
-Familja","📅
-Terminat","🛒
-Blerjet","☰
-Më shumë"};
+    String[] n={"🏠\nBallina","👨‍👩‍👧\nFamilja","📅\nTerminat","🛒\nBlerjet","☰\nMë shumë"};
     View.OnClickListener[] l={v->showHome(),v->showFamily(),v->showAppointments(),v->showShopping(),v->showMore()};
     for(int i=0;i<n.length;i++){Button b=button(n[i]);b.setTextSize(10);b.setTextColor(i==0?BLUE:Color.rgb(137,148,165));b.setGravity(Gravity.CENTER);b.setOnClickListener(l[i]);nav.addView(b,new LinearLayout.LayoutParams(0,dp(60),1));}root.addView(nav);setContentView(root);
   }
@@ -65,22 +60,10 @@ Më shumë"};
     LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(120),1);p.setMargins(dp(5),dp(5),dp(5),dp(5));row.addView(box,p);
   }
   private void nativeLogin(String email,String password,Button enter){
-    new Thread(()->{
-      try{
-        JSONObject q=new JSONObject();q.put("action","login");q.put("email",email);q.put("password",password);q.put("device","ANDROID_NATIVE");
-        JSONObject d=postApi(q);String token=d.optString("token","");if(token.isEmpty())throw new Exception("TOKEN_MISSING");
-        JSONObject u=d.optJSONObject("user");String name=u==null?"":u.optString("displayName","");
-        auth.edit().putBoolean("logged_in",true).putString("token",token).putString("email",email).putString("displayName",name).apply();
-        runOnUiThread(this::showHome);
-      }catch(Exception e){runOnUiThread(()->{enter.setEnabled(true);enter.setText("Anmelden");Toast.makeText(this,"Hyrja dështoi: "+e.getMessage(),Toast.LENGTH_LONG).show();});}
-    }).start();
+    new Thread(()->{try{JSONObject q=new JSONObject();q.put("action","login");q.put("email",email);q.put("password",password);q.put("device","ANDROID_NATIVE");JSONObject d=postApi(q);String token=d.optString("token","");if(token.isEmpty())throw new Exception("TOKEN_MISSING");JSONObject u=d.optJSONObject("user");String name=u==null?"":u.optString("displayName","");auth.edit().putBoolean("logged_in",true).putString("token",token).putString("email",email).putString("displayName",name).apply();runOnUiThread(this::showHome);}catch(Exception e){runOnUiThread(()->{enter.setEnabled(true);enter.setText("Anmelden");Toast.makeText(this,"Hyrja dështoi: "+e.getMessage(),Toast.LENGTH_LONG).show();});}}).start();
   }
   private JSONObject postApi(JSONObject payload)throws Exception{
-    String token=auth==null?"":auth.getString("token","");if(!token.isEmpty()&&!payload.has("token"))payload.put("token",token);
-    HttpURLConnection con=(HttpURLConnection)new URL(API_BASE).openConnection();con.setRequestMethod("POST");con.setConnectTimeout(15000);con.setReadTimeout(20000);con.setDoOutput(true);con.setRequestProperty("Content-Type","text/plain;charset=utf-8");
-    try(OutputStream os=con.getOutputStream()){os.write(payload.toString().getBytes("UTF-8"));}
-    InputStream is=con.getResponseCode()>=400?con.getErrorStream():con.getInputStream();BufferedReader br=new BufferedReader(new InputStreamReader(is,"UTF-8"));StringBuilder sb=new StringBuilder();String line;while((line=br.readLine())!=null)sb.append(line);
-    JSONObject r=new JSONObject(sb.toString());if(!r.optBoolean("ok",false))throw new Exception(r.optString("error","SERVER_ERROR"));JSONObject d=r.optJSONObject("data");return d==null?new JSONObject():d;
+    String token=auth==null?"":auth.getString("token","");if(!token.isEmpty()&&!payload.has("token"))payload.put("token",token);HttpURLConnection con=(HttpURLConnection)new URL(API_BASE).openConnection();con.setRequestMethod("POST");con.setConnectTimeout(15000);con.setReadTimeout(20000);con.setDoOutput(true);con.setRequestProperty("Content-Type","text/plain;charset=utf-8");try(OutputStream os=con.getOutputStream()){os.write(payload.toString().getBytes("UTF-8"));}InputStream is=con.getResponseCode()>=400?con.getErrorStream():con.getInputStream();BufferedReader br=new BufferedReader(new InputStreamReader(is,"UTF-8"));StringBuilder sb=new StringBuilder();String line;while((line=br.readLine())!=null)sb.append(line);JSONObject r=new JSONObject(sb.toString());if(!r.optBoolean("ok",false))throw new Exception(r.optString("error","SERVER_ERROR"));JSONObject d=r.optJSONObject("data");return d==null?new JSONObject():d;
   }
 
   private void showLogin(){
@@ -103,8 +86,7 @@ Më shumë"};
     shell("MeinHaushalt FT");
     String date=new SimpleDateFormat("EEEE, dd.MM.yyyy",Locale.GERMANY).format(new Date());
     TextView hero=txt("MEIN HAUS  •  SHTËPIA IME  •  MY HOME",13,true);hero.setTextColor(Color.WHITE);hero.setGravity(Gravity.CENTER);GradientDrawable hg=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{Color.rgb(18,108,255),Color.rgb(4,165,237)});hg.setCornerRadius(dp(18));hero.setBackground(hg);hero.setPadding(dp(12),dp(16),dp(12),dp(16));hero.setElevation(dp(3));body.addView(hero);
-    TextView welcome=txt("Mirë se vini / Willkommen
-"+date,16,false);welcome.setTextColor(MUTED);body.addView(welcome);
+    TextView welcome=txt("Mirë se vini / Willkommen\n"+date,16,false);welcome.setTextColor(MUTED);body.addView(welcome);
     LinearLayout r1=new LinearLayout(this);r1.setOrientation(LinearLayout.HORIZONTAL);body.addView(r1,new LinearLayout.LayoutParams(-1,-2));
     tile(r1,"👨‍👩‍👧‍👦","Familja","Anëtarët & detyrat",v->showFamily());tile(r1,"📅","Terminat","Kalendari & kujtesat",v->showAppointments());
     LinearLayout r2=new LinearLayout(this);r2.setOrientation(LinearLayout.HORIZONTAL);body.addView(r2,new LinearLayout.LayoutParams(-1,-2));
