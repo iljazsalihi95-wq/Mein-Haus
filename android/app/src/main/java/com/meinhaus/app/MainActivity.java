@@ -38,13 +38,15 @@ public class MainActivity extends Activity {
 
   private void shell(String heading){
     LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(BG);
-    LinearLayout top=new LinearLayout(this);top.setGravity(Gravity.CENTER_VERTICAL);top.setPadding(dp(18),dp(12),dp(18),dp(12));top.setBackgroundColor(Color.WHITE);
-    TextView t=txt(heading,20,true);top.addView(t,new LinearLayout.LayoutParams(0,-2,1));TextView bell=txt("🔔",22,false);bell.setOnClickListener(v->showNotifications());top.addView(bell);root.addView(top);
-    ScrollView sv=new ScrollView(this);body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(16),dp(18),dp(24));sv.addView(body);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));
+    LinearLayout top=new LinearLayout(this);top.setGravity(Gravity.CENTER_VERTICAL);top.setPadding(dp(18),dp(10),dp(18),dp(10));top.setBackgroundColor(Color.WHITE);
+    ImageView logo=new ImageView(this);logo.setImageResource(R.drawable.install_icon);logo.setScaleType(ImageView.ScaleType.CENTER_CROP);top.addView(logo,new LinearLayout.LayoutParams(dp(58),dp(58)));
+    LinearLayout names=new LinearLayout(this);names.setOrientation(LinearLayout.VERTICAL);names.setPadding(dp(10),0,0,0);TextView t=txt(heading,22,true);names.addView(t);TextView sub=txt("Frankenthal • Haushalt & Familie",12,false);sub.setTextColor(MUTED);names.addView(sub);top.addView(names,new LinearLayout.LayoutParams(0,-2,1));
+    TextView avatar=txt("IS",18,true);avatar.setTextColor(BLUE);avatar.setGravity(Gravity.CENTER);avatar.setBackground(bg(Color.rgb(238,245,255),40));top.addView(avatar,new LinearLayout.LayoutParams(dp(54),dp(54)));root.addView(top);
+    ScrollView sv=new ScrollView(this);body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(18),dp(18),dp(24));sv.addView(body);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));
     LinearLayout nav=new LinearLayout(this);nav.setPadding(dp(4),dp(5),dp(4),dp(7));nav.setBackgroundColor(Color.WHITE);nav.setElevation(dp(10));
-    String[] n={"🏠\nBallina","👨‍👩‍👧\nFamilja","📅\nTerminat","🛒\nBlerjet","☰\nMë shumë"};
-    View.OnClickListener[] l={v->showHome(),v->showFamily(),v->showAppointments(),v->showShopping(),v->showMore()};
-    for(int i=0;i<n.length;i++){Button b=button(n[i]);b.setTextSize(10);b.setTextColor(i==0?BLUE:Color.rgb(137,148,165));b.setGravity(Gravity.CENTER);b.setOnClickListener(l[i]);nav.addView(b,new LinearLayout.LayoutParams(0,dp(60),1));}root.addView(nav);setContentView(root);
+    String[] n={"⌂\nBallina","🛒\nBlerjet","📦\nInventari","📊\nFinancat","•••\nMë shumë"};
+    View.OnClickListener[] l={v->showHome(),v->showShopping(),v->showInventory(),v->showFinance(),v->showMore()};
+    for(int i=0;i<n.length;i++){Button b=button(n[i]);b.setTextSize(11);b.setTextColor(i==0?BLUE:Color.rgb(137,148,165));b.setGravity(Gravity.CENTER);b.setOnClickListener(l[i]);nav.addView(b,new LinearLayout.LayoutParams(0,dp(62),1));}root.addView(nav);setContentView(root);
   }
 
   private void card(String h,String d,View.OnClickListener l){
@@ -83,24 +85,23 @@ public class MainActivity extends Activity {
   }
 
   private void showHome(){
-    shell("MeinHaushalt FT");
-    String date=new SimpleDateFormat("EEEE, dd.MM.yyyy",Locale.GERMANY).format(new Date());
-    TextView hero=txt("MEIN HAUS  •  SHTËPIA IME  •  MY HOME",13,true);hero.setTextColor(Color.WHITE);hero.setGravity(Gravity.CENTER);GradientDrawable hg=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{Color.rgb(18,108,255),Color.rgb(4,165,237)});hg.setCornerRadius(dp(18));hero.setBackground(hg);hero.setPadding(dp(12),dp(16),dp(12),dp(16));hero.setElevation(dp(3));body.addView(hero);
-    TextView welcome=txt("Mirë se vini / Willkommen\n"+date,16,false);welcome.setTextColor(MUTED);body.addView(welcome);
+    shell("Shtëpia Ime");
+    String name=auth==null?"":auth.getString("displayName","");if(name==null||name.trim().isEmpty())name="Ilaz";
+    TextView hi=txt("Përshëndetje "+name+" 👋",26,true);body.addView(hi);TextView desc=txt("Këtu është përmbledhja e shtëpisë sate.",15,false);desc.setTextColor(MUTED);body.addView(desc);
     LinearLayout r1=new LinearLayout(this);r1.setOrientation(LinearLayout.HORIZONTAL);body.addView(r1,new LinearLayout.LayoutParams(-1,-2));
-    tile(r1,"👨‍👩‍👧‍👦","Familja","Anëtarët & detyrat",v->showFamily());tile(r1,"📅","Terminat","Kalendari & kujtesat",v->showAppointments());
+    colorTile(r1,"🛒","Lista e\nblerjeve","Të dhënat nga llogaria",Color.rgb(20,190,132),v->showShopping());
+    colorTile(r1,"%","Ofertat","Oferta reale",Color.rgb(49,126,238),v->showOffers());
     LinearLayout r2=new LinearLayout(this);r2.setOrientation(LinearLayout.HORIZONTAL);body.addView(r2,new LinearLayout.LayoutParams(-1,-2));
-    tile(r2,"🛒","Çka të blej sot?","Lista inteligjente",v->showShopping());tile(r2,"🏷️","Ofertat","Oferta reale pranë teje",v->showOffers());
-    card("🌤️  Sot në shtëpi","Terminet, detyrat, skadimet dhe njoftimet e rëndësishme në një vend.",v->showNotifications());
-    section("Sot");
-    card("📦  Inventari & skadimet","Shiko çfarë po mbaron ose skadon së shpejti.",v->showInventory());
-    card("🧠  Smart Home Assistant","Lidh inventarin, ofertat, blerjet dhe buxhetin.",v->showSmartAssistant());
-    section("Më shumë");
-    LinearLayout r3=new LinearLayout(this);r3.setOrientation(LinearLayout.HORIZONTAL);body.addView(r3,new LinearLayout.LayoutParams(-1,-2));
-    tile(r3,"💶","Financat","Hyrje, dalje, bilanc",v->showFinance());tile(r3,"🧾","Kassenbon","OCR & kontroll",v->showReceipt());
-    LinearLayout r4=new LinearLayout(this);r4.setOrientation(LinearLayout.HORIZONTAL);body.addView(r4,new LinearLayout.LayoutParams(-1,-2));
-    tile(r4,"💳","Kartat","Loyalty wallet",v->showWallet());tile(r4,"☪️","Halal Check","Certifikata & GTIN",v->showHalalCheck());
-    card("☰  Të gjitha funksionet","Detyrat • Dokumentet • Faturat • Mbeturinat • Emergjenca • Kthimet • Pikët • Privatësia",v->showMore());
+    colorTile(r2,"📦","Inventari","Nga llogaria jote",Color.rgb(255,169,24),v->showInventory());
+    colorTile(r2,"📊","Financat","Bilanci & shpenzimet",Color.rgb(132,76,235),v->showFinance());
+    card("🔔 Kontrolli javor","Terminet, detyrat, skadimet dhe njoftimet reale do të shfaqen këtu nga llogaria.",v->showNotifications());
+    card("👨‍👩‍👧‍👦 Familja","Anëtarët dhe detyrat",v->showFamily());
+    card("📅 Terminat","Kalendari dhe kujtesat",v->showAppointments());
+  }
+  private void colorTile(LinearLayout row,String icon,String title,String sub,int color,View.OnClickListener l){
+    LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setGravity(Gravity.CENTER_VERTICAL);box.setPadding(dp(20),dp(18),dp(16),dp(16));box.setBackground(bg(color,22));box.setElevation(dp(3));box.setOnClickListener(l);
+    TextView i=txt(icon,23,false);i.setTextColor(Color.WHITE);box.addView(i);TextView h=txt(title,20,true);h.setTextColor(Color.WHITE);box.addView(h);TextView s=txt(sub,13,false);s.setTextColor(Color.WHITE);box.addView(s);
+    LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(154),1);p.setMargins(dp(5),dp(8),dp(5),dp(4));row.addView(box,p);
   }
 
   private void showFamily(){shell("Familja");section("Anëtarët e familjes");card("👤 Profili kryesor","Administrator • detyrat • shpenzimet • terminet",null);card("👨‍👩‍👧‍👦 Familja","Secili anëtar ka profilin, detyrat dhe harxhimet e veta.",null);Button add=button("+ Shto anëtar");add.setTextColor(Color.WHITE);add.setBackground(bg(BLUE,16));body.addView(add);}
