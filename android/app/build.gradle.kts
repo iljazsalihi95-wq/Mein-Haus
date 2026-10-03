@@ -6,10 +6,11 @@ android {
         applicationId = "com.meinhaus.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.1.0-native"
+        versionCode = 4
+        versionName = "1.2.0-native"
     }
-    buildTypes {
-        release { isMinifyEnabled = false }
-    }
+    buildTypes { release { isMinifyEnabled = false } }
+}
+dependencies {
+    implementation("com.google.zxing:core:3.5.3")
 }
