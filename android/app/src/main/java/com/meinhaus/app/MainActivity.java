@@ -11,13 +11,13 @@ import android.content.res.Configuration;
 import android.view.*;
 import android.widget.*;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.*;\nimport java.io.*;\nimport java.net.*;\nimport org.json.*;
 import com.google.zxing.*;
 import com.google.zxing.common.BitMatrix;
 
 public class MainActivity extends Activity {
   private LinearLayout body;
-  private android.content.SharedPreferences auth;
+  private android.content.SharedPreferences auth;\n  private static final String API_BASE="https://script.google.com/macros/s/AKfycbzx_y12qFOfQ9uc9_5gfuHGbCw_JV2gwU1MGFnIgDnOuQ6lNhgw9hyMrYk8-Xv9oqDP/exec";
   private String lang="sq";
   private String country="AUTO";
   private final int BLUE=Color.rgb(8,120,255), TEXT=Color.rgb(16,24,40), MUTED=Color.rgb(102,112,133), BG=Color.rgb(248,251,255);
@@ -55,6 +55,25 @@ public class MainActivity extends Activity {
     TextView i=txt(icon,26,false);i.setPadding(0,0,0,dp(4));box.addView(i);TextView h=txt(title,15,true);h.setPadding(0,0,0,dp(3));box.addView(h);TextView s=txt(sub,11,false);s.setTextColor(MUTED);s.setPadding(0,0,0,0);box.addView(s);box.setOnClickListener(l);
     LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(120),1);p.setMargins(dp(5),dp(5),dp(5),dp(5));row.addView(box,p);
   }
+  private void nativeLogin(String email,String password,Button enter){
+    new Thread(()->{
+      try{
+        JSONObject q=new JSONObject();q.put("action","login");q.put("email",email);q.put("password",password);q.put("device","ANDROID_NATIVE");
+        JSONObject d=postApi(q);String token=d.optString("token","");if(token.isEmpty())throw new Exception("TOKEN_MISSING");
+        JSONObject u=d.optJSONObject("user");String name=u==null?"":u.optString("displayName","");
+        auth.edit().putBoolean("logged_in",true).putString("token",token).putString("email",email).putString("displayName",name).apply();
+        runOnUiThread(this::showHome);
+      }catch(Exception e){runOnUiThread(()->{enter.setEnabled(true);enter.setText("Anmelden");Toast.makeText(this,"Hyrja dështoi: "+e.getMessage(),Toast.LENGTH_LONG).show();});}
+    }).start();
+  }
+  private JSONObject postApi(JSONObject payload)throws Exception{
+    String token=auth==null?"":auth.getString("token","");if(!token.isEmpty()&&!payload.has("token"))payload.put("token",token);
+    HttpURLConnection con=(HttpURLConnection)new URL(API_BASE).openConnection();con.setRequestMethod("POST");con.setConnectTimeout(15000);con.setReadTimeout(20000);con.setDoOutput(true);con.setRequestProperty("Content-Type","text/plain;charset=utf-8");
+    try(OutputStream os=con.getOutputStream()){os.write(payload.toString().getBytes("UTF-8"));}
+    InputStream is=con.getResponseCode()>=400?con.getErrorStream():con.getInputStream();BufferedReader br=new BufferedReader(new InputStreamReader(is,"UTF-8"));StringBuilder sb=new StringBuilder();String line;while((line=br.readLine())!=null)sb.append(line);
+    JSONObject r=new JSONObject(sb.toString());if(!r.optBoolean("ok",false))throw new Exception(r.optString("error","SERVER_ERROR"));JSONObject d=r.optJSONObject("data");return d==null?new JSONObject():d;
+  }
+
   private void showLogin(){
     LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setGravity(Gravity.CENTER_HORIZONTAL);root.setPadding(dp(24),dp(46),dp(24),dp(28));root.setBackgroundColor(BG);
     ImageView logo=new ImageView(this);logo.setImageResource(R.drawable.install_icon);logo.setScaleType(ImageView.ScaleType.CENTER_CROP);root.addView(logo,new LinearLayout.LayoutParams(dp(92),dp(92)));
@@ -65,7 +84,7 @@ public class MainActivity extends Activity {
     EditText email=input("Email");email.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);box.addView(email);
     EditText pass=input("Fjalëkalimi / Passwort");pass.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);box.addView(pass);
     Button enter=button("Anmelden");enter.setTextColor(Color.WHITE);enter.setTextSize(16);GradientDrawable eg=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{Color.rgb(18,108,255),Color.rgb(4,165,237)});eg.setCornerRadius(dp(16));enter.setBackground(eg);
-    enter.setOnClickListener(v->{if(email.getText().toString().trim().isEmpty()||pass.getText().toString().isEmpty()){Toast.makeText(this,"Shkruaj emailin dhe fjalëkalimin",Toast.LENGTH_SHORT).show();return;}auth.edit().putBoolean("logged_in",true).putString("email",email.getText().toString().trim()).apply();showHome();});
+    enter.setOnClickListener(v->{String em=email.getText().toString().trim(),pw=pass.getText().toString();if(em.isEmpty()||pw.isEmpty()){Toast.makeText(this,"Shkruaj emailin dhe fjalëkalimin",Toast.LENGTH_SHORT).show();return;}enter.setEnabled(false);enter.setText("Duke u kyçur…");nativeLogin(em,pw,enter);});
     LinearLayout.LayoutParams ep=new LinearLayout.LayoutParams(-1,dp(54));ep.setMargins(0,dp(8),0,0);box.addView(enter,ep);
     TextView note=txt("Të dhënat ekzistuese do të merren nga llogaria jote.",12,false);note.setTextColor(MUTED);note.setGravity(Gravity.CENTER);box.addView(note);
     root.addView(box,new LinearLayout.LayoutParams(-1,-2));setContentView(root);
