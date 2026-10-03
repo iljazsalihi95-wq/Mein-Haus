@@ -11,13 +11,17 @@ import android.content.res.Configuration;
 import android.view.*;
 import android.widget.*;
 import java.text.SimpleDateFormat;
-import java.util.*;\nimport java.io.*;\nimport java.net.*;\nimport org.json.*;
+import java.util.*;
+import java.io.*;
+import java.net.*;
+import org.json.*;
 import com.google.zxing.*;
 import com.google.zxing.common.BitMatrix;
 
 public class MainActivity extends Activity {
   private LinearLayout body;
-  private android.content.SharedPreferences auth;\n  private static final String API_BASE="https://script.google.com/macros/s/AKfycbzx_y12qFOfQ9uc9_5gfuHGbCw_JV2gwU1MGFnIgDnOuQ6lNhgw9hyMrYk8-Xv9oqDP/exec";
+  private android.content.SharedPreferences auth;
+  private static final String API_BASE="https://script.google.com/macros/s/AKfycbzx_y12qFOfQ9uc9_5gfuHGbCw_JV2gwU1MGFnIgDnOuQ6lNhgw9hyMrYk8-Xv9oqDP/exec";
   private String lang="sq";
   private String country="AUTO";
   private final int BLUE=Color.rgb(8,120,255), TEXT=Color.rgb(16,24,40), MUTED=Color.rgb(102,112,133), BG=Color.rgb(248,251,255);
@@ -38,7 +42,12 @@ public class MainActivity extends Activity {
     TextView t=txt(heading,20,true);top.addView(t,new LinearLayout.LayoutParams(0,-2,1));TextView bell=txt("🔔",22,false);bell.setOnClickListener(v->showNotifications());top.addView(bell);root.addView(top);
     ScrollView sv=new ScrollView(this);body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(16),dp(18),dp(24));sv.addView(body);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));
     LinearLayout nav=new LinearLayout(this);nav.setPadding(dp(4),dp(5),dp(4),dp(7));nav.setBackgroundColor(Color.WHITE);nav.setElevation(dp(10));
-    String[] n={"🏠\nBallina","👨‍👩‍👧\nFamilja","📅\nTerminat","🛒\nBlerjet","☰\nMë shumë"};
+    String[] n={"🏠
+Ballina","👨‍👩‍👧
+Familja","📅
+Terminat","🛒
+Blerjet","☰
+Më shumë"};
     View.OnClickListener[] l={v->showHome(),v->showFamily(),v->showAppointments(),v->showShopping(),v->showMore()};
     for(int i=0;i<n.length;i++){Button b=button(n[i]);b.setTextSize(10);b.setTextColor(i==0?BLUE:Color.rgb(137,148,165));b.setGravity(Gravity.CENTER);b.setOnClickListener(l[i]);nav.addView(b,new LinearLayout.LayoutParams(0,dp(60),1));}root.addView(nav);setContentView(root);
   }
@@ -94,7 +103,8 @@ public class MainActivity extends Activity {
     shell("MeinHaushalt FT");
     String date=new SimpleDateFormat("EEEE, dd.MM.yyyy",Locale.GERMANY).format(new Date());
     TextView hero=txt("MEIN HAUS  •  SHTËPIA IME  •  MY HOME",13,true);hero.setTextColor(Color.WHITE);hero.setGravity(Gravity.CENTER);GradientDrawable hg=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{Color.rgb(18,108,255),Color.rgb(4,165,237)});hg.setCornerRadius(dp(18));hero.setBackground(hg);hero.setPadding(dp(12),dp(16),dp(12),dp(16));hero.setElevation(dp(3));body.addView(hero);
-    TextView welcome=txt("Mirë se vini / Willkommen\n"+date,16,false);welcome.setTextColor(MUTED);body.addView(welcome);
+    TextView welcome=txt("Mirë se vini / Willkommen
+"+date,16,false);welcome.setTextColor(MUTED);body.addView(welcome);
     LinearLayout r1=new LinearLayout(this);r1.setOrientation(LinearLayout.HORIZONTAL);body.addView(r1,new LinearLayout.LayoutParams(-1,-2));
     tile(r1,"👨‍👩‍👧‍👦","Familja","Anëtarët & detyrat",v->showFamily());tile(r1,"📅","Terminat","Kalendari & kujtesat",v->showAppointments());
     LinearLayout r2=new LinearLayout(this);r2.setOrientation(LinearLayout.HORIZONTAL);body.addView(r2,new LinearLayout.LayoutParams(-1,-2));
