@@ -37,12 +37,7 @@ public class MainActivity extends Activity {
     TextView t=txt(heading,25,true);top.addView(t,new LinearLayout.LayoutParams(0,-2,1));TextView bell=txt("🔔",22,false);bell.setOnClickListener(v->showNotifications());top.addView(bell);root.addView(top);
     ScrollView sv=new ScrollView(this);body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(14),0,dp(14),dp(24));sv.addView(body);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));
     LinearLayout nav=new LinearLayout(this);nav.setPadding(dp(3),dp(3),dp(3),dp(6));nav.setBackgroundColor(Color.WHITE);
-    String[] n={"🏠
-Ballina","👨‍👩‍👧
-Familja","📅
-Terminat","🛒
-Blerjet","☰
-Më shumë"};
+    String[] n={"🏠\\nBallina","👨‍👩‍👧\\nFamilja","📅\\nTerminat","🛒\\nBlerjet","☰\\nMë shumë"};
     View.OnClickListener[] l={v->showHome(),v->showFamily(),v->showAppointments(),v->showShopping(),v->showMore()};
     for(int i=0;i<n.length;i++){Button b=button(n[i]);b.setTextSize(11);b.setOnClickListener(l[i]);nav.addView(b,new LinearLayout.LayoutParams(0,dp(58),1));}root.addView(nav);setContentView(root);
   }
@@ -57,8 +52,7 @@ Më shumë"};
   private void showHome(){
     shell("MeinHaushalt FT");
     String date=new SimpleDateFormat("EEEE, dd.MM.yyyy",Locale.GERMANY).format(new Date());
-    TextView welcome=txt("Mirë se vini / Willkommen
-"+date,16,false);welcome.setTextColor(MUTED);body.addView(welcome);
+    TextView welcome=txt("Mirë se vini / Willkommen\\n"+date,16,false);welcome.setTextColor(MUTED);body.addView(welcome);
     card("👨‍👩‍👧‍👦  Familja","Anëtarët, profilet dhe detyrat e shtëpisë",v->showFamily());
     card("📅  Terminat","Takimet e ardhshme dhe paralajmërimet",v->showAppointments());
     card("🛒  Lista ime e Blerjeve","Produktet që mungojnë dhe ato të blera",v->showShopping());
