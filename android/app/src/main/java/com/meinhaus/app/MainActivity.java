@@ -37,9 +37,9 @@ public class MainActivity extends Activity {
     setContentView(root);
     WebSettings s=web.getSettings();
     s.setJavaScriptEnabled(true); s.setDomStorageEnabled(true); s.setDatabaseEnabled(true);
-    s.setAllowFileAccess(false); s.setAllowContentAccess(false); s.setCacheMode(WebSettings.LOAD_DEFAULT);
+    s.setAllowFileAccess(false); s.setAllowContentAccess(true); s.setCacheMode(WebSettings.LOAD_NO_CACHE);\n    s.setJavaScriptCanOpenWindowsAutomatically(true); s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
     s.setUserAgentString(s.getUserAgentString()+" MeinHausAndroid/1.0");
-    CookieManager.getInstance().setAcceptCookie(true);
+    web.clearCache(true);\n    CookieManager.getInstance().setAcceptCookie(true);
     CookieManager.getInstance().setAcceptThirdPartyCookies(web,true);
     web.setWebChromeClient(new WebChromeClient(){
       @Override public void onProgressChanged(WebView v,int p){progress.setProgress(p);progress.setVisibility(p>=100?View.GONE:View.VISIBLE);}
@@ -50,7 +50,7 @@ public class MainActivity extends Activity {
         if(r.isForMainFrame()){offline.setVisibility(View.VISIBLE);Toast.makeText(MainActivity.this,"Verbindung fehlgeschlagen",Toast.LENGTH_SHORT).show();}
       }
     });
-    web.loadUrl(APP_URL);
+    web.loadUrl(APP_URL+"?android="+System.currentTimeMillis());
   }
   @Override public void onBackPressed(){if(web!=null&&web.canGoBack())web.goBack();else super.onBackPressed();}
   @Override protected void onDestroy(){if(web!=null){web.destroy();web=null;}super.onDestroy();}
