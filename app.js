@@ -326,6 +326,14 @@ async function sendHouseAI(){
 }
 async function apiPost(action,payload={}){const body={action,...payload};const token=localStorage.getItem('sessionToken');if(token)body.token=token;let r;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body),redirect:'follow',cache:'no-store'})}catch(e){throw Error(lang==='sq'?'Nuk u lidh me serverin.':'Keine Verbindung zum Server.')}const raw=(await r.text()).replace(/^\uFEFF/,'').trim();try{return JSON.parse(raw)}catch(e){const m=raw.match(/\{[\s\S]*\}/);if(m){try{return JSON.parse(m[0])}catch(_){}}throw Error(lang==='sq'?'Përgjigje e pavlefshme nga serveri.':'Ungültige Serverantwort.')}}
 function authMessage(m,bad=false){const e=document.getElementById('authMsg');if(e){e.textContent=m;e.style.color=bad?'#c12626':'#11834f'}}
+async function showAuthMode(mode){
+ const reg=mode==='register';
+ const fields=document.getElementById('registerFields'),login=document.querySelector('#auth button[onclick="loginUser()"]'),forgot=document.getElementById('forgotBtn'),title=document.getElementById('authTitle'),lt=document.getElementById('authLoginTab'),rt=document.getElementById('authRegisterTab');
+ if(fields)fields.style.display=reg?'block':'none'; if(login)login.style.display=reg?'none':'block'; if(forgot)forgot.style.display=reg?'none':'block';
+ if(title)title.textContent=reg?'Regjistro familje të re / Neues Familienkonto':'Hyr / Anmelden';
+ if(lt)lt.className=reg?'chip':'primary'; if(rt)rt.className=reg?'primary':'chip';
+}
+window.showAuthMode=showAuthMode;
 async function registerUser(){try{authMessage('…');const d=await apiPost('register',{displayName:authName.value.trim(),email:authEmail.value.trim(),password:authPass.value,householdName:houseName.value.trim(),language:lang});if(!d.ok)throw Error(d.error||'Registrierung fehlgeschlagen');const x=d.data||d;if(x.token)localStorage.sessionToken=x.token;authMessage('✓ Konto erstellt');go('home')}catch(e){authMessage(e.message,true)}}
 async function loginUser(){const email=document.getElementById('authEmail')?.value.trim()||'',password=document.getElementById('authPass')?.value||'';try{if(!email||!password)throw Error(lang==='sq'?'Shkruaj emailin dhe fjalëkalimin.':'E-Mail und Passwort eingeben.');authMessage('…');const d=await apiPost('login',{email,password});if(!d||!d.ok)throw Error(d?.error||(lang==='sq'?'Hyrja dështoi.':'Anmeldung fehlgeschlagen.'));const x=d.data||d;if(!x.token)throw Error(lang==='sq'?'Serveri nuk ktheu sesion.':'Keine Sitzung vom Server.');localStorage.setItem('sessionToken',x.token);localStorage.setItem('rememberedEmail',email);authMessage(lang==='sq'?'✓ U kyçe':'✓ Angemeldet');go('home');setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList();loadOffersReal();loadNeedBuy();loadAppointmentsReal();loadInventoryReal()},100)}catch(e){authMessage(e.message,true)}}
 
