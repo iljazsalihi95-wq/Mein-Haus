@@ -215,7 +215,7 @@ function selectHomeOfferSlide(i){homeOfferSlideIndex=i;renderHomeOfferSlider()}
 function moveHomeOffer(n){const rows=activeHomeOffers(),stores=homeOfferStores(rows),store=stores[homeOfferStoreIndex%Math.max(stores.length,1)],shown=rows.filter(x=>!store||x.store===store);if(!shown.length)return;homeOfferSlideIndex=(homeOfferSlideIndex+n+shown.length)%shown.length;renderHomeOfferSlider()}
 function offerPhotoFallback_(o){
  const q=encodeURIComponent(((o&&o.store)||'')+' '+((o&&o.name)||'')+' produkt');
- return 'https://www.google.com/s2/favicons?domain='+(o&&o.url?encodeURIComponent(String(o.url).replace(/^https?:\\/\\//,'').split('/')[0]):'aldi-sued.de')+'&sz=128';
+ return 'https://www.google.com/s2/favicons?domain='+(o&&o.url?encodeURIComponent(String(o.url).replace('https://','').replace('http://','').split('/')[0]):'aldi-sued.de')+'&sz=128';
 }
 function renderHomeOfferSlider(){
  const box=document.getElementById('homeOfferSlider'),dots=document.getElementById('homeOfferDots');if(!box)return;
