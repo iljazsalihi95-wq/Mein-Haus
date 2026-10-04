@@ -693,7 +693,7 @@ function offersSync_(q,m){
 function absOfferUrl_(u,base){
   u=String(u||'').replace(/&amp;/g,'&').trim();if(!u)return '';
   if(new RegExp('^https?://','i').test(u))return u;if(u.indexOf('//')===0)return 'https:'+u;
-  try{const m=String(base||'').match(new RegExp('^(https?://[^/]+)','i'));return m?(u.charAt(0)==='/'?m[1]+u:m[1]+'/'+u.replace(/^\\.\\//,'')):''}catch(e){return ''}
+  try{const m=String(base||'').match(new RegExp('^(https?://[^/]+)','i'));while(u.indexOf('./')===0)u=u.substring(2);return m?(u.charAt(0)==='/'?m[1]+u:m[1]+'/'+u):''}catch(e){return ''}
 }
 function extractOfferImages_(html,base){
   const out=[],seen={};String(html||'').replace(/(?:src|data-src|data-original|data-lazy-src|content|image|imageUrl|image_url)[=:]["']([^"']+)["']/gi,(m,u)=>{u=absOfferUrl_(u,base);if(u&&/\\.(?:jpg|jpeg|png|webp)(?:[?#].*)?$/i.test(u)&&!/(logo|icon|sprite|favicon|badge|tracking|pixel)/i.test(u)&&!seen[u]){seen[u]=1;out.push(u)}return m});
