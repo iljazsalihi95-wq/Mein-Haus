@@ -118,4 +118,11 @@ body{background:linear-gradient(180deg,#eef4fb 0,#f8fbff 42%,#f3f6fb 100%)}
 <div class="card module-card"><span class="settingsIcon">🔐</span><div><b><span data-t="familyData">Të dhënat e familjes</span></b><div class="muted">Të dhënat private ndahen vetëm brenda familjes së kyçur.</div></div></div>
 </section>
 <nav class="bottom"><button class="nav on" data-go="home" onclick="go('home')"><img class="icon" src="image/home.svg"><i data-t="home">Ballina</i></button><button class="nav" data-go="shopping" onclick="go('shopping')"><img class="icon" src="image/shopping.svg"><i data-t="shoppingShort">Blerjet</i></button><button class="nav" data-go="stock" onclick="go('stock')"><img class="icon" src="image/inventory.svg"><i data-t="stock">Inventari</i></button><button class="nav" data-go="finance" onclick="go('finance')"><img class="icon" src="image/finance.svg"><i data-t="finance">Financat</i></button><button class="nav" data-go="more" onclick="go('more')"><img class="icon" src="image/settings.svg"><i data-t="more">Më shumë</i></button></nav>
-</main><script src="app.js?v=20261004-1639"></script></body></html>
+</main><script>
+function mhLoadMain(){
+ var s=document.createElement('script');s.src='app.js?v=20261004-1645';s.onerror=function(){
+  document.getElementById('authMsg').textContent='Gabim: JavaScript nuk u ngarkua.';
+ };document.body.appendChild(s);
+}
+mhLoadMain();
+</script></body></html>
