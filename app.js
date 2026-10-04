@@ -148,7 +148,7 @@ let LIVE_OFFERS=[];let offers=[];let offerSlide=0;let offerCountry='DE',offerCit
 // Immediate verified fallback: weekly offers must never remain on a loading placeholder.
 LIVE_OFFERS=VERIFIED_OFFERS_DE.slice();offers=VERIFIED_OFFERS_DE.slice();setTimeout(()=>{try{renderOffers();renderHomeOfferSlider()}catch(e){console.warn('offer fallback render',e)}},0);
 
-function offerMiniCard(x){const im=x.image?'<img src="'+esc(x.image)+'" alt="'+esc(x.name||'')+'" loading="lazy" style="width:100%;height:125px;object-fit:contain;border-radius:14px;margin-bottom:9px;background:#fff" onerror="this.onerror=null;this.src=offerPhotoFallback_(window.__offerFallback||{})">':'';window.__offerFallback=x;return '<div class="card offerMini">'+im+'<div><div class="offerMiniTop"><span class="offerMiniStore">'+esc(x.store||'')+'</span>'+(x.discount?'<span class="badge ok">'+esc(x.discount)+'</span>':'')+'</div><div class="offerMiniName">'+esc(x.name||'')+'</div><div class="muted">'+esc(x.size||'')+'</div></div><div><div class="price">'+esc(String(x.price||''))+' €</div>'+(x.oldPrice?'<span class="old">'+esc(String(x.oldPrice))+' €</span>':'')+'</div></div>'}
+function offerMiniCard(x){const im=x.image?'<img src="'+esc(x.image)+'" alt="'+esc(x.name||'Produkt')+'" loading="lazy" onerror="this.remove()">':'';height:125px;object-fit:contain;border-radius:14px;margin-bottom:9px;background:#fff" onerror="this.onerror=null;this.src=offerPhotoFallback_(window.__offerFallback||{})">':'';window.__offerFallback=x;return '<div class="card offerMini">'+im+'<div><div class="offerMiniTop"><span class="offerMiniStore">'+esc(x.store||'')+'</span>'+(x.discount?'<span class="badge ok">'+esc(x.discount)+'</span>':'')+'</div><div class="offerMiniName">'+esc(x.name||'')+'</div><div class="muted">'+esc(x.size||'')+'</div></div><div><div class="price">'+esc(String(x.price||''))+' €</div>'+(x.oldPrice?'<span class="old">'+esc(String(x.oldPrice))+' €</span>':'')+'</div></div>'}
 function currentOfferRows(){const q=(document.getElementById('offerSearch')?.value||'').trim().toLowerCase();const today=new Date().toISOString().slice(0,10);return LIVE_OFFERS.filter(x=>(!x.to||String(x.to).slice(0,10)>=today)&&(!offerStoreFilter||String(x.store).toLowerCase().includes(offerStoreFilter.toLowerCase()))&&(!offerCategoryFilter||String(x.category)===offerCategoryFilter)&&(!q||(x.store+' '+x.name+' '+x.size+' '+x.category).toLowerCase().includes(q)))}
 function offerSlideCard(x){const img=x.image?'<img src="'+esc(x.image)+'" alt="'+esc(x.name)+'">':'<div class="offerFallback">🛒</div>';return '<div class="offerSlideCard"><div><span class="offerStore">🏪 '+esc(x.store||'Oferta')+'</span><h3>'+esc(x.name||'')+'</h3><div class="offerMeta">'+esc(x.category||'')+(x.size?' · '+esc(x.size):'')+'</div><div class="offerPrice">'+esc(String(x.price||''))+' €'+(x.oldPrice?'<span class="offerOld">'+esc(String(x.oldPrice))+' €</span>':'')+'</div>'+(x.discount?'<span class="offerDiscount">− '+esc(String(x.discount))+'</span>':'')+'<div class="offerMeta" style="margin-top:11px">📅 '+esc(x.from||'')+(x.to?' – '+esc(x.to):'')+'</div>'+(x.url?'<button class="chip" style="margin-top:13px" onclick="window.open(\''+esc(x.url)+'\',\'_blank\')">Shiko ofertën ↗</button>':'')+'</div><div class="offerSlideMedia">'+img+'</div></div>'}
 let offerStoreFilter='',offerCategoryFilter='',offerPaused=false;
@@ -168,7 +168,7 @@ async function loadOffersReal(){
    renderOffers();renderHomeOfferSlider();
  }
  try{
-   const request=apiPost('offersCountry',{country:country,city:localStorage.getItem('offerCity')||offerCity||'Frankenthal',postalCode:'67227',active:true});
+   const request=apiPost('publicOffers',{country:country,city:localStorage.getItem('offerCity')||offerCity||'Frankenthal',postalCode:'67227',active:true});
    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('offers timeout')),5000));
    const d=await Promise.race([request,timeout]);
    if(d&&d.ok){
@@ -213,13 +213,10 @@ function homeOfferCategories(rows,store){return [...new Set(rows.filter(x=>!stor
 function selectHomeOfferStore(i){homeOfferStoreIndex=i;homeOfferSlideIndex=0;renderHomeOfferSlider()}
 function selectHomeOfferSlide(i){homeOfferSlideIndex=i;renderHomeOfferSlider()}
 function moveHomeOffer(n){const rows=activeHomeOffers(),stores=homeOfferStores(rows),store=stores[homeOfferStoreIndex%Math.max(stores.length,1)],shown=rows.filter(x=>!store||x.store===store);if(!shown.length)return;homeOfferSlideIndex=(homeOfferSlideIndex+n+shown.length)%shown.length;renderHomeOfferSlider()}
-function offerPhotoFallback_(o){
- const n=encodeURIComponent(((o&&o.name)||'Produkt')+' '+((o&&o.store)||''));
- return 'https://placehold.co/640x480/f8fafc/64748b?text='+n;
-}
+function offerPhotoFallback_(o){ return ''; }
 function renderHomeOfferSlider(){
  const box=document.getElementById('homeOfferSlider'),dots=document.getElementById('homeOfferDots');if(!box)return;
- const rows=activeHomeOffers();if(!rows.length){box.innerHTML='<div class="homeOfferEmpty">'+homeOfferText('none')+'</div>';if(dots)dots.innerHTML='';return}
+ const rows=activeHomeOffers().filter(x=>x.image&&/^https?:\/\//i.test(x.image));if(!rows.length){box.innerHTML='<div class="homeOfferEmpty">'+homeOfferText('none')+'</div>';if(dots)dots.innerHTML='';return}
  const stores=homeOfferStores(rows);homeOfferStoreIndex=((homeOfferStoreIndex%stores.length)+stores.length)%stores.length;const store=stores[homeOfferStoreIndex],shown=rows;homeOfferSlideIndex=((homeOfferSlideIndex%shown.length)+shown.length)%shown.length;const o=shown[homeOfferSlideIndex],cat=o.category||o.kategoria||'',cats=homeOfferCategories(rows,store);
  const media=o.image?'<img src="'+esc(o.image)+'" alt="'+esc(o.name)+'" loading="lazy" onerror="this.onerror=null;this.src=offerPhotoFallback_(o);">':'<img src="'+offerPhotoFallback_(o)+'" alt="'+esc(o.name)+'" loading="lazy">';
  const storeTabs=stores.map((x,i)=>'<button class="homeStoreTab '+(i===homeOfferStoreIndex?'on':'')+'" onclick="selectHomeOfferStore('+i+')">'+esc(x)+'</button>').join('');
