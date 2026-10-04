@@ -326,7 +326,7 @@ async function sendHouseAI(){
 }
 async async function apiPost(action,payload={}){const body={action,...payload};const token=localStorage.getItem('sessionToken');if(token)body.token=token;let r;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body),redirect:'follow',cache:'no-store'})}catch(e){throw Error(lang==='sq'?'Nuk u lidh me serverin.':'Keine Verbindung zum Server.')}const raw=(await r.text()).replace(/^\uFEFF/,'').trim();try{return JSON.parse(raw)}catch(e){const m=raw.match(/\{[\s\S]*\}/);if(m){try{return JSON.parse(m[0])}catch(_){}}throw Error(lang==='sq'?'Përgjigje e pavlefshme nga serveri.':'Ungültige Serverantwort.')}}
 function authMessage(m,bad=false){const e=document.getElementById('authMsg');if(e){e.textContent=m;e.style.color=bad?'#c12626':'#11834f'}}
-async function showAuthMode(mode){
+function showAuthMode(mode){
  const reg=mode==='register';
  const fields=document.getElementById('registerFields'),login=document.querySelector('#auth button[onclick="loginUser()"]'),forgot=document.getElementById('forgotBtn'),title=document.getElementById('authTitle'),lt=document.getElementById('authLoginTab'),rt=document.getElementById('authRegisterTab');
  if(fields)fields.style.display=reg?'block':'none'; if(login)login.style.display=reg?'none':'block'; if(forgot)forgot.style.display=reg?'none':'block';
