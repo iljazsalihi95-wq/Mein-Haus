@@ -29,7 +29,8 @@ public class MainActivity extends Activity {
     web=new WebView(this);
     progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);
     offline=new TextView(this);
-    offline.setText("Nuk ka lidhje me internetin.\nKeine Internetverbindung.");
+    offline.setText("Nuk ka lidhje me internetin.
+Keine Internetverbindung.");
     offline.setTextSize(17); offline.setGravity(17); offline.setVisibility(View.GONE);
     root.addView(web,new FrameLayout.LayoutParams(-1,-1));
     root.addView(progress,new FrameLayout.LayoutParams(-1,8));
@@ -37,9 +38,11 @@ public class MainActivity extends Activity {
     setContentView(root);
     WebSettings s=web.getSettings();
     s.setJavaScriptEnabled(true); s.setDomStorageEnabled(true); s.setDatabaseEnabled(true);
-    s.setAllowFileAccess(false); s.setAllowContentAccess(true); s.setCacheMode(WebSettings.LOAD_NO_CACHE);\n    s.setJavaScriptCanOpenWindowsAutomatically(true); s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
+    s.setAllowFileAccess(false); s.setAllowContentAccess(true); s.setCacheMode(WebSettings.LOAD_NO_CACHE);
+    s.setJavaScriptCanOpenWindowsAutomatically(true); s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
     s.setUserAgentString(s.getUserAgentString()+" MeinHausAndroid/1.0");
-    web.clearCache(true);\n    CookieManager.getInstance().setAcceptCookie(true);
+    web.clearCache(true);
+    CookieManager.getInstance().setAcceptCookie(true);
     CookieManager.getInstance().setAcceptThirdPartyCookies(web,true);
     web.setWebChromeClient(new WebChromeClient(){
       @Override public void onProgressChanged(WebView v,int p){progress.setProgress(p);progress.setVisibility(p>=100?View.GONE:View.VISIBLE);}
