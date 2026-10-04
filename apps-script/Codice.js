@@ -696,8 +696,10 @@ function absOfferUrl_(u,base){
   try{const m=String(base||'').match(new RegExp('^(https?://[^/]+)','i'));while(u.indexOf('./')===0)u=u.substring(2);return m?(u.charAt(0)==='/'?m[1]+u:m[1]+'/'+u):''}catch(e){return ''}
 }
 function extractOfferImages_(html,base){
-  const out=[],seen={};String(html||'').replace(/(?:src|data-src|data-original|data-lazy-src|content|image|imageUrl|image_url)[=:]["']([^"']+)["']/gi,(m,u)=>{u=absOfferUrl_(u,base);if(u&&/\\.(?:jpg|jpeg|png|webp)(?:[?#].*)?$/i.test(u)&&!/(logo|icon|sprite|favicon|badge|tracking|pixel)/i.test(u)&&!seen[u]){seen[u]=1;out.push(u)}return m});
-  String(html||'').replace(/https?:\\/\\/[^"'<>\\s]+?\\.(?:jpg|jpeg|png|webp)(?:\\?[^"'<>\\s]*)?/gi,u=>{u=u.replace(/\\\\u002F/g,'/').replace(/\\\\/g,'');if(!/(logo|icon|sprite|favicon|badge|tracking|pixel)/i.test(u)&&!seen[u]){seen[u]=1;out.push(u)}return u});
+  const out=[],seen={},s=String(html||'');
+  const exts=['.jpg','.jpeg','.png','.webp'];
+  const attrs=['src="',"src='",'data-src="',"data-src='",'data-original="',"data-original='",'data-lazy-src="',"data-lazy-src='",'content="',"content='"];
+  attrs.forEach(a=>{let p=0;while((p=s.indexOf(a,p))>=0){p+=a.length;const q=a.endsWith('"')?'"':"'";const e=s.indexOf(q,p);if(e<0)break;let u=absOfferUrl_(s.substring(p,e),base);const low=u.toLowerCase();if(u&&exts.some(x=>low.indexOf(x)>=0)&&!['logo','icon','sprite','favicon','badge','tracking','pixel'].some(x=>low.indexOf(x)>=0)&&!seen[u]){seen[u]=1;out.push(u)}p=e+1}});
   return out
 }
 function upsertCountryOffer_(country,city,store,o,row){
