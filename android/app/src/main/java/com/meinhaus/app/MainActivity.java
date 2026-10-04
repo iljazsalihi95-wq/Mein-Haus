@@ -29,8 +29,7 @@ public class MainActivity extends Activity {
     web=new WebView(this);
     progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);
     offline=new TextView(this);
-    offline.setText("Nuk ka lidhje me internetin.
-Keine Internetverbindung.");
+    offline.setText("Nuk ka lidhje me internetin.\\nKeine Internetverbindung.");
     offline.setTextSize(17); offline.setGravity(17); offline.setVisibility(View.GONE);
     root.addView(web,new FrameLayout.LayoutParams(-1,-1));
     root.addView(progress,new FrameLayout.LayoutParams(-1,8));
