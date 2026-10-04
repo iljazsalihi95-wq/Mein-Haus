@@ -79,7 +79,8 @@ function day_(){return Utilities.formatDate(new Date(),CFG.TZ,'yyyy-MM-dd')}
 const COUNTRIES={
  DE:'Deutschland',AL:'Shqipëri',XK:'Kosovë',MK:'Maqedonia e Veriut',CH:'Schweiz',AT:'Österreich',
  IT:'Italia',FR:'France',BE:'Belgique',NL:'Nederland',LU:'Luxembourg',HR:'Hrvatska',SI:'Slovenija',
- BA:'Bosna i Hercegovina',ME:'Crna Gora',RS:'Srbija',TR:'Türkiye',GR:'Ελλάδα'
+ BA:'Bosna i Hercegovina',ME:'Crna Gora',RS:'Srbija',TR:'Türkiye',GR:'Ελλάδα',
+ GB:'United Kingdom',US:'United States',CA:'Canada',AU:'Australia'
 };
 function country_(c){
   c=String(c||'DE').trim().toUpperCase();
