@@ -650,7 +650,7 @@ function offerSourcesSeed_(q,m){
   requireAdmin_(m);const city=q.city||household_(m).city||'Frankenthal';const country=country_(q.country||household_(m).country||'DE');
   const src=[
    {store:'Netto Marken-Discount',name:'Netto Frankenthal',url:'https://www.netto-online.de/filialen/frankenthal-pfalz/eisenbahnstr-23/8168/?stores_id=8168'},
-   {store:'REWE',name:'REWE Frankenthal',url:'https://www.rewe.de/marktseite/frankenthal/840226/rewe-markt-benderstr-3/'},
+   {store:'REWE',name:'REWE Frankenthal',url:'https://www.rewe.de/angebote/frankenthal/840226/rewe-benderstr-3/'},
    {store:'ALDI SÜD',name:'ALDI SÜD Angebote',url:'https://www.aldi-sued.de/angebote'},
    {store:'Lidl',name:'Lidl Prospekte',url:'https://www.lidl.de/c/online-prospekte/s10005610'},
    {store:'Kaufland',name:'Kaufland Frankenthal',url:'https://filiale.kaufland.de/service/filiale/frankenthal-8510.html'},
