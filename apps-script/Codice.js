@@ -25,6 +25,7 @@ const H={
  Dyqanet:['storeId','country','city','name','address','lat','lng','website','offersUrl','active','updatedAt'],
  Budgets:['householdId','budgetId','month','category','limitAmount','spentAmount','currency','status','createdBy','updatedAt'],
  Rechnungen:['householdId','billId','name','category','amount','currency','dueDate','recurring','interval','status','paidAt','createdBy','updatedAt'],
+ Dokumentet:['userId','householdId','documentId','memberId','Emri','Kategoria','Data','Skadimi','fileName','mimeType','fileUrl','driveFileId','Shënim','status','createdAt','updatedAt'],
  ExpiryTracking:['householdId','userId','itemId','productKey','Produkti','quantity','expiryDate','warningDays','status','sourcePurchaseId','updatedAt'],
  Notifications:['notificationId','userId','householdId','type','priority','titleKey','messageKey','payloadJson','createdAt','readAt','sentAt','status'],
  PushSubscriptions:['userId','householdId','endpoint','p256dh','auth','device','language','createdAt','updatedAt','active'],
@@ -127,6 +128,7 @@ function dispatch_(q,me){const m={register:register_,login:login_,sessionCheck:s
  appointmentList:appointmentList_,
  appointmentSave:appointmentSave_,
  appointmentDelete:appointmentDelete_,
+ documentList:documentList_,documentSave:documentSave_,documentDelete:documentDelete_,
  financeByMember:financeByMember_,
  emailVerify:emailVerify_,
  sessionList:sessionList_,
@@ -633,6 +635,23 @@ function appointmentDelete_(q,m){
   const r=rows_('FamilyAppointments').find(x=>x.appointmentId===q.appointmentId&&x.householdId===m.householdId);
   if(!r)throw Error('APPOINTMENT_NOT_FOUND');
   patch_('FamilyAppointments',r._row,{status:'deleted',updatedAt:now_()});
+  return true;
+}
+function documentList_(q,m){
+  return rows_('Dokumentet').filter(x=>x.householdId===m.householdId&&String(x.status||'active')!=='deleted');
+}
+function documentSave_(q,m){
+  const did=q.documentId||id_('doc');
+  const existing=rows_('Dokumentet').find(x=>x.documentId===did&&x.householdId===m.householdId);
+  const o={userId:m.userId,householdId:m.householdId,documentId:did,memberId:q.memberId||'',Emri:String(q.name||q.Emri||'').trim(),Kategoria:q.category||q.Kategoria||'Të tjera',Data:q.date||q.Data||day_(),Skadimi:q.expiryDate||q.Skadimi||'',fileName:q.fileName||'',mimeType:q.mimeType||'',fileUrl:q.fileUrl||'',driveFileId:q.driveFileId||'','Shënim':q.note||q['Shënim']||'',status:q.status||'active',createdAt:existing?existing.createdAt||now_():now_(),updatedAt:now_()};
+  if(!o.Emri)throw Error('DOCUMENT_NAME_REQUIRED');
+  if(existing)patch_('Dokumentet',existing._row,o);else append_('Dokumentet',o);
+  return o;
+}
+function documentDelete_(q,m){
+  const r=rows_('Dokumentet').find(x=>x.documentId===q.documentId&&x.householdId===m.householdId);
+  if(!r)throw Error('DOCUMENT_NOT_FOUND');
+  patch_('Dokumentet',r._row,{status:'deleted',updatedAt:now_()});
   return true;
 }
 function financeByMember_(q,m){
