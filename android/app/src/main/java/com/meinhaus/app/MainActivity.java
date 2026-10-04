@@ -44,7 +44,7 @@ public class MainActivity extends Activity {
     TextView avatar=txt("IS",18,true);avatar.setTextColor(BLUE);avatar.setGravity(Gravity.CENTER);avatar.setBackground(bg(Color.rgb(238,245,255),40));top.addView(avatar,new LinearLayout.LayoutParams(dp(54),dp(54)));root.addView(top);
     ScrollView sv=new ScrollView(this);body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(18),dp(18),dp(24));sv.addView(body);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));
     LinearLayout nav=new LinearLayout(this);nav.setPadding(dp(4),dp(5),dp(4),dp(7));nav.setBackgroundColor(Color.WHITE);nav.setElevation(dp(10));
-    String[] n={"Ballina","Blerjet","Inventari","Financat","Më shumë"};
+    String[] n={"⌂\nBallina","🛒\nBlerjet","📦\nInventari","📊\nFinancat","•••\nMë shumë"};
     View.OnClickListener[] l={v->showHome(),v->showShopping(),v->showInventory(),v->showFinance(),v->showMore()};
     for(int i=0;i<n.length;i++){Button b=button(n[i]);b.setTextSize(11);b.setTextColor(i==0?BLUE:Color.rgb(137,148,165));b.setGravity(Gravity.CENTER);b.setOnClickListener(l[i]);nav.addView(b,new LinearLayout.LayoutParams(0,dp(62),1));}root.addView(nav);setContentView(root);
   }
@@ -94,7 +94,7 @@ public class MainActivity extends Activity {
     LinearLayout r2=new LinearLayout(this);r2.setOrientation(LinearLayout.HORIZONTAL);body.addView(r2,new LinearLayout.LayoutParams(-1,-2));
     colorTile(r2,"📦","Inventari","Nga llogaria jote",Color.rgb(255,169,24),v->showInventory());
     colorTile(r2,"📊","Financat","Bilanci & shpenzimet",Color.rgb(132,76,235),v->showFinance());
-    card("🔔 Kontrolli javor","Terminet, detyrat, skadimet dhe njoftimet reale do të shfaqen këtu nga llogaria.",v->showNotifications());
+    section("🔥 Ofertat e javës");card("Shiko ofertat me foto","LIDL • ALDI SÜD • REWE • Kaufland • EDEKA",v->showOffers());section("🛒 Lista që duhet të blej");card("Lista me datë, kategori dhe produkte","Produktet reale nga ShoppingList",v->showShopping());card("📅 Terminat","Termini më i afërt dhe paralajmërimet",v->showAppointments());card("🔔 Kontrolli javor","Terminet, detyrat, skadimet dhe njoftimet reale do të shfaqen këtu nga llogaria.",v->showNotifications());
     card("🧾 SKANO KASSENBON","Hape kamerën, fotografo faturën dhe regjistro blerjen.",v->showReceipt());
     card("👨‍👩‍👧‍👦 Familja","Anëtarët dhe detyrat",v->showFamily());
     card("📅 Terminat","Kalendari dhe kujtesat",v->showAppointments());
