@@ -19,7 +19,7 @@ public class MainActivity extends Activity {
   private WebView web;
   private ProgressBar progress;
   private TextView offline;
-  private static final String APP_URL = "https://meinhaus-ft.netlify.app/";
+  private static final String APP_URL = "https://mein-haus-shtepia-ime.netlify.app/";
 
   @Override public void onCreate(Bundle b){
     super.onCreate(b);
