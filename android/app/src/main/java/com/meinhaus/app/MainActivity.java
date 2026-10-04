@@ -89,16 +89,17 @@ public class MainActivity extends Activity {
     String name=auth==null?"":auth.getString("displayName","");if(name==null||name.trim().isEmpty())name="Ilaz";
     TextView hi=txt("Përshëndetje "+name+" 👋",26,true);body.addView(hi);TextView desc=txt("Këtu është përmbledhja e shtëpisë sate.",15,false);desc.setTextColor(MUTED);body.addView(desc);
     LinearLayout r1=new LinearLayout(this);r1.setOrientation(LinearLayout.HORIZONTAL);body.addView(r1,new LinearLayout.LayoutParams(-1,-2));
-    colorTile(r1,"🛒","Lista e\nblerjeve","Të dhënat nga llogaria",Color.rgb(20,190,132),v->showShopping());
-    colorTile(r1,"%","Ofertat","Oferta reale",Color.rgb(49,126,238),v->showOffers());
+    colorTile(r1,"","Lista e blerjeve","Lista aktive",Color.rgb(20,190,132),v->showShopping());
+    colorTile(r1,"","Ofertat","Oferta LIVE",Color.rgb(49,126,238),v->showOffers());
     LinearLayout r2=new LinearLayout(this);r2.setOrientation(LinearLayout.HORIZONTAL);body.addView(r2,new LinearLayout.LayoutParams(-1,-2));
-    colorTile(r2,"📦","Inventari","Nga llogaria jote",Color.rgb(255,169,24),v->showInventory());
-    colorTile(r2,"📊","Financat","Bilanci & shpenzimet",Color.rgb(132,76,235),v->showFinance());
-    section("🔥 Ofertat e javës");card("Shiko ofertat me foto","LIDL • ALDI SÜD • REWE • Kaufland • EDEKA",v->showOffers());section("🛒 Lista që duhet të blej");card("Lista me datë, kategori dhe produkte","Produktet reale nga ShoppingList",v->showShopping());card("📅 Terminat","Termini më i afërt dhe paralajmërimet",v->showAppointments());card("🔔 Kontrolli javor","Terminet, detyrat, skadimet dhe njoftimet reale do të shfaqen këtu nga llogaria.",v->showNotifications());
-    card("🧾 SKANO KASSENBON","Hape kamerën, fotografo faturën dhe regjistro blerjen.",v->showReceipt());
-    card("👨‍👩‍👧‍👦 Familja","Anëtarët dhe detyrat",v->showFamily());
-    card("📅 Terminat","Kalendari dhe kujtesat",v->showAppointments());
+    colorTile(r2,"","Inventari","Produktet në shtëpi",Color.rgb(255,169,24),v->showInventory());
+    colorTile(r2,"","Financat","Bilanci & shpenzimet",Color.rgb(132,76,235),v->showFinance());
+    section("Ofertat e javës");final LinearLayout heroOffers=new LinearLayout(this);heroOffers.setOrientation(LinearLayout.VERTICAL);body.addView(heroOffers);loadOffers(heroOffers);
+    section("Lista që duhet të blej");final LinearLayout homeShopping=new LinearLayout(this);homeShopping.setOrientation(LinearLayout.VERTICAL);body.addView(homeShopping);loadApiList("shoppingList",homeShopping,"Produkti","Sasia");
+    LinearLayout quick=new LinearLayout(this);quick.setOrientation(LinearLayout.HORIZONTAL);body.addView(quick);
+    homeQuick(quick,"Terminat","Më i afërt",v->showAppointments());homeQuick(quick,"Ofertat LIVE","Shiko të gjitha",v->showOffers());
   }
+  private void homeQuick(LinearLayout row,String title,String sub,View.OnClickListener l){LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(dp(14),dp(14),dp(14),dp(14));box.setBackground(bg(Color.WHITE,18));box.setElevation(dp(2));box.addView(txt(title,16,true));TextView s=txt(sub,12,false);s.setTextColor(MUTED);box.addView(s);box.setOnClickListener(l);LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(105),1);p.setMargins(dp(4),dp(8),dp(4),dp(8));row.addView(box,p);}
   private void colorTile(LinearLayout row,String icon,String title,String sub,int color,View.OnClickListener l){
     LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setGravity(Gravity.CENTER_VERTICAL);box.setPadding(dp(20),dp(18),dp(16),dp(16));box.setBackground(bg(color,22));box.setElevation(dp(3));box.setOnClickListener(l);
     TextView i=txt(icon,23,false);i.setTextColor(Color.WHITE);box.addView(i);TextView h=txt(title,20,true);h.setTextColor(Color.WHITE);box.addView(h);TextView s=txt(sub,13,false);s.setTextColor(Color.WHITE);box.addView(s);
