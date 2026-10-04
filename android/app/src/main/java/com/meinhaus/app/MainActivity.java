@@ -50,7 +50,7 @@ public class MainActivity extends Activity {
         if(r.isForMainFrame()){offline.setVisibility(View.VISIBLE);Toast.makeText(MainActivity.this,"Verbindung fehlgeschlagen",Toast.LENGTH_SHORT).show();}
       }
     });
-    web.loadUrl(APP_URL+"?android="+System.currentTimeMillis());
+    web.loadUrl(APP_URL+"?android="+System.currentTimeMillis()); // rebuild after verified JS fix
   }
   @Override public void onBackPressed(){if(web!=null&&web.canGoBack())web.goBack();else super.onBackPressed();}
   @Override protected void onDestroy(){if(web!=null){web.destroy();web=null;}super.onDestroy();}
