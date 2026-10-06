@@ -181,7 +181,7 @@ async function loadOffersReal(){
    }
  }catch(e){console.warn('Verified offer fallback remains active',e)}
 }
-setTimeout(loadOffersReal,300);
+// Offers load only after a valid session.
 document.getElementById('stockItems').innerHTML='<div class="card muted">Inventari yt do të shfaqet këtu. Nuk përdoren produkte demo.</div>';
 applyLang(); if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 restorePreferredLanguage();
@@ -192,11 +192,13 @@ async function startSecureSession(){
  if(!token){go('auth');return}
  // Do not leave the dashboard stuck on "loading" while Apps Script is slow.
  go('home');renderHomeOfferSlider();renderAppointments();renderAppointmentPage();
- setTimeout(()=>{loadOffersReal();loadAppointmentsReal();loadNeedBuy();loadInventoryReal()},30);
+ setTimeout(()=>{loadAppointmentsReal();loadNeedBuy();loadInventoryReal()},30);
  try{
    const d=await Promise.race([apiPost('sessionCheck',{}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('session timeout')),6500))]);
    if(!d||!d.ok)throw Error('invalid session');
    setTimeout(()=>{loadFamilyReal();loadFinanceReal();loadBillsReal();loadShoppingList()},50);
+   // Isolated offers: failures/timeouts here cannot block login/home.
+   setTimeout(()=>{loadOffersReal().catch(e=>console.warn('Offers isolated load failed',e))},250);
  }catch(e){
    // Keep local verified offers/appointment backup visible on temporary backend timeout.
    if(String(e.message)!=='session timeout'){localStorage.removeItem('sessionToken');go('auth');authMessage(lang==='sq'?'Sesioni ka skaduar. Hyr përsëri.':'Sitzung abgelaufen. Bitte erneut anmelden.',true)}
