@@ -1,12 +1,18 @@
-name: JS Syntax Check
+name: JavaScript and isolation checks
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 jobs:
-  syntax:
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check app.js syntax
-        run: node --check app.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --check app.js && node --check sw.js && node --check apps-script/Codice.js
+      - run: npm test

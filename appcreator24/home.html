@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>MeinHaushalt FT</title>
+<style>
+*{box-sizing:border-box}:root{--blue:#0877e8;--bg:#F4F7FC;--text:#152238;--muted:#718096}
+html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}
+#authView{min-height:100vh;padding:28px 16px 55px;background:linear-gradient(180deg,#0876df 0%,#11a2ef 43%,#eef7ff 100%)}
+.authLogo{width:105px;height:105px;margin:12px auto;border-radius:27px;background:#ffffff20;display:flex;align-items:center;justify-content:center;font-size:66px;box-shadow:0 12px 35px #003f7b35}
+.authBrand{text-align:center;color:#fff}.authBrand h1{font-size:33px;margin:10px 0 5px}.authBrand p{font-size:17px;margin:0 0 28px}
+.authCard{max-width:470px;margin:auto;background:#fff;border-radius:27px;padding:20px;box-shadow:0 18px 45px #003b7040}
+.authTabs{display:grid;grid-template-columns:1fr 1fr;background:#edf4fc;padding:5px;border-radius:16px;margin-bottom:20px}
+.authTab{border:0;padding:13px 5px;background:transparent;border-radius:13px;font-weight:900;color:#64748b}.authTab.active{color:#fff;background:linear-gradient(135deg,#1494ed,#0868d5)}
+.field{margin:12px 0}.field label{display:block;font-weight:900;font-size:13px;margin-bottom:6px}.field input{width:100%;padding:15px;border:1px solid #d8e1ec;border-radius:14px;outline:none;font-size:16px}
+.authBtn{width:100%;border:0;border-radius:15px;padding:15px;margin-top:12px;color:#fff;font-weight:900;font-size:17px;background:linear-gradient(135deg,#1598ee,#0757c5)}.authBtn:disabled{opacity:.55}
+.authMsg{display:none;margin:10px 0;padding:11px;border-radius:11px;background:#ffeded;color:#ad2431;font-size:13px;font-weight:700}.authInfo{margin-top:14px;text-align:center;color:#738198;font-size:11px}
+#appView{display:none;max-width:950px;margin:auto;padding-bottom:83px}.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;color:#fff;background:linear-gradient(135deg,#075ab5,#087de5)}
+.brand{display:flex;align-items:center;gap:8px;font-weight:900;font-size:19px}.brandIcon{width:38px;height:38px;border-radius:11px;background:#ffffff20;display:flex;align-items:center;justify-content:center;font-size:23px}.topActions{display:flex;gap:7px}.lang{border:0;background:#fff;color:#18385e;border-radius:10px;padding:8px;font-size:12px;font-weight:900}.logout{border:0;width:37px;height:37px;border-radius:10px;color:#fff;background:#ffffff20;font-size:19px}
+.content{padding:12px}.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#086fd3,#0ca1ed);color:#fff;border-radius:23px;padding:19px;min-height:145px}.hero:after{content:"🏠";position:absolute;right:12px;bottom:-23px;font-size:120px;opacity:.18}.hero h2{font-size:27px;margin:6px 0}.hero p{font-size:13px;margin:0;max-width:70%;line-height:1.4}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0}.stat{background:#fff;text-align:center;border-radius:15px;padding:11px 4px;border:1px solid #e9eef5}.stat b{display:block;color:#0877e8;font-size:21px}.stat span{display:block;font-size:9px;color:#68798e;margin-top:3px}
+.sectionHead{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 9px}.sectionHead h3{margin:0;font-size:19px}.more{color:#0877e8;font-weight:900;text-decoration:none}
+.offerFilters{display:flex;gap:6px;overflow:auto;margin-bottom:8px}.offerFilters select{background:#fff;border:1px solid #dce6f1;border-radius:10px;padding:8px;min-width:105px;font-size:11px;font-weight:700}
+.offerSlider{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:7px}.offerSlider::-webkit-scrollbar{display:none}.offerCard{min-width:225px;width:225px;background:#fff;border-radius:18px;overflow:hidden;scroll-snap-align:start;border:1px solid #e5edf6;box-shadow:0 6px 20px #1232}
+.offerImage{height:145px;background:#edf4fb;position:relative;display:flex;align-items:center;justify-content:center}.offerImage img{width:100%;height:100%;object-fit:contain;background:#fff}.offerPlaceholder{font-size:46px}.discount{position:absolute;right:6px;top:6px;padding:5px 7px;border-radius:8px;background:#ed3345;color:#fff;font-weight:900;font-size:11px}.offerBody{padding:10px}.offerStore{font-size:10px;color:#67778b;font-weight:800}.offerName{font-weight:900;margin:5px 0}.offerPrice{font-size:21px;color:#df2637;font-weight:900}.oldPrice{font-size:10px;color:#8793a3;text-decoration:line-through}.offerDate{font-size:9px;color:#7c8998;margin-top:3px}.offerActions{display:grid;grid-template-columns:38px 1fr;gap:5px;margin-top:7px}.favorite,.addList{border:0;border-radius:9px;padding:8px;font-weight:900}.favorite{background:#fff0f2;color:#e52b3d;font-size:17px}.favorite.on{background:#e52b3d;color:#fff}.addList{background:#e9f3ff;color:#0869d1;font-size:11px}.offerEmpty{width:100%;padding:25px;text-align:center;background:#fff;border-radius:16px;color:#718096}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.tile{display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;border:1px solid #e3ebf4;background:#fff;border-radius:17px;min-height:112px;padding:10px 5px;text-align:center;color:#152238}.tileIcon{width:68px;height:68px;overflow:hidden;border-radius:16px;margin:auto auto 7px;display:flex;align-items:center;justify-content:center;font-size:34px;background:linear-gradient(145deg,#eaf6ff,#d7eaff)}.tileIcon img{width:100%;height:100%;object-fit:cover;display:block}.tile b{display:block;font-size:12px}
+.bottom{position:fixed;z-index:40;bottom:0;left:50%;transform:translateX(-50%);width:min(950px,100%);height:69px;background:#fff;border-top:1px solid #e1e8f1;display:grid;grid-template-columns:repeat(4,1fr)}.nav{border:0;background:transparent;color:#68778a;font-size:9px;font-weight:800;text-decoration:none;text-align:center;padding-top:8px}.nav span{font-size:22px;display:block}.nav.active{color:#0877e8}
+@media(min-width:700px){.grid{grid-template-columns:repeat(4,1fr)}}
+.nextAptHome{background:linear-gradient(135deg,#0b2f5f,#1974d8);color:#fff;border-radius:20px;padding:15px 16px;box-shadow:0 10px 28px #0b4d9828;margin-bottom:10px}
+.nextAptRow{display:flex;gap:13px;align-items:center}.nextAptDate{width:58px;min-width:58px;height:62px;border-radius:16px;background:#ffffff1f;border:1px solid #ffffff30;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.nextAptDate b{font-size:22px;line-height:1}.nextAptDate span{font-size:10px;font-weight:900;margin-top:4px}.nextAptInfo{min-width:0}.nextAptInfo b{display:block;font-size:17px}.nextAptInfo div{font-size:12px;margin-top:4px;color:#e4f0ff}.nextAptEmpty{font-size:13px;color:#e4f0ff}
+</style>
+<style>
+.tileIcon{overflow:hidden}
+.tileIcon img{display:block;width:100%;height:100%;object-fit:cover}
+</style>
+
+</head><body>
+<div id="authView"><div class="authBrand"><div class="authLogo">🏡</div><h1>MeinHaushalt FT</h1><p>Organisiert · Sicher · Einfach</p></div><div class="authCard">
+<div class="authTabs"><button id="loginTab" class="authTab active" onclick="authMode('login')">Login</button><button id="registerTab" class="authTab" onclick="authMode('register')">Registrieren</button></div>
+<div id="authMsg" class="authMsg"></div><div id="registerFields" style="display:none"><div class="field"><label>Name</label><input id="authName"></div><div class="field"><label>Familien-/Haushaltsname</label><input id="authHouse"></div></div>
+<div class="field"><label>E-Mail</label><input id="authEmail" type="email" autocomplete="email"></div><div class="field"><label>Passwort</label><input id="authPassword" type="password" autocomplete="current-password"></div>
+<button id="authButton" class="authBtn" onclick="submitAuth()">Anmelden</button><div class="authInfo">Private Haushaltsdaten werden erst nach der Anmeldung geladen.</div></div></div>
+<div id="appView"><header class="topbar"><div class="brand"><div class="brandIcon"><img id="brandLangIcon" data-icon="meinhaushalt" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Fmeinhaushalt.jpg" alt="MeinHaushalt FT" style="width:100%;height:100%;object-fit:cover;border-radius:11px"></div><span>MeinHaushalt FT</span></div><div class="topActions">
+<select id="langSelect" class="lang" onchange="setLanguage(this.value)">
+<option value="de">🇩🇪 DE</option><option value="sq">🇦🇱 SQ</option><option value="en">🇬🇧 EN</option>
+<option value="it">🇮🇹 IT</option><option value="tr">🇹🇷 TR</option><option value="mk">🇲🇰 MK</option><option value="bs">🇧🇦 BS</option>
+</select><button class="logout" onclick="logoutUser()">⇥</button></div></header>
+<main class="content"><section class="hero"><small>Willkommen</small><h2 id="userName">Mein Haushalt</h2><p>Familie, Einkäufe und Haushalt einfach organisieren.</p></section>
+<section class="stats"><div class="stat"><b id="expiryCount">—</b><span>Bald fällig</span></div><div class="stat"><b id="appointmentCount">—</b><span>Termine</span></div><div class="stat"><b id="shoppingCount">—</b><span>Einkaufsliste</span></div><div class="stat"><b id="familyCount">—</b><span>Familie</span></div></section>
+<div class="sectionHead"><h3 id="nextAptTitle">Nächster Termin</h3><a class="more" href="go:Terminet" id="nextAptMore">Termine ›</a></div>
+<div id="nextAppointmentCard" class="nextAptHome"><div class="nextAptEmpty">Termine werden geladen…</div></div>
+<div class="sectionHead"><h3>Aktuelle Angebote</h3><a class="more" href="go:Ofertst">Alle anzeigen ›</a></div>
+<div class="offerFilters"><select id="countryFilter" onchange="updateOfferFilters()"><option value="">🌍 Alle Länder</option></select><select id="cityFilter" onchange="renderOffers()"><option value="">Alle Städte</option></select><select id="storeFilter" onchange="renderOffers()"><option value="">Alle Geschäfte</option></select></div>
+<div id="offerSlider" class="offerSlider"><div class="offerEmpty">Angebote werden geladen…</div></div>
+<div class="sectionHead"><h3>Bereiche</h3></div>
+<section class="grid">
+<a class="tile" href="go:Blerje"><div class="tileIcon"><img data-icon="blerjet" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Fblerjet.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:16px"></div><b>Einkäufe</b></a>
+<a class="tile" href="go:Ofertst"><div class="tileIcon"><img data-icon="ofertat" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Fofertat.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:16px"></div><b>Angebote LIVE</b></a>
+<a class="tile" href="go:Inventari"><div class="tileIcon"><img data-icon="inventari" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Finventari.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:16px"></div><b>Vorräte</b></a>
+<a class="tile" href="go:Financat"><div class="tileIcon"><img data-icon="financat" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Ffinancat.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:16px"></div><b>Finanzen</b></a>
+<a class="tile" href="go:Terminet"><div class="tileIcon"><img data-icon="terminet" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Fterminet.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:16px"></div><b>Termine</b></a>
+<a class="tile" href="go:Detyrat"><div class="tileIcon"><img data-icon="detyrat" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Fdetyrat.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:16px"></div><b>Aufgaben</b></a>
+<a class="tile" href="go:Dokumente"><div class="tileIcon"><img data-icon="dokumentet" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Fdokumentet.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:16px"></div><b>Dokumente</b></a>
+<a class="tile" href="go:Faturat"><div class="tileIcon"><img data-icon="rechnungen" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Frechnungen.jpg" alt="Faturat"></div><b>Rechnungen</b></a>
+<a class="tile" href="go:ListaBlerj"><div class="tileIcon"><img data-icon="einkaufsliste" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Feinkaufsliste.jpg" alt="Lista e Blerjeve"></div><b>Einkaufsliste</b></a>
+<a class="tile" href="go:Familja"><div class="tileIcon"><img data-icon="familja" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Ffamilja.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:16px"></div><b>Familie</b></a>
+<a class="tile" href="go:Garancite"><div class="tileIcon"><img data-icon="garancite" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Fgarancite.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:16px"></div><b>Garantien</b></a>
+<a class="tile" href="go:Skadimet"><div class="tileIcon"><img data-icon="skadimet" src="https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/de%2Fskadimet.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:16px"></div><b>Ablaufdaten</b></a>
+</section></main>
+<nav class="bottom"><button class="nav active"><span>🏠</span>Start</button><a class="nav" href="go:Ofertst"><span>🏷️</span>Angebote</a><a class="nav" href="go:ListaBlerj"><span>📝</span>Liste</a><button class="nav" onclick="showProfile()"><span>👤</span>Profil</button></nav></div>
+<script>
+const API='https://script.google.com/macros/s/AKfycbzx_y12qFOfQ9uc9_5gfuHGbCw_JV2gwU1MGFnIgDnOuQ6lNhgw9hyMrYk8-Xv9oqDP/exec';
+let AUTH_MODE='login',ME=null,OFFERS=[];
+
+const I18N={
+de:{welcome:"Willkommen",hero:"Familie, Einkäufe und Haushalt einfach organisieren.",offers:"Aktuelle Angebote",areas:"Bereiche",all:"Alle anzeigen ›",countries:"🌍 Alle Länder",cities:"Alle Städte",stores:"Alle Geschäfte",exp:"Bald fällig",appointments:"Termine",shopping:"Einkaufsliste",family:"Familie",buy:"Einkäufe",live:"Angebote LIVE",stock:"Vorräte",finance:"Finanzen",tasks:"Aufgaben",docs:"Dokumente",bills:"Rechnungen",warranty:"Garantien",expiry:"Ablaufdaten",start:"Start",offersNav:"Angebote",list:"Liste",profile:"Profil",none:"Keine Angebote gefunden.",add:"＋ Zur Liste"},
+sq:{welcome:"Mirë se vini",hero:"Organizoni familjen, blerjet dhe shtëpinë thjesht.",offers:"Ofertat aktuale",areas:"Rubrikat",all:"Shiko të gjitha ›",countries:"🌍 Të gjitha shtetet",cities:"Të gjitha qytetet",stores:"Të gjitha dyqanet",exp:"Skadojnë shpejt",appointments:"Terminet",shopping:"Lista e blerjeve",family:"Familja",buy:"Blerjet",live:"Ofertat LIVE",stock:"Inventari",finance:"Financat",tasks:"Detyrat",docs:"Dokumentet",bills:"Faturat",warranty:"Garancitë",expiry:"Skadimet",start:"Ballina",offersNav:"Ofertat",list:"Lista",profile:"Profili",none:"Nuk u gjetën oferta.",add:"＋ Në listë"},
+en:{welcome:"Welcome",hero:"Organize family, shopping and household easily.",offers:"Current offers",areas:"Sections",all:"View all ›",countries:"🌍 All countries",cities:"All cities",stores:"All stores",exp:"Expiring soon",appointments:"Appointments",shopping:"Shopping list",family:"Family",buy:"Purchases",live:"LIVE offers",stock:"Inventory",finance:"Finances",tasks:"Tasks",docs:"Documents",bills:"Bills",warranty:"Warranties",expiry:"Expiry dates",start:"Home",offersNav:"Offers",list:"List",profile:"Profile",none:"No offers found.",add:"＋ Add to list"},
+it:{welcome:"Benvenuto",hero:"Organizza facilmente famiglia, spesa e casa.",offers:"Offerte attuali",areas:"Sezioni",all:"Mostra tutto ›",countries:"🌍 Tutti i paesi",cities:"Tutte le città",stores:"Tutti i negozi",exp:"In scadenza",appointments:"Appuntamenti",shopping:"Lista spesa",family:"Famiglia",buy:"Acquisti",live:"Offerte LIVE",stock:"Scorte",finance:"Finanze",tasks:"Attività",docs:"Documenti",bills:"Fatture",warranty:"Garanzie",expiry:"Scadenze",start:"Home",offersNav:"Offerte",list:"Lista",profile:"Profilo",none:"Nessuna offerta trovata.",add:"＋ Alla lista"},
+tr:{welcome:"Hoş geldiniz",hero:"Aileyi, alışverişi ve evi kolayca düzenleyin.",offers:"Güncel teklifler",areas:"Bölümler",all:"Tümünü göster ›",countries:"🌍 Tüm ülkeler",cities:"Tüm şehirler",stores:"Tüm mağazalar",exp:"Yakında dolacak",appointments:"Randevular",shopping:"Alışveriş listesi",family:"Aile",buy:"Alışveriş",live:"CANLI teklifler",stock:"Stok",finance:"Finans",tasks:"Görevler",docs:"Belgeler",bills:"Faturalar",warranty:"Garantiler",expiry:"Son kullanma",start:"Ana sayfa",offersNav:"Teklifler",list:"Liste",profile:"Profil",none:"Teklif bulunamadı.",add:"＋ Listeye"},
+mk:{welcome:"Добредојдовте",hero:"Организирајте го семејството, купувањето и домот лесно.",offers:"Тековни понуди",areas:"Секции",all:"Прикажи ги сите ›",countries:"🌍 Сите земји",cities:"Сите градови",stores:"Сите продавници",exp:"Наскоро истекува",appointments:"Термини",shopping:"Листа за купување",family:"Семејство",buy:"Купување",live:"Понуди LIVE",stock:"Залиха",finance:"Финансии",tasks:"Задачи",docs:"Документи",bills:"Сметки",warranty:"Гаранции",expiry:"Рокови",start:"Почетна",offersNav:"Понуди",list:"Листа",profile:"Профил",none:"Нема понуди.",add:"＋ Во листа"},
+bs:{welcome:"Dobrodošli",hero:"Jednostavno organizujte porodicu, kupovinu i domaćinstvo.",offers:"Aktuelne ponude",areas:"Sekcije",all:"Prikaži sve ›",countries:"🌍 Sve države",cities:"Svi gradovi",stores:"Sve prodavnice",exp:"Uskoro ističe",appointments:"Termini",shopping:"Lista kupovine",family:"Porodica",buy:"Kupovina",live:"Ponude LIVE",stock:"Zalihe",finance:"Finansije",tasks:"Zadaci",docs:"Dokumenti",bills:"Računi",warranty:"Garancije",expiry:"Rokovi",start:"Početna",offersNav:"Ponude",list:"Lista",profile:"Profil",none:"Nema ponuda.",add:"＋ Na listu"},
+hr:{welcome:"Dobrodošli",hero:"Jednostavno organizirajte obitelj, kupovinu i kućanstvo.",offers:"Aktualne ponude",areas:"Odjeljci",all:"Prikaži sve ›",countries:"🌍 Sve države",cities:"Svi gradovi",stores:"Sve trgovine",exp:"Uskoro istječe",appointments:"Termini",shopping:"Popis kupovine",family:"Obitelj",buy:"Kupovina",live:"Ponude LIVE",stock:"Zalihe",finance:"Financije",tasks:"Zadaci",docs:"Dokumenti",bills:"Računi",warranty:"Jamstva",expiry:"Rokovi",start:"Početna",offersNav:"Ponude",list:"Popis",profile:"Profil",none:"Nema ponuda.",add:"＋ Na popis"},
+sr:{welcome:"Dobrodošli",hero:"Jednostavno organizujte porodicu, kupovinu i domaćinstvo.",offers:"Aktuelne ponude",areas:"Sekcije",all:"Prikaži sve ›",countries:"🌍 Sve države",cities:"Svi gradovi",stores:"Sve prodavnice",exp:"Uskoro ističe",appointments:"Termini",shopping:"Lista kupovine",family:"Porodica",buy:"Kupovina",live:"Ponude LIVE",stock:"Zalihe",finance:"Finansije",tasks:"Zadaci",docs:"Dokumenti",bills:"Računi",warranty:"Garancije",expiry:"Rokovi",start:"Početna",offersNav:"Ponude",list:"Lista",profile:"Profil",none:"Nema ponuda.",add:"＋ Na listu"},
+sl:{welcome:"Dobrodošli",hero:"Preprosto organizirajte družino, nakupe in gospodinjstvo.",offers:"Aktualne ponudbe",areas:"Razdelki",all:"Prikaži vse ›",countries:"🌍 Vse države",cities:"Vsa mesta",stores:"Vse trgovine",exp:"Kmalu poteče",appointments:"Termini",shopping:"Nakupovalni seznam",family:"Družina",buy:"Nakupi",live:"Ponudbe LIVE",stock:"Zaloga",finance:"Finance",tasks:"Naloge",docs:"Dokumenti",bills:"Računi",warranty:"Garancije",expiry:"Roki",start:"Domov",offersNav:"Ponudbe",list:"Seznam",profile:"Profil",none:"Ni ponudb.",add:"＋ Na seznam"},
+fr:{welcome:"Bienvenue",hero:"Organisez facilement la famille, les achats et la maison.",offers:"Offres actuelles",areas:"Sections",all:"Tout afficher ›",countries:"🌍 Tous les pays",cities:"Toutes les villes",stores:"Tous les magasins",exp:"Expire bientôt",appointments:"Rendez-vous",shopping:"Liste de courses",family:"Famille",buy:"Achats",live:"Offres LIVE",stock:"Stock",finance:"Finances",tasks:"Tâches",docs:"Documents",bills:"Factures",warranty:"Garanties",expiry:"Expirations",start:"Accueil",offersNav:"Offres",list:"Liste",profile:"Profil",none:"Aucune offre trouvée.",add:"＋ À la liste"},
+nl:{welcome:"Welkom",hero:"Organiseer gezin, boodschappen en huishouden eenvoudig.",offers:"Actuele aanbiedingen",areas:"Onderdelen",all:"Alles tonen ›",countries:"🌍 Alle landen",cities:"Alle steden",stores:"Alle winkels",exp:"Verloopt binnenkort",appointments:"Afspraken",shopping:"Boodschappenlijst",family:"Familie",buy:"Boodschappen",live:"LIVE aanbiedingen",stock:"Voorraad",finance:"Financiën",tasks:"Taken",docs:"Documenten",bills:"Rekeningen",warranty:"Garanties",expiry:"Vervaldatums",start:"Start",offersNav:"Aanbiedingen",list:"Lijst",profile:"Profiel",none:"Geen aanbiedingen gevonden.",add:"＋ Naar lijst"}
+};
+function tr(){return I18N[localStorage.getItem("mh_language")||"de"]||I18N.de}
+const ICON_ARCHIVE='https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/';
+const ICON_LANGS=['sq','de','it','en','tr','mk','bs'];
+function iconLang(){const l=localStorage.getItem('mh_language')||'de';return ICON_LANGS.includes(l)?l:'de'}
+function iconUrl(key){return ICON_ARCHIVE+iconLang()+'%2F'+key+'.jpg'}
+function applyLanguageIcons(){
+ document.querySelectorAll('img[data-icon]').forEach(img=>{img.src=iconUrl(img.dataset.icon)});
+ const b=document.getElementById('brandLangIcon');if(b)b.src=iconUrl('meinhaushalt');
+}
+function applyLanguage(){
+ const t=tr();
+
+ const hero=document.querySelector('.hero');
+ if(hero){
+   const sm=hero.querySelector('small'), hp=hero.querySelector('p');
+   if(sm) sm.textContent=t.welcome;
+   if(hp) hp.textContent=t.hero;
+ }
+ const h=document.querySelectorAll(".sectionHead h3");
+ const aptNames={de:'Nächster Termin',sq:'Termini i ardhshëm',en:'Next appointment',it:'Prossimo appuntamento',tr:'Sıradaki randevu',mk:'Следен термин',bs:'Sljedeći termin'};
+ const aptMore={de:'Termine ›',sq:'Terminet ›',en:'Appointments ›',it:'Appuntamenti ›',tr:'Randevular ›',mk:'Термини ›',bs:'Termini ›'};
+ if(h[0])h[0].textContent=aptNames[iconLang()]||aptNames.de;
+ const am=document.getElementById('nextAptMore');if(am)am.textContent=aptMore[iconLang()]||aptMore.de;
+ if(h[1])h[1].textContent=t.offers;if(h[2])h[2].textContent=t.areas;
+ const more=document.querySelector(".more");if(more)more.textContent=t.all;
+ const st=document.querySelectorAll(".stat span");[t.exp,t.appointments,t.shopping,t.family].forEach((v,i)=>{if(st[i])st[i].textContent=v});
+ const tl=[t.buy,t.live,t.stock,t.finance,t.appointments,t.tasks,t.docs,t.bills,t.shopping,t.family,t.warranty,t.expiry];
+ document.querySelectorAll(".grid .tile b").forEach((e,i)=>{if(tl[i])e.textContent=tl[i]});
+ const nv=document.querySelectorAll(".bottom .nav"),nl=[t.start,t.offersNav,t.list,t.profile];
+ nv.forEach((e,i)=>{if(!nl[i])return;const sp=e.querySelector("span");e.innerHTML="";if(sp)e.appendChild(sp);e.appendChild(document.createTextNode(nl[i]))});
+ applyLanguageIcons();
+ buildOfferFilters();
+}
+
+function getToken(){return localStorage.getItem('sessionToken')||localStorage.getItem('token')||''}
+function saveToken(t){localStorage.setItem('sessionToken',t);localStorage.setItem('token',t)}
+function clearToken(){localStorage.removeItem('sessionToken');localStorage.removeItem('token');localStorage.removeItem('mh_user')}
+async function api(action,payload={},withToken=true){const body={...payload,action};if(withToken&&getToken())body.token=getToken();let r;try{r=await fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(body)})}catch(e){throw new Error('Serververbindung fehlgeschlagen.')}const raw=await r.text();let j;try{j=JSON.parse(raw)}catch(e){throw new Error('Ungültige Serverantwort.')}if(j&&j.ok===false)throw new Error(j.error||j.message||'Anmeldung fehlgeschlagen.');return j&&Object.prototype.hasOwnProperty.call(j,'data')?j.data:j}
+function authMode(m){AUTH_MODE=m;loginTab.classList.toggle('active',m==='login');registerTab.classList.toggle('active',m==='register');registerFields.style.display=m==='register'?'block':'none';authButton.textContent=m==='login'?'Anmelden':'Registrieren';authMsg.style.display='none'}
+function showAuthError(m){authMsg.textContent=m;authMsg.style.display='block'}
+async function submitAuth(){authMsg.style.display='none';const email=authEmail.value.trim(),password=authPassword.value,name=authName.value.trim(),household=authHouse.value.trim();if(!email||!password)return showAuthError('E-Mail und Passwort eingeben.');authButton.disabled=true;try{let result;if(AUTH_MODE==='login')result=await api('login',{email,password,device:'AppCreator24'},false);else{if(!name)throw new Error('Name fehlt.');if(!household)throw new Error('Haushaltsname fehlt.');result=await api('register',{email,password,displayName:name,firstName:name,householdName:household,language:'de',country:'DE',currency:'EUR',device:'AppCreator24'},false)}const token=result&&(result.token||result.sessionToken||(result.data&&result.data.token)||(result.result&&result.result.token));if(!token)throw new Error((result&&result.error)||'Login-Antwort ohne Token.');saveToken(token);if(result.user)localStorage.setItem('mh_user',JSON.stringify(result.user));await enterApp()}catch(e){showAuthError(e.message||'Anmeldung fehlgeschlagen.')}finally{authButton.disabled=false}}
+async function enterApp(){if(!getToken())return showLogin();try{ME=await api('me');if(!ME)throw new Error('Benutzer nicht gefunden.');authView.style.display='none';appView.style.display='block';userName.textContent=ME.displayName||ME.email||'Mein Haushalt';await Promise.allSettled([loadOffers(),loadDashboardStats()])}catch(e){clearToken();showLogin()}}
+function showLogin(){appView.style.display='none';authView.style.display='block'}
+async function logoutUser(){try{if(getToken())await api('logout')}catch(e){}clearToken();ME=null;authPassword.value='';showLogin()}
+function toArray(v){if(Array.isArray(v))return v;if(v&&Array.isArray(v.items))return v.items;if(v&&Array.isArray(v.data))return v.data;return[]}
+async function loadDashboardStats(){const j=await Promise.allSettled([api('expiryList'),api('appointmentList'),api('shoppingList'),api('members')]);const ex=j[0].status==='fulfilled'?toArray(j[0].value):[],ap=j[1].status==='fulfilled'?toArray(j[1].value):[],sh=j[2].status==='fulfilled'?toArray(j[2].value):[],me=j[3].status==='fulfilled'?toArray(j[3].value):[];const today=new Date();today.setHours(0,0,0,0);let n=0;ex.forEach(i=>{if(!i.expiryDate)return;const d=new Date(String(i.expiryDate).slice(0,10)+'T00:00:00');if(isNaN(d))return;const days=Math.ceil((d-today)/86400000);if(days>=0&&days<=Number(i.warningDays||7))n++});expiryCount.textContent=n;
+let future=ap.map(a=>{
+ const ds=String(a.date||a.Data||a.appointmentDate||a.Datum||'').slice(0,10);
+ const ts=String(a.time||a.Ora||a.Uhrzeit||'00:00').slice(0,5);
+ const d=new Date(ds+'T'+(ts||'00:00'));
+ return {a,d};
+}).filter(x=>!isNaN(x.d)&&x.d>=new Date()).sort((x,y)=>x.d-y.d);
+if(future.length){
+ const a=future[0].a,d=future[0].d;
+ const card=document.getElementById('nextAppointmentCard');
+ if(card){
+   const title=a.title||a.Titulli||a.name||a.Termin||'Termin';
+   const person=[a.firstName||'',a.lastName||''].filter(Boolean).join(' ');
+   const place=a.location||a.Ort||'';
+   const locale=({sq:'sq-AL',de:'de-DE',it:'it-IT',en:'en-GB',tr:'tr-TR',mk:'mk-MK',bs:'bs-BA'}[iconLang()]||'de-DE');
+   card.innerHTML='<div class="nextAptRow"><div class="nextAptDate"><b>'+html(String(d.getDate()).padStart(2,'0'))+'</b><span>'+html(d.toLocaleDateString(locale,{month:'short'}).toUpperCase())+'</span></div><div class="nextAptInfo"><b>'+html(title)+'</b><div>🕒 '+html(String(a.time||a.Ora||'').slice(0,5))+(person?' · 👤 '+html(person):'')+'</div>'+(place?'<div>📍 '+html(place)+'</div>':'')+'</div></div>';
+ }
+
+ const title=a.title||a.Titulli||a.name||a.Termin||'';
+ appointmentCount.textContent=d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+ const lab=appointmentCount.parentElement.querySelector('span');
+ if(lab) lab.textContent=(title?title+' · ':'')+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+ }else{
+ appointmentCount.textContent='0';
+ const card=document.getElementById('nextAppointmentCard');
+ if(card)card.innerHTML='<div class="nextAptEmpty">—</div>';
+}
+shoppingCount.textContent=sh.filter(i=>!['done','completed','deleted'].includes(String(i.status||'open').toLowerCase())).length;familyCount.textContent=me.length}
+async function loadOffers(){
+ const coverage=await api('offerLocations',{},false);
+ const countries=Array.isArray(coverage.countries)?coverage.countries:[];
+ const results=await Promise.allSettled(countries.map(country=>api('publicOffers',{country,active:true},false)));
+ OFFERS=[];
+ results.forEach((r,i)=>{if(r.status!=='fulfilled')return;const arr=toArray(r.value);arr.forEach(o=>{if(!o.country&&!o.Shteti)o.country=countries[i];OFFERS.push(o)})});
+ buildOfferFilters();renderOffers();
+}
+function unique(v){return Array.from(new Set(v.filter(Boolean).map(x=>String(x).trim()))).sort()}
+function setOptions(id,values,title){const s=document.getElementById(id),old=s.value;s.innerHTML='<option value="">'+html(title)+'</option>'+values.map(v=>'<option value="'+html(v)+'">'+html(v)+'</option>').join('');if(values.includes(old))s.value=old}
+function buildOfferFilters(){setOptions('countryFilter',unique(OFFERS.map(x=>x.country||x.Shteti)),tr().countries);updateOfferFilters()}
+function updateOfferFilters(){const c=countryFilter.value,f=OFFERS.filter(i=>!c||String(i.country||i.Shteti||'')===c);setOptions('cityFilter',unique(f.map(x=>x.city||x.Rajoni_Qyteti)),tr().cities);setOptions('storeFilter',unique(f.map(x=>x.store||x.Dyqani)),tr().stores);renderOffers()}
+function imageUrl(o){let u=String(o.imageUrl||o.imageURL||o.image||o.Image||o.photo||o.Photo||o.foto||o.Foto||o.fotoUrl||o.photoUrl||o.Bild||o.Foto_URL||o['Foto URL']||'').trim();let m=u.match(/\/d\/([A-Za-z0-9_-]+)/)||u.match(/[?&]id=([A-Za-z0-9_-]+)/);if(m)return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w1000';return /^https?:\/\//i.test(u)?u:''}
+function renderOffers(){const c=countryFilter.value,ci=cityFilter.value,st=storeFilter.value,f=OFFERS.filter(i=>(!c||String(i.country||i.Shteti||'')===c)&&(!ci||String(i.city||i.Rajoni_Qyteti||'')===ci)&&(!st||String(i.store||i.Dyqani||'')===st));if(!f.length){offerSlider.innerHTML='<div class="offerEmpty">'+html(tr().none)+'</div>';return}const fav=getFavorites();offerSlider.innerHTML=f.map(o=>{const id=String(o.offerId||o.ID||o.id||''),p=o.name||o.product||o.Produkti||'',u=imageUrl(o),img=u?'<img src="'+html(u)+'" alt="">':'<span class="offerPlaceholder">—</span>';return `<article class="offerCard"><div class="offerImage">${img}${(o.discount||o.Zbritja)?'<div class="discount">'+html((o.discount||o.Zbritja))+'</div>':''}</div><div class="offerBody"><div class="offerStore">${html(o.store||o.Dyqani||o.dyqani||'')}${(o.city||o.Rajoni_Qyteti)?' · '+html(o.city||o.Rajoni_Qyteti):''}${(o.country||o.Shteti)?' · '+html(o.country||o.Shteti):''}</div><div class="offerName">${html(p)}</div><span class="offerPrice">${formatMoney(o.price||o.Cmimi||o['Çmimi ofertë'])}</span>${(o.oldPrice||o.Cmimi_Vjeter||o['Çmimi normal'])?'<span class="oldPrice">'+formatMoney((o.oldPrice||o.Cmimi_Vjeter||o['Çmimi normal']))+'</span>':''}<div class="offerDate">${html(o.to||o.validTo||o.Deri||o['Deri data']||'')}</div><div class="offerActions"><button class="favorite ${fav.includes(id)?'on':''}" onclick="toggleFavorite('${html(js(id))}')">♥</button><button class="addList" onclick="addOfferToList('${html(js(id))}')">${html(tr().add)}</button></div></div></article>`}).join('');setTimeout(startOfferSlider,150)}
+
+let OFFER_TIMER=null,OFFER_INDEX=0;
+function startOfferSlider(){
+ clearInterval(OFFER_TIMER);
+ const box=document.getElementById('offerSlider');
+ if(!box)return;
+ OFFER_TIMER=setInterval(()=>{
+   const cards=box.querySelectorAll('.offerCard');
+   if(cards.length<2)return;
+   OFFER_INDEX=(OFFER_INDEX+1)%cards.length;
+   cards[OFFER_INDEX].scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});
+ },4000);
+}
+
+function getFavorites(){try{const v=JSON.parse(localStorage.getItem('mh_offer_favorites')||'[]');return Array.isArray(v)?v:[]}catch(e){return[]}}
+function toggleFavorite(id){let f=getFavorites();f=f.includes(id)?f.filter(x=>x!==id):[...f,id];localStorage.setItem('mh_offer_favorites',JSON.stringify(f));renderOffers()}
+async function addOfferToList(id){if(!getToken())return showLogin();const o=OFFERS.find(x=>String(x.offerId||x.ID||x.id||'')===String(id));if(!o)return;try{await api('shoppingAdd',{productKey:o.productKey||String(o.name||o.product||o.Produkti||'').trim().toLowerCase(),product:o.name||o.product||o.Produkti||'',quantity:1,unit:'copë',priority:'normal',source:'offer',storeHint:o.store||o.Dyqani||o.dyqani||'',offerId:o.offerId||o.ID||o.id||''});await loadDashboardStats();alert('✓')}catch(e){alert(e.message||'ERROR')}}
+function showProfile(){if(ME)alert((ME.displayName||'')+'\n'+(ME.email||''))}
+function setLanguage(l){localStorage.setItem('mh_language',l);localStorage.setItem('lang',l);document.documentElement.lang=l;langSelect.value=l;applyLanguage();renderOffers();setTimeout(startOfferSlider,150)}
+function formatMoney(v){if(v===null||v===undefined||v==='')return'';let n=typeof v==='number'?v:Number(String(v).replace(/\s/g,'').replace(',','.'));if(!Number.isFinite(n))return html(v);try{return new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(n)}catch(e){return n.toFixed(2)+' €'}}
+function html(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function js(v){return String(v??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+const savedLanguage=localStorage.getItem('mh_language');if(savedLanguage)langSelect.value=savedLanguage;applyLanguage();if(getToken())enterApp();else showLogin();
+</script></body></html>

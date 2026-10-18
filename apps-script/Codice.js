@@ -85,7 +85,7 @@ const COUNTRIES={
 };
 function country_(c){
   c=String(c||'DE').trim().toUpperCase();
-  return COUNTRIES[c]?c:'DE';
+  if(!/^[A-Z]{2}$/.test(c))throw Error('COUNTRY_INVALID');return c;
 }
 function household_(m){
   const h=rows_('Households').find(x=>x.householdId===m.householdId&&String(x.active)!=='false');
@@ -93,6 +93,7 @@ function household_(m){
   return h;
 }
 function effectiveCountry_(q,m){
+  if(q&&q.country)return country_(q.country);
   if(q&&q.travelCountry)return country_(q.travelCountry);
   if(q&&q.gpsCountry)return country_(q.gpsCountry);
   if(m){const h=household_(m);return country_(h.country||'DE');}
@@ -110,9 +111,9 @@ function token_(){return Utilities.getUuid()+Utilities.getUuid()}
 
 function exp_(days){const d=new Date();d.setDate(d.getDate()+days);return d.toISOString()}
 
-function route_(q){const publicA=['register','login','passwordResetRequest','passwordResetConfirm','emailVerify','health','publicOffers','stores'];if(q.action==='health')return{ok:true,data:healthCheck()};if(publicA.includes(q.action))return dispatch_(q,null);const me=session_(q.token);return dispatch_(q,me)}
+function route_(q){const publicA=['register','login','passwordResetRequest','passwordResetConfirm','emailVerify','health','publicOffers','offerLocations','stores'];if(q.action==='health')return{ok:true,data:healthCheck()};if(publicA.includes(q.action))return dispatch_(q,null);const me=session_(q.token);return dispatch_(q,me)}
 
-function dispatch_(q,me){const m={register:register_,login:login_,sessionCheck:sessionCheck_,me:me_,dashboard:dashboard_,family:family_,members:family_,inviteCreate:inviteCreate_,inviteAccept:inviteAccept_,shoppingList:shoppingList_,shoppingAdd:shoppingAdd_,shoppingUpdate:shoppingUpdate_,shoppingDelete:shoppingDelete_,needBuyList:needBuyList_,needBuySave:needBuySave_,needBuyUpdate:needBuyUpdate_,inventoryList:inventoryList_,inventorySave:inventorySave_,purchaseList:purchaseList_,purchaseSave:purchaseSave_,financeList:financeList_,financeSave:financeSave_,householdAI:householdAI_,confirmScan:confirmScan_,publicOffers:publicOffers_,stores:stores_,budgetList:budgetList_,budgetSave:budgetSave_,billList:billList_,billSave:billSave_,notifications:notifications_,notificationRead:notificationRead_,pushSubscribe:pushSubscribe_,passwordResetRequest:passwordResetRequest_,passwordResetConfirm:passwordResetConfirm_,
+function dispatch_(q,me){const m={register:register_,login:login_,sessionCheck:sessionCheck_,me:me_,dashboard:dashboard_,family:family_,members:family_,inviteCreate:inviteCreate_,inviteAccept:inviteAccept_,shoppingList:shoppingList_,shoppingAdd:shoppingAdd_,shoppingUpdate:shoppingUpdate_,shoppingDelete:shoppingDelete_,needBuyList:needBuyList_,needBuySave:needBuySave_,needBuyUpdate:needBuyUpdate_,inventoryList:inventoryList_,inventorySave:inventorySave_,purchaseList:purchaseList_,purchaseSave:purchaseSave_,financeList:financeList_,financeSave:financeSave_,householdAI:householdAI_,confirmScan:confirmScan_,offerLocations:offerLocations_,publicOffers:publicOffers_,stores:stores_,budgetList:budgetList_,budgetSave:budgetSave_,billList:billList_,billSave:billSave_,notifications:notifications_,notificationRead:notificationRead_,pushSubscribe:pushSubscribe_,passwordResetRequest:passwordResetRequest_,passwordResetConfirm:passwordResetConfirm_,
  logout:logout_,
  profileUpdate:profileUpdate_,
  memberRoleUpdate:memberRoleUpdate_,
@@ -152,7 +153,7 @@ function sessionCheck_(q,m){return {valid:true,userId:m.userId,householdId:m.hou
 function session_(t){
   if(!t)throw Error('LOGIN_REQUIRED');
   const h=hash_(t),r=rows_('Sessions').find(x=>x.tokenHash===h&&String(x.active)!=='false');
-  if(!r||new Date(r.expiresAt)<new Date())throw Error('SESSION_EXPIRED');
+  if(!r||!Number.isFinite(new Date(r.expiresAt).getTime())||new Date(r.expiresAt)<=new Date())throw Error('SESSION_EXPIRED');
   const u=rows_('Users').find(x=>x.userId===r.userId&&String(x.active)!=='false');
   if(!u)throw Error('USER_NOT_FOUND');
   const hm=rows_('HouseholdMembers').find(x=>x.userId===u.userId&&x.householdId===r.householdId&&String(x.active)!=='false');
@@ -198,10 +199,14 @@ function me_(q,m){return m}
 
 function family_(q,m){return rows_('HouseholdMembers').filter(x=>x.householdId===m.householdId&&String(x.active)!=='false')}
 function familyMemberSave_(q,m){
+  requireAdmin_(m);
+  if(q.userId)throw Error('USE_INVITATION_FOR_ACCOUNT');
+  if(q.role&&q.role!=='member'&&q.role!=='child')throw Error('FORBIDDEN');
   const id=q.memberId||id_('mem'),first=String(q.firstName||'').trim(),last=String(q.lastName||'').trim();
   if(!first)throw Error('MEMBER_NAME_REQUIRED');
   const o={householdId:m.householdId,memberId:id,userId:q.userId||'',role:q.role||'member',relation:q.relation||'',displayName:String(q.displayName||((first+' '+last).trim())),firstName:first,lastName:last,birthDate:q.birthDate||'',phone:q.phone||'',joinedAt:q.joinedAt||now_(),active:q.active!==false,permissionsJson:q.permissionsJson||'{}'};
   const r=rows_('HouseholdMembers').find(x=>x.householdId===m.householdId&&x.memberId===id);
+  if(r&&r.userId)throw Error('USE_PROFILE_OR_ROLE_UPDATE');
   if(r)patch_('HouseholdMembers',r._row,o);else append_('HouseholdMembers',o);return o;
 }
 function familyMemberDelete_(q,m){requireAdmin_(m);const r=rows_('HouseholdMembers').find(x=>x.householdId===m.householdId&&x.memberId===q.memberId);if(!r)throw Error('MEMBER_NOT_FOUND');if(r.userId===m.userId)throw Error('CANNOT_REMOVE_SELF');patch_('HouseholdMembers',r._row,{active:false});return true}
@@ -223,7 +228,11 @@ function inviteAccept_(q,m){
 }
 function shoppingList_(q,m){return{items:rows_('ShoppingList').filter(x=>x.householdId===m.householdId&&x.status!=='deleted')}}
 
-function shoppingAdd_(q,m){const name=String(q.product||q.Produkti||'').trim();if(!name)throw Error('Produkti mungon');const o={householdId:m.householdId,itemId:id_('sl'),productKey:norm_(name),Produkti:name,Kategoria:q.category||'',Sasia:Number(q.quantity||1),'Njësia':q.unit||'copë',priority:q.priority||'normal',source:q.source||'manual',assignedTo:q.assignedTo||'',status:q.status||'open',storeHint:q.storeHint||q.notes||'',offerId:q.offerId||q.dueTime||'',targetDate:q.targetDate||q.dueDate||'',createdBy:m.userId,createdAt:now_(),updatedAt:now_()};append_('ShoppingList',o);return o}
+function shoppingAdd_(q,m){
+ const lock=LockService.getScriptLock();lock.waitLock(10000);
+ try{if(q.offerId){const existing=rows_('ShoppingList').find(x=>x.householdId===m.householdId&&String(x.offerId)===String(q.offerId)&&x.status!=='deleted'&&x.status!=='done');if(existing)return existing}return shoppingAddUnlocked_(q,m)}finally{lock.releaseLock()}
+}
+function shoppingAddUnlocked_(q,m){const name=String(q.product||q.Produkti||'').trim();if(!name)throw Error('Produkti mungon');const o={householdId:m.householdId,itemId:id_('sl'),productKey:norm_(name),Produkti:name,Kategoria:q.category||'',Sasia:Number(q.quantity||1),'Njësia':q.unit||'copë',priority:q.priority||'normal',source:q.source||'manual',assignedTo:q.assignedTo||'',status:q.status||'open',storeHint:q.storeHint||q.notes||'',offerId:q.offerId||q.dueTime||'',targetDate:q.targetDate||q.dueDate||'',createdBy:m.userId,createdAt:now_(),updatedAt:now_()};append_('ShoppingList',o);return o}
 
 function shoppingUpdate_(q,m){const r=rows_('ShoppingList').find(x=>x.itemId===q.itemId&&x.householdId===m.householdId);if(!r)throw Error('ITEM_NOT_FOUND');const p={updatedAt:now_()};if(q.status!=null)p.status=q.status;if(q.quantity!=null)p.Sasia=q.quantity;if(q.unit!=null)p['Njësia']=q.unit;if(q.product!=null||q.Produkti!=null){p.Produkti=String(q.product??q.Produkti).trim();p.productKey=norm_(p.Produkti)}if(q.category!=null)p.Kategoria=q.category;if(q.priority!=null)p.priority=q.priority;if(q.source!=null)p.source=q.source;if(q.assignedTo!=null)p.assignedTo=q.assignedTo;if(q.storeHint!=null||q.notes!=null)p.storeHint=q.storeHint??q.notes;if(q.offerId!=null||q.dueTime!=null)p.offerId=q.offerId??q.dueTime;if(q.targetDate!=null||q.dueDate!=null)p.targetDate=q.targetDate??q.dueDate;patch_('ShoppingList',r._row,p);return true}
 
@@ -269,7 +278,8 @@ function purchaseSave_(q,m){
 function financeList_(q,m){return rows_('Financat').filter(x=>x.householdId===m.householdId)}
 
 function financeSave_(q,m){
-  const d=q.date||day_(),amount=Number(q.amount||0);if(!amount)throw Error('AMOUNT_REQUIRED');
+  const d=q.date||day_(),amount=Number(q.amount||0);if(!Number.isFinite(amount)||amount<=0)throw Error('AMOUNT_REQUIRED');
+  if(!['hyrje','income','dalje','expense'].includes(q.type))throw Error('TYPE_INVALID');
   const type=(q.type==='hyrje'||q.type==='income')?'hyrje':'dalje';
   const o={userId:m.userId,householdId:m.householdId,memberId:q.memberId||'',ID:id_('fin'),Data:d,Ora:q.time||Utilities.formatDate(new Date(),CFG.TZ,'HH:mm'),Muaji:d.slice(0,7),Lloji:type,Kategoria:q.category||'Tjetër','Nënkategoria':q.subcategory||'',Përshkrimi:q.description||'',Shuma:amount,Pagesa:q.paymentMethod||q.payment||'cash',Burimi:q.source||'manual',Dyqani:q.store||'','Shënim':q.note||'',createdAt:now_()};append_('Financat',o);return o
 }
@@ -384,7 +394,18 @@ function notificationRead_(q,m){const r=rows_('Notifications').find(x=>x.notific
 
 function pushSubscribe_(q,m){append_('PushSubscriptions',{userId:m.userId,householdId:m.householdId,endpoint:q.endpoint||'',p256dh:q.p256dh||'',auth:q.auth||'',device:q.device||'',language:q.language||m.language,createdAt:now_(),updatedAt:now_(),active:true});return true}
 
-function passwordResetRequest_(q){const u=rows_('Users').find(x=>String(x.email).toLowerCase()===String(q.email||'').toLowerCase());if(!u)return{accepted:true};const raw=token_();append_('PasswordReset',{resetId:id_('rst'),userId:u.userId,email:u.email,tokenHash:hash_(raw),createdAt:now_(),expiresAt:exp_(1),used:false});return{accepted:true,resetToken:raw}}
+function passwordResetRequest_(q){
+  const email=String(q.email||'').trim().toLowerCase();
+  const u=rows_('Users').find(x=>String(x.email).toLowerCase()===email&&String(x.active)!=='false');
+  if(!u)return {accepted:true};
+  const recent=rows_('PasswordReset').some(x=>x.userId===u.userId&&Date.now()-new Date(x.createdAt).getTime()<60000);
+  if(recent)return {accepted:true};
+  const raw=token_(),resetId=id_('rst');
+  append_('PasswordReset',{resetId,userId:u.userId,email:u.email,tokenHash:hash_(raw),createdAt:new Date().toISOString(),expiresAt:exp_(1),used:false});
+  try{MailApp.sendEmail({to:u.email,subject:'MeinHaushalt FT – Password reset',body:'Password reset code / Kodi për rikthimin e fjalëkalimit:\n\n'+raw+'\n\nValid for 24 hours. If you did not request this, ignore this email.'})}
+  catch(e){const r=rows_('PasswordReset').find(x=>x.resetId===resetId);if(r)patch_('PasswordReset',r._row,{used:true});log_(null,'resetDelivery','error',{})}
+  return {accepted:true};
+}
 
 function passwordResetConfirm_(q){
   const pass=String(q.password||'');
@@ -408,6 +429,7 @@ function logout_(q,m){
   const h=hash_(q.token||'');
   const r=rows_('Sessions').find(x=>x.tokenHash===h&&x.userId===m.userId);
   if(r)patch_('Sessions',r._row,{active:false,lastSeenAt:now_()});
+  if(q.endpoint)rows_('PushSubscriptions').filter(x=>x.userId===m.userId&&x.householdId===m.householdId&&x.endpoint===q.endpoint).forEach(x=>patch_('PushSubscriptions',x._row,{active:false,updatedAt:now_()}));
   return true;
 }
 
@@ -677,7 +699,11 @@ function offerSourcesSeed_(q,m){
   const existing=rows_('OfferSources');src.forEach(x=>{if(!existing.some(e=>e.url===x.url))append_('OfferSources',{sourceId:id_('src'),country,city,store:x.store,name:x.name,url:x.url,mode:'offers',regional:true,active:true,lastCheckedAt:'',lastStatus:'new',updatedAt:now_()})});return offerSourceList_({country},m)
 }
 function offersSync_(q,m){
-  requireAdmin_(m);const country=effectiveCountry_(q,m),city=q.city||household_(m).city||'';let sources=offerSourceList_({country},m);if(!sources.length)sources=offerSourcesSeed_({country,city},m);
+  requireAdmin_(m);
+  // Legacy HTML/AI extractor cannot establish source or image licensing.
+  // Keep stored offers intact until an authorized feed adapter is configured.
+  throw Error('AUTHORIZED_FEED_REQUIRED');
+const country=effectiveCountry_(q,m),city=q.city||household_(m).city||'';let sources=offerSourceList_({country},m);if(!sources.length)sources=offerSourcesSeed_({country,city},m);
   const result=[];sources.filter(x=>String(x.active)!=='false').forEach(src=>{try{
     const res=UrlFetchApp.fetch(src.url,{muteHttpExceptions:true,followRedirects:true,headers:{'User-Agent':'Mozilla/5.0 (compatible; MeinHausOffers/1.0)','Accept-Language':'de-DE,de;q=0.9'}});if(res.getResponseCode()>=400)throw Error('HTTP '+res.getResponseCode());
     const html=String(res.getContentText());
@@ -841,7 +867,7 @@ const MH_OFFER_SHEETS = {
 
 function mhOfferSheet_(country) {
   const c = String(country || 'DE').trim().toUpperCase();
-  const sheetName = MH_OFFER_SHEETS[c];
+  const sheetName = offerCountrySheets_()[c];
 
   if (!sheetName) {
     throw new Error('Shteti nuk mbështetet: ' + c);
@@ -1126,7 +1152,7 @@ function mhExpireOffers_() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  Object.keys(MH_OFFER_SHEETS)
+  Object.keys(offerCountrySheets_())
     .forEach(country => {
 
       const sh =

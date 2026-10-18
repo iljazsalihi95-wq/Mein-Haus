@@ -4,15 +4,18 @@
  * called by the main Apps Script router without changing authentication.
  */
 const OFFERS_SS_ID = '1CobxMu2n4hlpquYrcMjgpFdlOBFnZ1TM8E61wpSKUZE';
-const OFFER_SHEETS = {
-  DE:'Oferta_DE', IT:'Oferta_IT', AT:'Oferta_AT', CH:'Oferta_CH',
-  TR:'Oferta_TR', MK:'Oferta_MK', BA:'Oferta_BA'
-};
+// Discover existing offer tabs; never create tabs or fabricate country coverage.
+function offerCountrySheets_(){
+ const found={};SpreadsheetApp.openById(OFFERS_SS_ID).getSheets().forEach(s=>{const match=s.getName().match(/^Oferta_([A-Z]{2})$/);if(match)found[match[1]]=s.getName()});return found;
+}
+function offerLocations_(q){
+ return {countries:Object.keys(offerCountrySheets_()).sort()};
+}
 const OFFER_HEADERS = ['ID','Shteti','Rajoni_Qyteti','Dyqani','Kategoria','Produkti','Pershkrimi','Sasia','Cmimi','Cmimi_Vjeter','Zbritja','Nga','Deri','Foto_URL','Oferta_URL','Aktive'];
 
 function offersSheet_(country) {
   country=String(country||'').toUpperCase();
-  const name=OFFER_SHEETS[country];
+  const name=offerCountrySheets_()[country];
   if(!name) throw new Error('Shtet i pambështetur: '+country);
   const sh=SpreadsheetApp.openById(OFFERS_SS_ID).getSheetByName(name);
   if(!sh) throw new Error('Mungon tabela '+name);
@@ -26,6 +29,7 @@ function offersListByCountry(country, city) {
     const o=Object.fromEntries(h.map((k,i)=>[k,r[i]]));
     if(String(o.Aktive).toUpperCase()!=='TRUE')return false;
     if(city && o.Rajoni_Qyteti && !String(o.Rajoni_Qyteti).toLowerCase().includes(String(city).toLowerCase()))return false;
+    if(o.Nga){const d=new Date(o.Nga);if(!isNaN(d)&&d>now)return false}
     if(o.Deri){const d=new Date(o.Deri);if(!isNaN(d)&&d<now)return false}
     return true;
   }).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]])));
@@ -43,7 +47,7 @@ function offerDeactivate(country,id) {
   return {ok:false,error:'Oferta nuk u gjet'};
 }
 function expireOffersAllCountries() {
-  Object.keys(OFFER_SHEETS).forEach(c=>{
+  Object.keys(offerCountrySheets_()).forEach(c=>{
     const sh=offersSheet_(c), vals=sh.getDataRange().getValues(), today=new Date();today.setHours(0,0,0,0);
     for(let i=1;i<vals.length;i++){const d=vals[i][12] instanceof Date?vals[i][12]:new Date(vals[i][12]);if(vals[i][12]&&!isNaN(d)&&d<today)sh.getRange(i+1,16).setValue('FALSE')}
   });
