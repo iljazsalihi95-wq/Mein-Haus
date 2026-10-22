@@ -245,7 +245,7 @@ function needBuyList_(q,m){
 function needBuySave_(q,m){
   const date=String(q.date||day_()).slice(0,10),name=String(q.name||q.Produkti||'').trim();
   if(!name)throw Error('PRODUCT_REQUIRED');
-  const o={householdId:m.householdId,itemId:id_('need'),productKey:key_(name),Produkti:name,Kategoria:q.category||'',Sasia:Number(q.quantity||1),Njësia:q.unit||'copë',priority:q.priority||'normal',source:'needbuy',assignedTo:'',status:q.status||'need',storeHint:q.storeHint||'',offerId:'',targetDate:date,createdBy:m.userId,createdAt:now_(),updatedAt:now_()};
+  const o={householdId:m.householdId,itemId:id_('need'),productKey:norm_(name),Produkti:name,Kategoria:q.category||'',Sasia:Number(q.quantity||1),Njësia:q.unit||'copë',priority:q.priority||'normal',source:'needbuy',assignedTo:'',status:q.status||'need',storeHint:q.storeHint||'',offerId:'',targetDate:date,createdBy:m.userId,createdAt:now_(),updatedAt:now_()};
   append_('ShoppingList',o);return o;
 }
 function needBuyUpdate_(q,m){
@@ -265,9 +265,13 @@ function inventorySave_(q,m){const name=String(q.product||q.Produkti||'').trim()
 function purchaseList_(q,m){return rows_('Blerjet').filter(x=>x.householdId===m.householdId)}
 
 function purchaseSave_(q,m){
-  const name=String(q.product||'').trim();
+  const name=String(q.product||q.Produkti||'').trim();
   if(!name)throw Error('PRODUCT_REQUIRED');
-  const o={userId:m.userId,householdId:m.householdId,memberId:q.memberId||'',ID:id_('buy'),Data:q.date||day_(),Ora:q.time||Utilities.formatDate(new Date(),CFG.TZ,'HH:mm'),Dyqani:q.store||'',Produkti:name,productKey:norm_(name),Kategoria:q.category||'',Sasia:Number(q.quantity||1),'Njësia':q.unit||'copë','Çmimi njësi':Number(q.unitPrice||0),Totali:Number(q.total||0),'Në ofertë':q.onOffer||false,'Shënim':q.note||q.description||'',createdAt:now_(),receiptScanId:q.receiptScanId||''};
+  const quantity=Number(q.quantity??1),unitPrice=Number(q.unitPrice??0),total=Number(q.total??quantity*unitPrice);
+  if(!Number.isFinite(quantity)||quantity<=0)throw Error('QUANTITY_INVALID');
+  if(!Number.isFinite(unitPrice)||!Number.isFinite(total))throw Error('AMOUNT_INVALID');
+  const date=purchaseDate_(q.date||day_());
+  const o={userId:m.userId,householdId:m.householdId,memberId:q.memberId||'',ID:id_('buy'),Data:date,Ora:q.time||Utilities.formatDate(new Date(),CFG.TZ,'HH:mm'),Dyqani:q.store||'',Produkti:name,productKey:norm_(name),Kategoria:q.category||'',Sasia:quantity,'Njësia':q.unit||'copë','Çmimi njësi':unitPrice,Totali:total,'Në ofertë':q.onOffer||false,'Shënim':q.note||q.description||'',createdAt:now_(),receiptScanId:q.receiptScanId||''};
   append_('Blerjet',o);
   const inv=rows_('Inventari').find(x=>x.householdId===m.householdId&&x.productKey===o.productKey);
   const newQty=(inv?Number(inv.Sasia||0):0)+Number(o.Sasia||0);
@@ -315,20 +319,37 @@ function aiText_(q,m){
   return {text:openai_('Answer in '+(q.language||m.language||'sq')+'. Household assistant question: '+String(q.message||q.prompt||''),'')};
 }
 
+function purchaseDate_(value){
+  if(value instanceof Date)return Utilities.formatDate(value,CFG.TZ,'yyyy-MM-dd');
+  let s=String(value||'').trim(),match=s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if(match)s=match[3]+'-'+match[2].padStart(2,'0')+'-'+match[1].padStart(2,'0');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(s))throw Error('DATE_INVALID');
+  const d=new Date(s+'T12:00:00Z');
+  if(isNaN(d)||d.toISOString().slice(0,10)!==s)throw Error('DATE_INVALID');
+  return s;
+}
 function confirmScan_(q,m){
   const lock=LockService.getScriptLock();lock.waitLock(20000);
   try{
     let x=q.scan||q;
-    const r=x.scanId?rows_('Skanimet').find(z=>z.scanId===x.scanId&&z.householdId===m.householdId):null;
-    if(r&&r.reviewStatus==='confirmed')return{savedItems:0,total:Number(r.receiptTotal||0),alreadyConfirmed:true};
-    if(r&&!x.items)x={scanId:r.scanId,store:r.store,date:r.receiptDate,total:r.receiptTotal,items:JSON.parse(r.itemsJson||'[]')};
-    const items=(x.items||[]).filter(it=>String(it.name||it.product||'').trim());
+    if(!x.scanId)throw Error('SCAN_ID_REQUIRED');
+    const r=rows_('Skanimet').find(z=>z.scanId===x.scanId&&z.householdId===m.householdId);
+    if(!r)throw Error('SCAN_NOT_FOUND');
+    if(r.reviewStatus==='confirmed')return{savedItems:0,total:Number(r.receiptTotal||0),alreadyConfirmed:true};
+    if(!x.items)x={scanId:r.scanId,store:r.store,date:r.receiptDate,total:r.receiptTotal,items:JSON.parse(r.itemsJson||'[]')};
+    const date=purchaseDate_(x.date);
+    const items=(x.items||[]).map(it=>({product:String(it.name||it.product||'').trim(),quantity:Number(it.quantity??1),unit:it.unit||'copë',unitPrice:Number(it.unitPrice??it.price??0),total:Number(it.total??0),category:it.category||''}));
     if(!items.length)throw Error('NO_ITEMS');
-    items.forEach(it=>purchaseSave_({date:x.date||day_(),store:x.store||'',product:it.name||it.product,quantity:Number(it.quantity||1),unit:it.unit||'copë',unitPrice:Number(it.unitPrice||it.price||0),total:Number(it.total||0),category:it.category||'',receiptScanId:x.scanId||''},m));
-    const total=Number(x.total||items.reduce((sum,i)=>sum+Number(i.total||0),0));
-    financeSave_({date:x.date||day_(),type:'dalje',category:'Blerje',description:'Kassenbon '+(x.store||''),amount:total,source:'receipt',store:x.store||''},m);
-    if(r)patch_('Skanimet',r._row,{reviewStatus:'confirmed',processedAt:now_()});
-    return{savedItems:items.length,total:total,alreadyConfirmed:false};
+    if(items.some(it=>!it.product||!Number.isFinite(it.quantity)||it.quantity<=0||!Number.isFinite(it.unitPrice)||!Number.isFinite(it.total)))throw Error('RECEIPT_ITEMS_INVALID');
+    const total=Number(x.total),sum=items.reduce((a,it)=>a+it.total,0);
+    if(!Number.isFinite(total)||total<=0||Math.abs(sum-total)>0.05)throw Error('RECEIPT_TOTAL_MISMATCH');
+    // A retry after a partially completed request must not append its rows again.
+    const existing=rows_('Blerjet').filter(z=>z.householdId===m.householdId&&z.receiptScanId===x.scanId);
+    if(existing.length)throw Error('SCAN_PARTIAL_REVIEW_REQUIRED');
+    items.forEach(it=>purchaseSave_(Object.assign({},it,{date,store:x.store||'',receiptScanId:x.scanId}),m));
+    financeSave_({date,type:'dalje',category:'Blerje',description:'Kassenbon '+(x.store||''),amount:total,source:'receipt',store:x.store||''},m);
+    patch_('Skanimet',r._row,{reviewStatus:'confirmed',receiptTotal:total,receiptDate:date,processedAt:now_()});
+    return{savedItems:items.length,total,alreadyConfirmed:false};
   }finally{lock.releaseLock()}
 }
 function price_(m,o){append_('Preisverlauf',{householdId:m.householdId,productKey:o.productKey,store:o.Dyqani,date:o.Data,price:o['Çmimi njësi'],currency:'EUR',source:'purchase',purchaseId:o.ID})}
