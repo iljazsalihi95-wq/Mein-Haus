@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>MeinHaushalt FT</title>
+<style>
+*{box-sizing:border-box}:root{--blue:#0877e8;--bg:#F4F7FC;--text:#152238;--muted:#718096}
+html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}
+#languageGate{min-height:100vh;padding:28px 16px 55px;background:linear-gradient(180deg,#0876df 0%,#11a2ef 43%,#eef7ff 100%);display:none;align-items:center;justify-content:center}
+.languageBox{width:min(470px,100%);background:#fff;border-radius:27px;padding:22px;box-shadow:0 18px 45px #003b7040;text-align:center}.languageLogo{font-size:66px}.languageBox h1{margin:8px 0 4px}.languageBox p{color:#718096;margin:0 0 18px}.languageGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.languageChoice{border:1px solid #dce6f1;background:#f7fbff;border-radius:14px;padding:13px 8px;font-weight:900;color:#18385e}.languageChoice:first-child{grid-column:1/-1}
+#authView{display:none;min-height:100vh;padding:28px 16px 55px;background:linear-gradient(180deg,#0876df 0%,#11a2ef 43%,#eef7ff 100%)}.authLogo{width:105px;height:105px;margin:12px auto;border-radius:27px;background:#ffffff20;display:flex;align-items:center;justify-content:center;font-size:66px}.authBrand{text-align:center;color:#fff}.authBrand h1{font-size:33px;margin:10px 0 5px}.authBrand p{font-size:17px;margin:0 0 28px}.authCard{max-width:470px;margin:auto;background:#fff;border-radius:27px;padding:20px;box-shadow:0 18px 45px #003b7040}.authLangRow{display:flex;justify-content:flex-end;margin-bottom:9px}.authLang{border:1px solid #dce6f1;background:#f7fbff;border-radius:10px;padding:8px;font-weight:900;color:#18385e}.authTabs{display:grid;grid-template-columns:1fr 1fr;background:#edf4fc;padding:5px;border-radius:16px;margin-bottom:20px}.authTab{border:0;padding:13px 5px;background:transparent;border-radius:13px;font-weight:900;color:#64748b}.authTab.active{color:#fff;background:linear-gradient(135deg,#1494ed,#0868d5)}.field{margin:12px 0}.field label{display:block;font-weight:900;font-size:13px;margin-bottom:6px}.field input{width:100%;padding:15px;border:1px solid #d8e1ec;border-radius:14px}.authBtn{width:100%;border:0;border-radius:15px;padding:15px;margin-top:12px;color:#fff;font-weight:900;font-size:17px;background:linear-gradient(135deg,#1598ee,#0757c5)}.authMsg{display:none;margin:10px 0;padding:11px;border-radius:11px;background:#ffeded;color:#ad2431;font-size:13px;font-weight:700}.authInfo{margin-top:14px;text-align:center;color:#738198;font-size:11px}
+#appView{display:none;max-width:950px;margin:auto;padding-bottom:83px}.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;color:#fff;background:linear-gradient(135deg,#075ab5,#087de5)}.brand{display:flex;align-items:center;gap:8px;font-weight:900;font-size:19px}.brandIcon{width:38px;height:38px;border-radius:11px;overflow:hidden}.brandIcon img{width:100%;height:100%;object-fit:cover}.topActions{display:flex;gap:7px}.lang{border:0;background:#fff;color:#18385e;border-radius:10px;padding:8px;font-size:12px;font-weight:900}.logout{border:0;width:37px;height:37px;border-radius:10px;color:#fff;background:#ffffff20;font-size:19px}
+.content{padding:12px}.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#086fd3,#0ca1ed);color:#fff;border-radius:23px;padding:19px;min-height:145px}.hero:after{content:"🏠";position:absolute;right:12px;bottom:-23px;font-size:120px;opacity:.18}.hero h2{font-size:27px;margin:6px 0}.hero p{font-size:13px;margin:0;max-width:70%;line-height:1.4}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0}.stat{background:#fff;text-align:center;border-radius:15px;padding:11px 4px;border:1px solid #e9eef5}.stat b{display:block;color:#0877e8;font-size:21px}.stat span{display:block;font-size:9px;color:#68798e;margin-top:3px}.sectionHead{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 9px}.sectionHead h3{margin:0;font-size:19px}.more{color:#0877e8;font-weight:900;text-decoration:none}
+.nextAptHome{background:linear-gradient(135deg,#0b2f5f,#1974d8);color:#fff;border-radius:20px;padding:15px 16px;box-shadow:0 10px 28px #0b4d9828;margin-bottom:10px}.nextAptRow{display:flex;gap:13px;align-items:center}.nextAptDate{width:58px;min-width:58px;height:62px;border-radius:16px;background:#ffffff1f;border:1px solid #ffffff30;display:flex;flex-direction:column;align-items:center;justify-content:center}.nextAptDate b{font-size:22px;line-height:1}.nextAptDate span{font-size:10px;font-weight:900;margin-top:4px}.nextAptInfo b{display:block;font-size:17px}.nextAptInfo div{font-size:12px;margin-top:4px;color:#e4f0ff}
+.offerFilters{display:flex;gap:6px;overflow:auto;margin-bottom:8px}.offerFilters select{background:#fff;border:1px solid #dce6f1;border-radius:10px;padding:8px;min-width:105px;font-size:11px;font-weight:700}.offerSlider{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:7px}.offerSlider::-webkit-scrollbar{display:none}.offerCard{min-width:225px;width:225px;background:#fff;border-radius:18px;overflow:hidden;scroll-snap-align:start;border:1px solid #e5edf6;box-shadow:0 6px 20px #1232}.offerImage{height:145px;background:#edf4fb;position:relative;display:flex;align-items:center;justify-content:center}.offerImage img{width:100%;height:100%;object-fit:contain;background:#fff}.discount{position:absolute;right:6px;top:6px;padding:5px 7px;border-radius:8px;background:#ed3345;color:#fff;font-weight:900;font-size:11px}.offerBody{padding:10px}.offerStore{font-size:10px;color:#67778b;font-weight:800}.offerName{font-weight:900;margin:5px 0}.offerPrice{font-size:21px;color:#df2637;font-weight:900}.offerDate{font-size:9px;color:#7c8998;margin-top:3px}.offerActions{display:grid;grid-template-columns:38px 1fr;gap:5px;margin-top:7px}.favorite,.addList{border:0;border-radius:9px;padding:8px;font-weight:900}.favorite{background:#fff0f2;color:#e52b3d}.addList{background:#e9f3ff;color:#0869d1;font-size:11px}.offerEmpty{width:100%;padding:25px;text-align:center;background:#fff;border-radius:16px;color:#718096}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.tile{display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;border:1px solid #e3ebf4;background:#fff;border-radius:17px;min-height:112px;padding:10px 5px;text-align:center;color:#152238}.tileIcon{width:68px;height:68px;overflow:hidden;border-radius:16px;margin:auto auto 7px}.tileIcon img{width:100%;height:100%;object-fit:cover}.tile b{display:block;font-size:12px}
+.bottom{position:fixed;z-index:40;bottom:0;left:50%;transform:translateX(-50%);width:min(950px,100%);height:69px;background:#fff;border-top:1px solid #e1e8f1;display:grid;grid-template-columns:repeat(4,1fr)}.nav{border:0;background:transparent;color:#68778a;font-size:9px;font-weight:800;text-decoration:none;text-align:center;padding-top:8px}.nav span{font-size:22px;display:block}.nav.active{color:#0877e8}
+/* VETËM SHTESA E RE */
+.homeShop{margin:12px 0;background:#fff;border:1px solid #e1e9f3;border-radius:18px;overflow:hidden;box-shadow:0 6px 18px #1232}.homeShopTop{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:linear-gradient(135deg,#0b376d,#1479df);color:#fff}.homeShopTop b{font-size:16px}.homeShopCount{background:#061d3b;border-radius:10px;padding:5px 10px;font-weight:900}.hsStore{border-top:1px solid #e7edf5}.hsHead{width:100%;border:0;background:#f8fbff;padding:11px 13px;display:flex;justify-content:space-between;color:#18385e;font-weight:900;text-align:left}.hsItems{display:none;padding:0 12px 7px}.hsStore.open .hsItems{display:block}.hsItem{display:flex;gap:9px;align-items:flex-start;padding:9px 2px;border-top:1px solid #edf2f7}.hsItem input{width:22px;height:22px;accent-color:#18b867}.hsName{font-size:13px;font-weight:900}.hsMeta{font-size:10px;color:#718096;margin-top:2px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(4,1fr)}}
+</style>
+<style>
+.homeFinance{margin:12px 0;background:#fff;border:1px solid #dce6f1;border-radius:18px;padding:13px}.homeFinance h3{margin:0 0 10px}.homeFinanceGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.homeFinanceCell{border-radius:13px;padding:12px 4px;text-align:center;color:#fff}.homeFinanceCell:nth-child(1){background:linear-gradient(145deg,#075c49,#118c64)}.homeFinanceCell:nth-child(2){background:linear-gradient(145deg,#842d40,#cc4554)}.homeFinanceCell:nth-child(3){background:linear-gradient(145deg,#12417e,#247bd1)}.homeFinanceCell small{display:block;font-size:9px;font-weight:900}.homeFinanceCell b{display:block;margin-top:5px;font-size:17px}.homeFinanceStatus{font-size:10px;color:#718096;margin-top:8px}.homeCards{margin:12px 0;background:linear-gradient(145deg,#092e5e,#0c478c);color:#fff;border-radius:18px;padding:12px}.homeCardsTop{display:flex;justify-content:space-between;align-items:center}.homeCardsTop a{color:#fff;text-decoration:none;background:#ffffff20;border-radius:9px;padding:7px;font-size:11px}.homeCardsList{display:flex;gap:7px;overflow:auto;margin-top:9px}.homeCardChip{flex:0 0 auto;background:#fff;color:#173451;border-radius:11px;padding:9px 11px;font-size:11px;font-weight:900}</style></head><body>
+<div id="languageGate"></div>
+<div id="authView"></div>
+<div id="appView">
+<header class="topbar"><div class="brand"><div class="brandIcon"><img id="brandLangIcon" data-icon="meinhaushalt"></div><span>MeinHaushalt FT</span></div><div class="topActions"><select id="langSelect" class="lang"><option value="sq">🇦🇱 SQ</option><option value="de">🇩🇪 DE</option><option value="en">🇬🇧 EN</option><option value="it">🇮🇹 IT</option><option value="tr">🇹🇷 TR</option><option value="mk">🇲🇰 MK</option><option value="bs">🇧🇦 BS</option></select><button class="logout" onclick="logoutUser()">⇥</button></div></header>
+<main class="content">
+<section class="hero"><small>Mirë se vini</small><h2 id="userName">Mein Haushalt</h2><p>Organizoni familjen, blerjet dhe shtëpinë thjesht.</p></section>
+<section class="stats"><div class="stat"><b id="expiryCount">—</b><span>Skadojnë shpejt</span></div><div class="stat"><b id="appointmentCount">—</b><span>Terminet</span></div><div class="stat"><b id="shoppingCount">—</b><span>Lista e blerjeve</span></div><div class="stat"><b id="familyCount">—</b><span>Familja</span></div></section>
+
+<section class="homeShop"><div class="homeShopTop"><b>🛒 Lista për Blerje</b><span id="homeShopCount" class="homeShopCount">0</span></div><div id="homeShopStores"></div></section>
+
+<section class="homeFinance"><h3>💶 Financat · LIVE</h3><div class="homeFinanceGrid"><div class="homeFinanceCell"><small>HYRJE</small><b id="homeFinIncome">—</b></div><div class="homeFinanceCell"><small>DALJE</small><b id="homeFinExpense">—</b></div><div class="homeFinanceCell"><small>GJENDJA</small><b id="homeFinBalance">—</b></div></div><div id="homeFinanceStatus" class="homeFinanceStatus">Duke ngarkuar…</div></section><section class="homeCards"><div class="homeCardsTop"><b>💳 Kartat e Mia</b><a href="go:Kartat">Hap kartat ›</a></div><div id="homeCardsList" class="homeCardsList"></div></section><div class="sectionHead"><h3>Termini i ardhshëm</h3><a class="more" href="go:Terminet">Terminet ›</a></div>
+<div id="nextAppointmentCard" class="nextAptHome"><div>…</div></div>
+<div class="sectionHead"><h3>Ofertat aktuale</h3><a class="more" href="go:Ofertst">Shiko të gjitha ›</a></div>
+<div class="offerFilters"><select id="countryFilter"></select><select id="cityFilter"></select><select id="storeFilter"></select></div>
+<div id="offerSlider" class="offerSlider"><div class="offerEmpty">…</div></div>
+<div class="sectionHead"><h3>Rubrikat</h3></div>
+<section class="grid">
+<a class="tile" href="go:Blerje"><div class="tileIcon"><img data-icon="blerjet"></div><b>Blerjet</b></a><a class="tile" href="go:Ofertst"><div class="tileIcon"><img data-icon="ofertat"></div><b>Ofertat LIVE</b></a><a class="tile" href="go:Inventari"><div class="tileIcon"><img data-icon="inventari"></div><b>Inventari</b></a><a class="tile" href="go:Financat"><div class="tileIcon"><img data-icon="financat"></div><b>Financat</b></a><a class="tile" href="go:Terminet"><div class="tileIcon"><img data-icon="terminet"></div><b>Terminet</b></a><a class="tile" href="go:Detyrat"><div class="tileIcon"><img data-icon="detyrat"></div><b>Detyrat</b></a><a class="tile" href="go:Dokumente"><div class="tileIcon"><img data-icon="dokumentet"></div><b>Dokumentet</b></a><a class="tile" href="go:Faturat"><div class="tileIcon"><img data-icon="rechnungen"></div><b>Faturat</b></a><a class="tile" href="go:ListaBlerj"><div class="tileIcon"><img data-icon="einkaufsliste"></div><b>Lista e blerjeve</b></a><a class="tile" href="go:Familja"><div class="tileIcon"><img data-icon="familja"></div><b>Familja</b></a><a class="tile" href="go:Garancite"><div class="tileIcon"><img data-icon="garancite"></div><b>Garancitë</b></a><a class="tile" href="go:Skadimet"><div class="tileIcon"><img data-icon="skadimet"></div><b>Skadimet</b></a>
+</section></main>
+<nav class="bottom"><button class="nav active"><span>🏠</span>Ballina</button><a class="nav" href="go:Ofertst"><span>🏷️</span>Ofertat</a><a class="nav" href="go:ListaBlerj"><span>📝</span>Lista</a><button class="nav"><span>👤</span>Profili</button></nav>
+</div>
+<script>
+const API='https://script.google.com/macros/s/AKfycbxLAP0EW3Inecns-l3KIF5wPPAardgQnXSMrVJCEuZj6RtLofAOOwlQzFa1UCwsoKA/exec';
+const ICON_ARCHIVE='https://archive.org/download/mein-haushalt-fixed/MeinHaushalt_PRO_FOLDERAT_7_GJUHE.zip/';
+function currentLang(){return localStorage.getItem('mh_language')||'sq'}
+function iconUrl(k){return ICON_ARCHIVE+currentLang()+'%2F'+k+'.jpg'}
+function applyIcons(){document.querySelectorAll('img[data-icon]').forEach(i=>i.src=iconUrl(i.dataset.icon))}
+function getToken(){return localStorage.getItem('sessionToken')||localStorage.getItem('token')||''}
+async function api(action,payload={},withToken=true){const body={...payload,action};if(withToken&&getToken())body.token=getToken();const r=await fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(body)});const raw=await r.text();let j=JSON.parse(raw);if(j&&j.ok===false)throw Error(j.error||'ERROR');return j&&Object.prototype.hasOwnProperty.call(j,'data')?j.data:j}
+function toArray(v){if(Array.isArray(v))return v;if(v&&Array.isArray(v.items))return v.items;if(v&&Array.isArray(v.data))return v.data;return[]}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>String.fromCharCode(38)+'#'+c.charCodeAt(0)+';')}
+function shopGroup(x){
+  const s=String(x.storeHint||x.store||x.Dyqani||'').toLowerCase();
+  if(s.includes('tom'))return'tom';
+  if(s.includes('turk')||s.includes('avantaj')||s.includes('inci'))return'turki';
+  if(s==='kaufland')return'kaufland';
+  if(s==='lidl')return'lidl';
+  if(s.includes('kaufland')&&s.includes('lidl'))return'flex';
+  return'other'
+}
+function toggleShop(k){document.getElementById('hs_'+k)?.classList.toggle('open')}
+function shopName(x){return x.Produkti||x.product||x.productName||x.name||''}
+function shopQty(x){
+  const q=x.Sasia??x.quantity??x.qty??'';
+  const u=x['Njësia']??x.Njesia??x.unit??'';
+  return [q,u].filter(v=>String(v).trim()).join(' ')
+}
+async function loadShop(){
+  try{
+    const raw=await api('shoppingListV2');
+    const a=toArray(raw).filter(x=>{
+      const st=String(x.status||x.Status||'need').toLowerCase();
+      return !['purchased','done','bought','deleted'].includes(st);
+    });
+    renderShop(a);
+  }catch(e){
+    shoppingCount.textContent='—';
+    homeShopCount.textContent='—';
+    homeShopStores.innerHTML='<div class="offerEmpty">Lista nuk u ngarkua.</div>';
+  }
+}
+async function bought(id,el){
+  if(!id)return;
+  if(el)el.disabled=true;
+  try{
+    await api('shoppingListPurchasedV2',{itemId:id,id:id,purchased:true,status:'purchased'});
+    await loadShop();
+  }catch(e){
+    if(el){el.checked=false;el.disabled=false}
+  }
+}
+function renderShop(a=[]){
+  shoppingCount.textContent=a.length;
+  homeShopCount.textContent=a.length;
+  const defs=[['kaufland','🟥 Kaufland'],['lidl','🟦 Lidl'],['tom','🟧 Tom'],['turki','🟩 Te Turki — Avantaj / İnci'],['flex','🟨 Kaufland / Lidl'],['other','⬜ Tjetër / ku ta gjesh']];
+  homeShopStores.innerHTML=defs.map(([k,t])=>{
+    const z=a.filter(x=>shopGroup(x)===k);
+    return `<div class="hsStore" id="hs_${k}"><button class="hsHead" onclick="toggleShop('${k}')"><span>${t}</span><span>${z.length} ⌄</span></button><div class="hsItems">${z.map(x=>{
+      const id=x.itemId||x.ID||x.id||'';
+      return `<label class="hsItem"><input type="checkbox" onchange="bought('${esc(id)}',this)"><div><div class="hsName">${esc(shopName(x)||'—')}</div><div class="hsMeta">${esc(shopQty(x))}${shopQty(x)&& (x.storeHint||x.store||x.Dyqani)?' · ':''}${esc(x.storeHint||x.store||x.Dyqani||'')}</div></div></label>`
+    }).join('')}</div></div>`
+  }).join('')
+}
+async function dashboard(){const r=await Promise.allSettled([api('expiryList'),api('appointmentList'),api('members')]);const ex=r[0].status==='fulfilled'?toArray(r[0].value):[],ap=r[1].status==='fulfilled'?toArray(r[1].value):[],mem=r[2].status==='fulfilled'?toArray(r[2].value):[];expiryCount.textContent=ex.length;familyCount.textContent=mem.length;const now=new Date(),future=ap.map(a=>{const ds=String(a.date||a.Data||'').slice(0,10),ts=String(a.time||a.Ora||'00:00').slice(0,5),d=new Date(ds+'T'+ts);return{a,d}}).filter(x=>!isNaN(x.d)&&x.d>=now).sort((a,b)=>a.d-b.d);if(future.length){const {a,d}=future[0];appointmentCount.textContent=d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});nextAppointmentCard.innerHTML=`<div class="nextAptRow"><div class="nextAptDate"><b>${d.getDate()}</b><span>${d.toLocaleDateString('de-DE',{month:'short'}).toUpperCase()}</span></div><div class="nextAptInfo"><b>${esc(a.title||a.Titulli||'Termin')}</b><div>🕒 ${esc(a.time||a.Ora||'')}</div><div>${a.location||a.Ort?'📍 '+esc(a.location||a.Ort):''}</div></div></div>`}else{appointmentCount.textContent='0';nextAppointmentCard.textContent='—'}await loadShop()}
+async function loadOffers(){try{let o=[];for(const f of [()=>offersApi('offersCountry',{country:'DE'}),()=>offersApi('publicOffers',{country:'DE',active:true}),()=>api('publicOffers',{country:'DE',active:true},false)]){try{o=toArray(await f());if(o.length)break}catch(e){}}const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Berlin'}).format(new Date());o=o.filter(x=>{const ac=String(x.active??x.Active??'TRUE').toLowerCase(),to=String(x.to||x.validTo||x.Deri||'').slice(0,10);return !['false','0','no'].includes(ac)&&(!to||to>=today)});offerSlider.innerHTML=o.length?o.map(x=>{const u=x.imageUrl||x.Image_URL||x.Foto_URL||x.image||'',n=x.name||x.product||x.Produkti||x.Produkt||'',p=x.price??x.Cmimi??x.Preis??'',st=x.store||x.Dyqani||'',d=x.discount||x.Rabatt||'';return `<article class="offerCard"><div class="offerImage">${u?`<img src="${esc(u)}" loading="lazy">`:'🏷️'}${d?`<span class="discount">${esc(d)}</span>`:''}</div><div class="offerBody"><div class="offerStore">${esc(st)}</div><div class="offerName">${esc(n)}</div><div class="offerPrice">${esc(p)} €</div><div class="offerDate">${esc(x.to||x.validTo||x.Deri||'')}</div></div></article>`}).join(''):'<div class="offerEmpty">Nuk ka oferta aktive.</div>'}catch(e){offerSlider.innerHTML='<div class="offerEmpty">Ofertat nuk u ngarkuan.</div>'}}
+
+window.addEventListener('pageshow',()=>{if(getToken()){loadShop();loadHomeFinance();loadHomeCards();loadOffers()}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&getToken()){loadShop();loadHomeFinance();loadHomeCards();loadOffers()}});
+
+
+function moneyNum(v){let z=String(v??'').trim().replace(/\s/g,'').replace(/€/g,'');if(z.includes(',')&&z.includes('.'))z=z.lastIndexOf(',')>z.lastIndexOf('.')?z.replace(/\./g,'').replace(',','.'):z.replace(/,/g,'');else z=z.replace(',','.');let n=Number(z);return Number.isFinite(n)?n:0}
+function euro(v){return new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(v)}
+function deepArray(v){if(Array.isArray(v))return v;if(!v||typeof v!=='object')return[];for(const k of ['items','rows','records','finances','transactions','list','data','result']){const a=deepArray(v[k]);if(a.length)return a}return[]}
+async function loadHomeFinance(){try{const a=deepArray(await api('financeList'));let inc=0,out=0,c=0;for(const x of a){const t=String(x.Lloji||x.lloji||x.type||'').toLowerCase();const n=moneyNum(x.Shuma??x.shuma??x.amount);if(['hyrje','income','einnahme','einnahmen'].includes(t)){inc+=n;c++}else if(['dalje','expense','ausgabe','ausgaben'].includes(t)){out+=n;c++}}homeFinIncome.textContent=euro(inc);homeFinExpense.textContent=euro(out);homeFinBalance.textContent=euro(inc-out);homeFinanceStatus.textContent=c+' regjistrime nga Financat'}catch(e){homeFinanceStatus.textContent='Financat nuk u ngarkuan'}}
+function loadHomeCards(){let a=[];for(const k of ['mh_cards_categories_v4','mh_cards_categories_v3','mh_cards_categories']){try{let z=JSON.parse(localStorage.getItem(k)||'[]');if(Array.isArray(z)&&z.length){a=z;break}}catch(e){}}homeCardsList.innerHTML=a.length?a.slice(0,12).map(x=>`<div class="homeCardChip">💳 ${esc(x.name||x.title||x.category||'Kartë')}</div>`).join(''):'<div class="homeCardChip">Hap Kartat e Mia</div>'}
+const OFFERS_API='https://script.google.com/macros/s/AKfycbxLAP0EW3Inecns-l3KIF5wPPAardgQnXSMrVJCEuZj6RtLofAOOwlQzFa1UCwsoKA/exec';
+async function offersApi(action,p={}){const r=await fetch(OFFERS_API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({...p,action})});const j=JSON.parse(await r.text());if(j&&j.ok===false)throw Error(j.error||'ERROR');return j&&Object.prototype.hasOwnProperty.call(j,'data')?j.data:j}
+
+function logoutUser(){localStorage.removeItem('sessionToken');localStorage.removeItem('token');location.reload()}
+(async function(){applyIcons();if(getToken()){appView.style.display='block';try{const u=JSON.parse(localStorage.getItem('mh_user')||'null');if(u)userName.textContent=u.displayName||'Mein Haushalt'}catch(e){}loadShop();dashboard().catch(()=>{});loadHomeFinance();loadHomeCards();setTimeout(()=>loadOffers(),300)}else{authView.style.display='block'}})();
+</script></body></html>

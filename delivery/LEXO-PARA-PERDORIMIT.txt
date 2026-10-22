@@ -1,0 +1,9 @@
+MEINHAUSHALT FT — 22.10.2026
+
+HTML-te ne dosjen AppCreator24 jane kopje te korrigjuara te rubrikave reale ekzistuese. Emrat perputhen me referencat e panelit. Nuk jane ruajtur ende mbi rubrikat live te AppCreator24.
+
+Skedari Backend-Combined.gs eshte paketa me nje skedar e backend-it. Nuk duhet vendosur bashke me burimet e ndara Codice.js dhe OffersService.gs.
+
+U korrigjuan gabimet JavaScript te 13 rubrikave, data fikse e ofertave dhe lista lokale u lidh me veprimet V2 te serverit. Ruaj kopje te versionit aktual para vendosjes se HTML-ve.
+
+Kartat/fotografite lokale nuk jane ende te sinkronizuara ne pajisje te ndryshme. Njoftimet ne sfond, fotografite e inventarit dhe testimi fizik Android mbeten per perfundim. Ky nuk eshte raport finalizimi i plote.

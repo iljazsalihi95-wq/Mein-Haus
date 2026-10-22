@@ -16,7 +16,7 @@ const H={
  Sessions:['tokenHash','userId','householdId','createdAt','expiresAt','device','lastSeenAt','active'],
  Invitations:['inviteId','householdId','email','role','tokenHash','invitedBy','createdAt','expiresAt','status','acceptedBy','acceptedAt'],
  PasswordReset:['resetId','userId','email','tokenHash','createdAt','expiresAt','used','usedAt'],
- ShoppingList:['householdId','itemId','productKey','Produkti','Kategoria','Sasia','Njësia','priority','source','assignedTo','status','storeHint','offerId','targetDate','createdBy','createdAt','updatedAt'],
+ ShoppingList:['householdId','itemId','productKey','Produkti','Kategoria','Sasia','Njësia','priority','source','assignedTo','status','storeHint','offerId','createdBy','createdAt','updatedAt','targetDate'],
  Inventari:['userId','householdId','ID','productKey','Produkti','Kategoria','Sasia','Njësia','Minimumi','Statusi','Duhet blerë','Njoftim ofertë','Shënim','updatedAt','lastPurchase','previousPurchase','averageDays','sampleCount','predictedEmptyDate','warningDays','predictionStatus','lastPrice','lastStore','expiryDate'],
  Blerjet:['userId','householdId','memberId','ID','Data','Ora','Dyqani','Produkti','productKey','Kategoria','Sasia','Njësia','Çmimi njësi','Totali','Në ofertë','Shënim','createdAt','daysSincePrevious','receiptScanId'],
  Financat:['userId','householdId','memberId','ID','Data','Ora','Muaji','Lloji','Kategoria','Nënkategoria','Përshkrimi','Shuma','Pagesa','Burimi','Dyqani','Shënim','createdAt'],
@@ -24,8 +24,8 @@ const H={
  Ofertat:['offerId','country','city','store','productKey','product','category','oldPrice','price','discount','validFrom','validTo','imageUrl','sourceUrl','sourceType','verified','createdAt','updatedAt'],
  Dyqanet:['storeId','country','city','name','address','lat','lng','website','offersUrl','active','updatedAt'],
  Budgets:['householdId','budgetId','month','category','limitAmount','spentAmount','currency','status','createdBy','updatedAt'],
- Rechnungen:['householdId','billId','name','category','amount','currency','dueDate','recurring','interval','status','paidAt','createdBy','updatedAt'],
  Dokumentet:['userId','householdId','documentId','memberId','Emri','Kategoria','Data','Skadimi','fileName','mimeType','fileUrl','driveFileId','Shënim','status','createdAt','updatedAt'],
+ Rechnungen:['householdId','billId','name','category','amount','currency','dueDate','recurring','interval','status','paidAt','createdBy','updatedAt'],
  ExpiryTracking:['householdId','userId','itemId','productKey','Produkti','quantity','expiryDate','warningDays','status','sourcePurchaseId','updatedAt'],
  Notifications:['notificationId','userId','householdId','type','priority','titleKey','messageKey','payloadJson','createdAt','readAt','sentAt','status'],
  PushSubscriptions:['userId','householdId','endpoint','p256dh','auth','device','language','createdAt','updatedAt','active'],
@@ -39,7 +39,7 @@ const H={
  PushOutbox:['pushId','householdId','userId','title','body','url','payloadJson','createdAt','status','sentAt','error'],
  HouseholdInfo:['infoId','householdId','country','language','type','title','body','imageUrl','sourceUrl','validFrom','validTo','priority','active','createdBy','createdAt','updatedAt'],
  Prospekte:['prospectId','country','city','store','title','imageUrl','sourceUrl','validFrom','validTo','active','verified','createdAt','updatedAt']
-};
+,Garantien:['userId','householdId','warrantyId','memberId','Produkti','Marka','Modeli','Dyqani','Cmimi','DataBlerjes','Skadimi','SerialNumber','FaturaId','fileUrl','driveFileId','Shenim','status','createdAt','updatedAt']};
 
 function doGet(e){return out_({ok:true,data:{service:'Mein Haus / Shtëpia Ime',version:'5.0',time:now_()}})}
 
@@ -80,8 +80,7 @@ function day_(){return Utilities.formatDate(new Date(),CFG.TZ,'yyyy-MM-dd')}
 const COUNTRIES={
  DE:'Deutschland',AL:'Shqipëri',XK:'Kosovë',MK:'Maqedonia e Veriut',CH:'Schweiz',AT:'Österreich',
  IT:'Italia',FR:'France',BE:'Belgique',NL:'Nederland',LU:'Luxembourg',HR:'Hrvatska',SI:'Slovenija',
- BA:'Bosna i Hercegovina',ME:'Crna Gora',RS:'Srbija',TR:'Türkiye',GR:'Ελλάδα',
- GB:'United Kingdom',US:'United States',CA:'Canada',AU:'Australia'
+ BA:'Bosna i Hercegovina',ME:'Crna Gora',RS:'Srbija',TR:'Türkiye',GR:'Ελλάδα'
 };
 function country_(c){
   c=String(c||'DE').trim().toUpperCase();
@@ -111,9 +110,9 @@ function token_(){return Utilities.getUuid()+Utilities.getUuid()}
 
 function exp_(days){const d=new Date();d.setDate(d.getDate()+days);return d.toISOString()}
 
-function route_(q){const publicA=['register','login','passwordResetRequest','passwordResetConfirm','emailVerify','health','publicOffers','offerLocations','stores'];if(q.action==='health')return{ok:true,data:healthCheck()};if(publicA.includes(q.action))return dispatch_(q,null);const me=session_(q.token);return dispatch_(q,me)}
+function route_(q){const publicA=['register','login','passwordResetRequest','passwordResetConfirm','emailVerify','health','publicOffers','offerLocations','stores','offersCountry'];if(q.action==='health')return{ok:true,data:healthCheck()};if(publicA.includes(q.action))return dispatch_(q,null);const me=session_(q.token);return dispatch_(q,me)}
 
-function dispatch_(q,me){const m={register:register_,login:login_,sessionCheck:sessionCheck_,me:me_,dashboard:dashboard_,family:family_,members:family_,inviteCreate:inviteCreate_,inviteAccept:inviteAccept_,shoppingList:shoppingList_,shoppingAdd:shoppingAdd_,shoppingUpdate:shoppingUpdate_,shoppingDelete:shoppingDelete_,needBuyList:needBuyList_,needBuySave:needBuySave_,needBuyUpdate:needBuyUpdate_,inventoryList:inventoryList_,inventorySave:inventorySave_,purchaseList:purchaseList_,purchaseSave:purchaseSave_,financeList:financeList_,financeSave:financeSave_,householdAI:householdAI_,confirmScan:confirmScan_,offerLocations:offerLocations_,publicOffers:publicOffers_,stores:stores_,budgetList:budgetList_,budgetSave:budgetSave_,billList:billList_,billSave:billSave_,notifications:notifications_,notificationRead:notificationRead_,pushSubscribe:pushSubscribe_,passwordResetRequest:passwordResetRequest_,passwordResetConfirm:passwordResetConfirm_,
+function dispatch_(q,me){const m={register:register_,login:login_,sessionCheck:sessionCheck_,me:me_,dashboard:dashboard_,family:family_,members:family_,inviteCreate:inviteCreate_,inviteAccept:inviteAccept_,shoppingList:shoppingList_,needBuyList:needBuyList_,needBuySave:needBuySave_,needBuyUpdate:needBuyUpdate_,documentList:documentList_,documentSave:documentSave_,documentDelete:documentDelete_,shoppingAdd:shoppingAdd_,shoppingUpdate:shoppingUpdate_,shoppingDelete:shoppingDelete_,inventoryList:inventoryList_,inventorySave:inventorySave_,purchaseList:purchaseList_,purchaseSave:purchaseSave_,financeList:financeList_,financeSave:financeSave_,householdAI:householdAI_,confirmScan:confirmScan_,offerLocations:offerLocations_,publicOffers:publicOffers_,stores:stores_,budgetList:budgetList_,budgetSave:budgetSave_,billList:billList_,billSave:billSave_,notifications:notifications_,notificationRead:notificationRead_,pushSubscribe:pushSubscribe_,passwordResetRequest:passwordResetRequest_,passwordResetConfirm:passwordResetConfirm_,
  logout:logout_,
  profileUpdate:profileUpdate_,
  memberRoleUpdate:memberRoleUpdate_,
@@ -129,7 +128,6 @@ function dispatch_(q,me){const m={register:register_,login:login_,sessionCheck:s
  appointmentList:appointmentList_,
  appointmentSave:appointmentSave_,
  appointmentDelete:appointmentDelete_,
- documentList:documentList_,documentSave:documentSave_,documentDelete:documentDelete_,
  financeByMember:financeByMember_,
  emailVerify:emailVerify_,
  sessionList:sessionList_,
@@ -146,9 +144,7 @@ function dispatch_(q,me){const m={register:register_,login:login_,sessionCheck:s
  pushMarkSent:pushMarkSent_,
  countryContext:countryContext_,
  familyMemberSave:familyMemberSave_,familyMemberDelete:familyMemberDelete_,
- offersList:publicOffers_,offersCountry:offersCountry_,offersSync:offersSync_,offerSourcesSeed:offerSourcesSeed_};if(!m[q.action])throw Error('Action e panjohur: '+q.action);const data=m[q.action](q,me);log_(me,q.action,'ok',{});return{ok:true,data}}
-
-function sessionCheck_(q,m){return {valid:true,userId:m.userId,householdId:m.householdId,role:m.role,language:m.language,email:m.email,displayName:m.displayName}}
+ offersList:publicOffers_,offersCountry:offersCountry_,offersSync:offersSync_,offerSourcesSeed:offerSourcesSeed_,financeCompare:financeCompare_,receiptAudit:receiptAudit_,loyaltyList:loyaltyList_,loyaltySave:loyaltySave_,homeLive:homeLive_,shoppingListV2:shoppingListV2_,shoppingListUpdateV2:shoppingListUpdateV2_,shoppingListDeleteV2:shoppingListDeleteV2_,shoppingListAddV2:shoppingListAddV2_,shoppingListPurchasedV2:shoppingListPurchasedV2_,shoppingListHistoryV2:shoppingListHistoryV2_,warrantyList:warrantyList_,warrantySave:warrantySave_,warrantyDelete:warrantyDelete_};if(!m[q.action])throw Error('Action e panjohur: '+q.action);const data=m[q.action](q,me);log_(me,q.action,'ok',{});return{ok:true,data}}
 
 function session_(t){
   if(!t)throw Error('LOGIN_REQUIRED');
@@ -188,12 +184,16 @@ function register_(q){
   if(invite)patch_('Invitations',invite._row,{status:'accepted',acceptedBy:uid,acceptedAt:now_()});
   const verifyRaw=token_();
   append_('EmailVerification',{verificationId:id_('ver'),userId:uid,email:email,tokenHash:hash_(verifyRaw),createdAt:now_(),expiresAt:exp_(2),used:false});
+  const verifyUrl=PropertiesService.getScriptProperties().getProperty('EMAIL_VERIFY_URL')||'';
+  if(verifyUrl){MailApp.sendEmail(email,'Mein Haus – Verifiko emailin','Hap lidhjen: '+verifyUrl+(verifyUrl.includes('?')?'&':'?')+'token='+encodeURIComponent(verifyRaw));}
   const sess=newSession_(uid,hid,q.device);
-  return Object.assign(sess,{user:{userId:uid,displayName:name,language:lang,role:role},household:{householdId:hid,name:houseName||hn,country:country,city:q.city||''},verificationToken:verifyRaw});
+  return Object.assign(sess,{user:{userId:uid,displayName:name,language:lang,role:role},household:{householdId:hid,name:houseName||hn,country:country,city:q.city||''},verificationEmailSent:!!verifyUrl});
 }
 function login_(q){const email=String(q.email||'').trim().toLowerCase(),u=rows_('Users').find(x=>String(x.email).toLowerCase()===email&&String(x.active)!=='false');if(!u||pw_(q.password||'',u.passwordSalt)!==u.passwordHash)throw Error('Email ose fjalëkalim gabim.');patch_('Users',u._row,{lastLogin:now_()});return Object.assign(newSession_(u.userId,u.householdId,q.device),{user:{userId:u.userId,displayName:u.displayName,language:u.language,role:u.role}})}
 
 function newSession_(uid,hid,dev){const t=token_();append_('Sessions',{tokenHash:hash_(t),userId:uid,householdId:hid,createdAt:now_(),expiresAt:exp_(CFG.SESSION_DAYS),device:dev||'',lastSeenAt:now_(),active:true});return{token:t,userId:uid,householdId:hid}}
+
+function sessionCheck_(q,m){return {valid:true,userId:m.userId,householdId:m.householdId,role:m.role,language:m.language,email:m.email,displayName:m.displayName}}
 
 function me_(q,m){return m}
 
@@ -232,31 +232,10 @@ function shoppingAdd_(q,m){
  const lock=LockService.getScriptLock();lock.waitLock(10000);
  try{if(q.offerId){const existing=rows_('ShoppingList').find(x=>x.householdId===m.householdId&&String(x.offerId)===String(q.offerId)&&x.status!=='deleted'&&x.status!=='done');if(existing)return existing}return shoppingAddUnlocked_(q,m)}finally{lock.releaseLock()}
 }
-function shoppingAddUnlocked_(q,m){const name=String(q.product||q.Produkti||'').trim();if(!name)throw Error('Produkti mungon');const o={householdId:m.householdId,itemId:id_('sl'),productKey:norm_(name),Produkti:name,Kategoria:q.category||'',Sasia:Number(q.quantity||1),'Njësia':q.unit||'copë',priority:q.priority||'normal',source:q.source||'manual',assignedTo:q.assignedTo||'',status:q.status||'open',storeHint:q.storeHint||q.notes||'',offerId:q.offerId||q.dueTime||'',targetDate:q.targetDate||q.dueDate||'',createdBy:m.userId,createdAt:now_(),updatedAt:now_()};append_('ShoppingList',o);return o}
 
 function shoppingUpdate_(q,m){const r=rows_('ShoppingList').find(x=>x.itemId===q.itemId&&x.householdId===m.householdId);if(!r)throw Error('ITEM_NOT_FOUND');const p={updatedAt:now_()};if(q.status!=null)p.status=q.status;if(q.quantity!=null)p.Sasia=q.quantity;if(q.unit!=null)p['Njësia']=q.unit;if(q.product!=null||q.Produkti!=null){p.Produkti=String(q.product??q.Produkti).trim();p.productKey=norm_(p.Produkti)}if(q.category!=null)p.Kategoria=q.category;if(q.priority!=null)p.priority=q.priority;if(q.source!=null)p.source=q.source;if(q.assignedTo!=null)p.assignedTo=q.assignedTo;if(q.storeHint!=null||q.notes!=null)p.storeHint=q.storeHint??q.notes;if(q.offerId!=null||q.dueTime!=null)p.offerId=q.offerId??q.dueTime;if(q.targetDate!=null||q.dueDate!=null)p.targetDate=q.targetDate??q.dueDate;patch_('ShoppingList',r._row,p);return true}
 
 function shoppingDelete_(q,m){const r=rows_('ShoppingList').find(x=>x.itemId===q.itemId&&x.householdId===m.householdId);if(!r)throw Error('ITEM_NOT_FOUND');patch_('ShoppingList',r._row,{status:'deleted',updatedAt:now_()});return true}
-
-function needBuyList_(q,m){
-  const date=String(q.date||'').trim();
-  return rows_('ShoppingList').filter(x=>x.householdId===m.householdId&&x.source==='needbuy'&&(!date||String(x.targetDate||'')===date));
-}
-function needBuySave_(q,m){
-  const date=String(q.date||day_()).slice(0,10),name=String(q.name||q.Produkti||'').trim();
-  if(!name)throw Error('PRODUCT_REQUIRED');
-  const o={householdId:m.householdId,itemId:id_('need'),productKey:norm_(name),Produkti:name,Kategoria:q.category||'',Sasia:Number(q.quantity||1),Njësia:q.unit||'copë',priority:q.priority||'normal',source:'needbuy',assignedTo:'',status:q.status||'need',storeHint:q.storeHint||'',offerId:'',targetDate:date,createdBy:m.userId,createdAt:now_(),updatedAt:now_()};
-  append_('ShoppingList',o);return o;
-}
-function needBuyUpdate_(q,m){
-  const r=rows_('ShoppingList').find(x=>x.itemId===q.itemId&&x.householdId===m.householdId&&x.source==='needbuy');
-  if(!r)throw Error('ITEM_NOT_FOUND');
-  const p={updatedAt:now_()};
-  if(q.status!=null)p.status=q.status;
-  if(q.name!=null)p.Produkti=String(q.name).trim();
-  if(q.date!=null)p.targetDate=String(q.date).slice(0,10);
-  patch_('ShoppingList',r._row,p);return true;
-}
 
 function inventoryList_(q,m){return rows_('Inventari').filter(x=>x.householdId===m.householdId)}
 
@@ -319,15 +298,6 @@ function aiText_(q,m){
   return {text:openai_('Answer in '+(q.language||m.language||'sq')+'. Household assistant question: '+String(q.message||q.prompt||''),'')};
 }
 
-function purchaseDate_(value){
-  if(value instanceof Date)return Utilities.formatDate(value,CFG.TZ,'yyyy-MM-dd');
-  let s=String(value||'').trim(),match=s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
-  if(match)s=match[3]+'-'+match[2].padStart(2,'0')+'-'+match[1].padStart(2,'0');
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(s))throw Error('DATE_INVALID');
-  const d=new Date(s+'T12:00:00Z');
-  if(isNaN(d)||d.toISOString().slice(0,10)!==s)throw Error('DATE_INVALID');
-  return s;
-}
 function confirmScan_(q,m){
   const lock=LockService.getScriptLock();lock.waitLock(20000);
   try{
@@ -344,6 +314,8 @@ function confirmScan_(q,m){
     const total=Number(x.total),sum=items.reduce((a,it)=>a+it.total,0);
     if(!Number.isFinite(total)||total<=0||Math.abs(sum-total)>0.05)throw Error('RECEIPT_TOTAL_MISMATCH');
     // A retry after a partially completed request must not append its rows again.
+    const previous=rows_('Skanimet').filter(z=>z.householdId===m.householdId&&z.scanId!==r.scanId&&z.reviewStatus==='confirmed'&&norm_(z.store)===norm_(x.store||r.store)&&mhDate_(z.receiptDate)===date&&Math.abs(Number(z.receiptTotal)-total)<0.01);
+    if(previous.length&&!q.allowPossibleDuplicate)throw Error('POSSIBLE_DUPLICATE_RECEIPT');
     const existing=rows_('Blerjet').filter(z=>z.householdId===m.householdId&&z.receiptScanId===x.scanId);
     if(existing.length)throw Error('SCAN_PARTIAL_REVIEW_REQUIRED');
     items.forEach(it=>purchaseSave_(Object.assign({},it,{date,store:x.store||'',receiptScanId:x.scanId}),m));
@@ -357,42 +329,14 @@ function price_(m,o){append_('Preisverlauf',{householdId:m.householdId,productKe
 function dashboard_(q,m){const inv=inventoryList_(q,m),fin=financeList_(q,m),shop=shoppingList_(q,m).items;return{inventoryCount:inv.length,shoppingOpen:shop.filter(x=>x.status==='open').length,financeMonth:fin.filter(x=>String(x.Data).slice(0,7)===day_().slice(0,7)).reduce((s,x)=>s+(x.Lloji==='hyrje'?1:-1)*Number(x.Shuma||0),0)}}
 
 function publicOffers_(q,m){
-  q=q||{};
-  const c=effectiveCountry_(q,m),city=String(q.city||q.qyteti||'').trim();
-  return offersCountry_(Object.assign({},q,{country:c,city:city}),m);
-}
-function offersCountry_(q,m){
-  q=q||{};
-  const c=String(q.country||q.shteti||effectiveCountry_(q,m)||'DE').trim().toUpperCase();
-  const city=String(q.city||q.qyteti||'').trim();
-  const raw=offersListByCountry(c,city);
-  return {
-    country:c,
-    city:city,
-    items:raw.map(o=>({
-      id:String(o.ID||''),
-      country:String(o.Shteti||c),
-      city:String(o.Rajoni_Qyteti||''),
-      store:String(o.Dyqani||''),
-      category:String(o.Kategoria||''),
-      name:String(o.Produkti||''),
-      description:String(o.Pershkrimi||''),
-      size:String(o.Sasia||''),
-      price:String(o.Cmimi||''),
-      oldPrice:String(o.Cmimi_Vjeter||''),
-      discount:String(o.Zbritja||''),
-      from:offerDateIso_(o.Nga),
-      to:offerDateIso_(o.Deri),
-      image:String(o.Foto_URL||''),
-      url:String(o.Oferta_URL||'')
-    }))
-  };
-}
-function offerDateIso_(v){
-  if(!v)return '';
-  if(v instanceof Date&&!isNaN(v))return Utilities.formatDate(v,Session.getScriptTimeZone()||'Europe/Berlin','yyyy-MM-dd');
-  const d=new Date(v);
-  return isNaN(d)?String(v):Utilities.formatDate(d,Session.getScriptTimeZone()||'Europe/Berlin','yyyy-MM-dd');
+  const c=effectiveCountry_(q,m),city=norm_(q.city||'');
+  const today=day_();
+  return rows_('Ofertat')
+    .filter(x=>String(x.country).toUpperCase()===c)
+    .filter(x=>!city||!x.city||norm_(x.city).includes(city))
+    .filter(x=>String(x.verified)!=='false')
+    .filter(x=>!x.validFrom||mhDate_(x.validFrom)<=today)
+    .filter(x=>!x.validTo||mhDate_(x.validTo)>=today);
 }
 function stores_(q,m){
   const c=effectiveCountry_(q,m),city=norm_(q.city||'');
@@ -431,6 +375,7 @@ function passwordResetRequest_(q){
 function passwordResetConfirm_(q){
   const pass=String(q.password||'');
   if(pass.length<8)throw Error('PASSWORD_MIN_8');
+  if(!q.resetToken)throw Error('RESET_TOKEN_REQUIRED');
   const r=rows_('PasswordReset').find(x=>x.tokenHash===hash_(q.resetToken||'')&&String(x.used)!=='true');
   if(!r||new Date(r.expiresAt)<new Date())throw Error('RESET_INVALID');
   const u=rows_('Users').find(x=>x.userId===r.userId),salt=id_('s');
@@ -489,24 +434,36 @@ function memberRemove_(q,m){
 }
 
 function purchaseDelete_(q,m){
-  const r=rows_('Blerjet').find(x=>x.ID===q.id&&x.householdId===m.householdId);
-  if(!r)throw Error('PURCHASE_NOT_FOUND');
-  del_('Blerjet',r._row);
-  return true;
+  mhCanEdit_(m);
+  const lock=LockService.getScriptLock();lock.waitLock(20000);
+  try{
+    const r=rows_('Blerjet').find(x=>x.ID===q.id&&x.householdId===m.householdId);
+    if(!r)throw Error('PURCHASE_NOT_FOUND');
+    if(r.receiptScanId)throw Error('RECEIPT_PURCHASE_REQUIRES_RECEIPT_REVERSAL');
+    const inv=rows_('Inventari').find(x=>x.householdId===m.householdId&&x.productKey===r.productKey);
+    if(inv){
+      const next=Number(inv.Sasia||0)-Number(r.Sasia||0);
+      if(next<0)throw Error('INVENTORY_INSUFFICIENT_REVIEW_REQUIRED');
+      patch_('Inventari',inv._row,{Sasia:next,updatedAt:now_()});
+    }
+    del_('Blerjet',r._row);
+    return {deleted:true,inventoryAdjusted:!!inv};
+  }finally{lock.releaseLock()}
 }
 
 function financeDelete_(q,m){
+  mhCanEdit_(m);
   const r=rows_('Financat').find(x=>x.ID===q.id&&x.householdId===m.householdId);
   if(!r)throw Error('FINANCE_NOT_FOUND');
-  del_('Financat',r._row);
-  return true;
+  if(r.Burimi==='receipt')throw Error('RECEIPT_FINANCE_REQUIRES_RECEIPT_REVERSAL');
+  del_('Financat',r._row);return true;
 }
 
 function inventoryDelete_(q,m){
+  mhCanEdit_(m);
   const r=rows_('Inventari').find(x=>x.ID===q.id&&x.householdId===m.householdId);
   if(!r)throw Error('INVENTORY_NOT_FOUND');
-  del_('Inventari',r._row);
-  return true;
+  del_('Inventari',r._row);return true;
 }
 
 function expiryList_(q,m){
@@ -680,23 +637,6 @@ function appointmentDelete_(q,m){
   patch_('FamilyAppointments',r._row,{status:'deleted',updatedAt:now_()});
   return true;
 }
-function documentList_(q,m){
-  return rows_('Dokumentet').filter(x=>x.householdId===m.householdId&&String(x.status||'active')!=='deleted');
-}
-function documentSave_(q,m){
-  const did=q.documentId||id_('doc');
-  const existing=rows_('Dokumentet').find(x=>x.documentId===did&&x.householdId===m.householdId);
-  const o={userId:m.userId,householdId:m.householdId,documentId:did,memberId:q.memberId||'',Emri:String(q.name||q.Emri||'').trim(),Kategoria:q.category||q.Kategoria||'Të tjera',Data:q.date||q.Data||day_(),Skadimi:q.expiryDate||q.Skadimi||'',fileName:q.fileName||'',mimeType:q.mimeType||'',fileUrl:q.fileUrl||'',driveFileId:q.driveFileId||'','Shënim':q.note||q['Shënim']||'',status:q.status||'active',createdAt:existing?existing.createdAt||now_():now_(),updatedAt:now_()};
-  if(!o.Emri)throw Error('DOCUMENT_NAME_REQUIRED');
-  if(existing)patch_('Dokumentet',existing._row,o);else append_('Dokumentet',o);
-  return o;
-}
-function documentDelete_(q,m){
-  const r=rows_('Dokumentet').find(x=>x.documentId===q.documentId&&x.householdId===m.householdId);
-  if(!r)throw Error('DOCUMENT_NOT_FOUND');
-  patch_('Dokumentet',r._row,{status:'deleted',updatedAt:now_()});
-  return true;
-}
 function financeByMember_(q,m){
   const all=rows_('Financat').filter(x=>x.householdId===m.householdId);
   const members=family_(q,m);
@@ -712,11 +652,10 @@ function offerSourcesSeed_(q,m){
   requireAdmin_(m);const city=q.city||household_(m).city||'Frankenthal';const country=country_(q.country||household_(m).country||'DE');
   const src=[
    {store:'Netto Marken-Discount',name:'Netto Frankenthal',url:'https://www.netto-online.de/filialen/frankenthal-pfalz/eisenbahnstr-23/8168/?stores_id=8168'},
-   {store:'REWE',name:'REWE Frankenthal',url:'https://www.rewe.de/angebote/frankenthal/840226/rewe-benderstr-3/'},
+   {store:'REWE',name:'REWE Frankenthal',url:'https://www.rewe.de/marktseite/frankenthal/840226/rewe-markt-benderstr-3/'},
    {store:'ALDI SÜD',name:'ALDI SÜD Angebote',url:'https://www.aldi-sued.de/angebote'},
    {store:'Lidl',name:'Lidl Prospekte',url:'https://www.lidl.de/c/online-prospekte/s10005610'},
-   {store:'Kaufland',name:'Kaufland Frankenthal',url:'https://filiale.kaufland.de/service/filiale/frankenthal-8510.html'},
-   {store:'EDEKA Stiegler',name:'EDEKA Stiegler Frankenthal',url:'https://www.edeka.de/eh/s%C3%BCdwest/edeka-stiegler-foltzring-33/index.jsp'}];
+   {store:'Kaufland',name:'Kaufland Angebote',url:'https://filiale.kaufland.de/angebote/aktuelle-woche.html'}];
   const existing=rows_('OfferSources');src.forEach(x=>{if(!existing.some(e=>e.url===x.url))append_('OfferSources',{sourceId:id_('src'),country,city,store:x.store,name:x.name,url:x.url,mode:'offers',regional:true,active:true,lastCheckedAt:'',lastStatus:'new',updatedAt:now_()})});return offerSourceList_({country},m)
 }
 function offersSync_(q,m){
@@ -736,41 +675,6 @@ const country=effectiveCountry_(q,m),city=q.city||household_(m).city||'';let sou
     patch_('OfferSources',src._row,{lastCheckedAt:now_(),lastStatus:'ok:'+offers.length+' photos:'+offers.filter(x=>x.imageUrl).length,updatedAt:now_()});
   }catch(e){patch_('OfferSources',src._row,{lastCheckedAt:now_(),lastStatus:'error:'+String(e.message||e).slice(0,120),updatedAt:now_()})}});
   return {imported:result.length,withPhotos:result.filter(x=>x.imageUrl).length,offers:publicOffers_({country,city},m)}
-}
-function absOfferUrl_(u,base){
-  u=String(u||'').replace(/&amp;/g,'&').trim();if(!u)return '';
-  if(new RegExp('^https?://','i').test(u))return u;if(u.indexOf('//')===0)return 'https:'+u;
-  try{const m=String(base||'').match(new RegExp('^(https?://[^/]+)','i'));while(u.indexOf('./')===0)u=u.substring(2);return m?(u.charAt(0)==='/'?m[1]+u:m[1]+'/'+u):''}catch(e){return ''}
-}
-function extractOfferImages_(html,base){
-  const out=[],seen={},s=String(html||'');
-  const exts=['.jpg','.jpeg','.png','.webp'];
-  const attrs=['src="',"src='",'data-src="',"data-src='",'data-original="',"data-original='",'data-lazy-src="',"data-lazy-src='",'content="',"content='"];
-  attrs.forEach(a=>{let p=0;while((p=s.indexOf(a,p))>=0){p+=a.length;const q=a.endsWith('"')?'"':"'";const e=s.indexOf(q,p);if(e<0)break;let u=absOfferUrl_(s.substring(p,e),base);const low=u.toLowerCase();if(u&&exts.some(x=>low.indexOf(x)>=0)&&!['logo','icon','sprite','favicon','badge','tracking','pixel'].some(x=>low.indexOf(x)>=0)&&!seen[u]){seen[u]=1;out.push(u)}p=e+1}});
-  return out
-}
-function upsertCountryOffer_(country,city,store,o,row){
-  try{
-    const sh=offersSheet_(country),vals=sh.getDataRange().getValues(),h=vals[0].map(String),ix={};h.forEach((k,i)=>ix[k]=i);let target=-1;
-    for(let r=1;r<vals.length;r++)if(norm_(vals[r][ix.Dyqani])===norm_(store)&&norm_(vals[r][ix.Produkti])===norm_(o.product)){target=r+1;break}
-    const data={Shteti:country,Rajoni_Qyteti:city,Dyqani:store,Kategoria:o.category||'',Produkti:o.product||'',Pershkrimi:o.description||'',Sasia:o.size||'',Cmimi:o.price||'',Cmimi_Vjeter:o.oldPrice||'',Zbritja:o.discount||'',Nga:o.validFrom||'',Deri:o.validTo||'',Foto_URL:o.imageUrl||'',Oferta_URL:o.sourceUrl||row.sourceUrl||'',Aktive:'TRUE'};
-    if(target>0){Object.keys(data).forEach(k=>{if(ix[k]!=null&&data[k]!=='' )sh.getRange(target,ix[k]+1).setValue(data[k])})}
-    else{const id='auto_'+country.toLowerCase()+'_'+Utilities.getUuid().replace(/-/g,'').slice(0,12);sh.appendRow(h.map(k=>k==='ID'?id:(data[k]??'')))}
-  }catch(e){}
-}
-
-function syncOfferImageToCountrySheet_(country,city,store,product,imageUrl,sourceUrl){
-  if(!imageUrl)return;
-  try{
-    const sh=offersSheet_(country),vals=sh.getDataRange().getValues();if(vals.length<2)return;
-    const h=vals[0].map(String),ix={};h.forEach((k,i)=>ix[k]=i);
-    for(let r=1;r<vals.length;r++){
-      if(norm_(vals[r][ix.Dyqani])===norm_(store)&&norm_(vals[r][ix.Produkti])===norm_(product)){
-        if(ix.Foto_URL!=null)sh.getRange(r+1,ix.Foto_URL+1).setValue(imageUrl);
-        if(ix.Oferta_URL!=null&&sourceUrl)sh.getRange(r+1,ix.Oferta_URL+1).setValue(sourceUrl);
-      }
-    }
-  }catch(e){}
 }
 function offerSourceList_(q,m){
   return rows_('OfferSources').filter(x=>String(x.active)!=='false'&&(!q.country||String(x.country).toUpperCase()===String(q.country).toUpperCase()));
@@ -888,7 +792,7 @@ const MH_OFFER_SHEETS = {
 
 function mhOfferSheet_(country) {
   const c = String(country || 'DE').trim().toUpperCase();
-  const sheetName = offerCountrySheets_()[c];
+  const sheetName = MH_OFFER_SHEETS[c];
 
   if (!sheetName) {
     throw new Error('Shteti nuk mbështetet: ' + c);
@@ -1173,7 +1077,7 @@ function mhExpireOffers_() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  Object.keys(offerCountrySheets_())
+  Object.keys(MH_OFFER_SHEETS)
     .forEach(country => {
 
       const sh =
@@ -1261,4 +1165,629 @@ function TEST_MEINHAUS_OFFERS() {
       NGJITE NË FUND TË Code.gs
          ========================================================== */
 
-         
+         function offersCountry_(q, me) {
+           q = q || {};
+
+             const country = String(
+                 q.country || q.shteti || 'DE'
+                   ).trim().toUpperCase();
+
+                     const city = String(
+                         q.city || q.qyteti || ''
+                           ).trim();
+
+                             return mhOffersForApp_(country, city);
+                             }
+
+
+                             /*
+                              TEST direkt nga Apps Script
+                              */
+                              function TEST_OFFERS_COUNTRY_API() {
+
+                                const result = offersCountry_({
+                                    country: 'DE',
+                                        city: 'Frankenthal'
+                                          }, null);
+
+                                            Logger.log(JSON.stringify(result, null, 2));
+
+                                              return result;
+                                              }
+
+/* MEIN HAUS – kontrolluar dhe zgjeruar: ruaj këtë seksion në fund.
+   Nuk ndryshon ose fshin rreshta ekzistues gjatë ngarkimit. */
+const MH_EXTRA_HEADERS = {
+  LoyaltyCards:['householdId','cardId','store','cardLabel','cardNumberMasked','barcodeValue','barcodeFormat','notes','createdBy','updatedAt'],
+  ReceiptAudit:['householdId','auditId','scanId','store','receiptDate','receiptTotal','itemsTotal','difference','status','note','createdAt']
+};
+function mhExtraSheet_(name){
+  const ss=ss_();let sh=ss.getSheetByName(name);
+  if(!sh){sh=ss.insertSheet(name);sh.getRange(1,1,1,MH_EXTRA_HEADERS[name].length).setValues([MH_EXTRA_HEADERS[name]]);sh.setFrozenRows(1)}
+  return sh;
+}
+function mhExtraRows_(name){mhExtraSheet_(name);return rows_(name)}
+function mhExtraAppend_(name,o){mhExtraSheet_(name);return append_(name,o)}
+function mhMoney_(v){const n=Number(v);if(!Number.isFinite(n)||n<0)throw Error('INVALID_AMOUNT');return Math.round((n+Number.EPSILON)*100)/100}
+function mhBool_(v){return v===true||String(v).toLowerCase()==='true'}
+function mhDate_(v){if(v instanceof Date)return Utilities.formatDate(v,CFG.TZ,'yyyy-MM-dd');return String(v||'').slice(0,10)}
+function mhCanEdit_(m){if(!m||m.role==='child')throw Error('FORBIDDEN')}
+function loyaltyList_(q,m){return mhExtraRows_('LoyaltyCards').filter(x=>x.householdId===m.householdId).map(x=>{const y=Object.assign({},x);delete y.barcodeValue;return y})}
+function loyaltySave_(q,m){mhCanEdit_(m);const name=String(q.store||'').trim();if(!name)throw Error('STORE_REQUIRED');const id=q.cardId||id_('card');const existing=mhExtraRows_('LoyaltyCards').find(x=>x.cardId===id&&x.householdId===m.householdId);const o={householdId:m.householdId,cardId:id,store:name,cardLabel:String(q.cardLabel||''),cardNumberMasked:String(q.cardNumberMasked||''),barcodeValue:String(q.barcodeValue||''),barcodeFormat:String(q.barcodeFormat||'CODE128'),notes:String(q.notes||''),createdBy:existing?existing.createdBy:m.userId,updatedAt:now_()};if(existing)patch_('LoyaltyCards',existing._row,o);else mhExtraAppend_('LoyaltyCards',o);return {cardId:id,store:name,cardLabel:o.cardLabel,cardNumberMasked:o.cardNumberMasked}}
+function financeCompare_(q,m){const year=String(q.year||day_().slice(0,4));if(!/^\d{4}$/.test(year))throw Error('YEAR_INVALID');const rows=financeList_({},m);return Array.from({length:12},(_,i)=>{const month=year+'-'+String(i+1).padStart(2,'0');const r=rows.filter(x=>mhDate_(x.Data).slice(0,7)===month);const income=r.filter(x=>x.Lloji==='hyrje').reduce((a,x)=>a+Number(x.Shuma||0),0);const expense=r.filter(x=>x.Lloji!=='hyrje').reduce((a,x)=>a+Number(x.Shuma||0),0);return {month,income:mhMoney_(income),expense:mhMoney_(expense),balance:Math.round((income-expense)*100)/100,transactions:r.length}})}
+function receiptAudit_(q,m){const scan=rows_('Skanimet').find(x=>x.scanId===q.scanId&&x.householdId===m.householdId);if(!scan)throw Error('SCAN_NOT_FOUND');const items=JSON.parse(scan.itemsJson||'[]');const sum=mhMoney_(items.reduce((a,x)=>a+Number(x.total||0),0));const total=mhMoney_(scan.receiptTotal||0);const diff=Math.round((sum-total)*100)/100;const existing=mhExtraRows_('ReceiptAudit').find(x=>x.scanId===scan.scanId&&x.householdId===m.householdId);const o={householdId:m.householdId,auditId:existing?existing.auditId:id_('audit'),scanId:scan.scanId,store:scan.store,receiptDate:mhDate_(scan.receiptDate),receiptTotal:total,itemsTotal:sum,difference:diff,status:Math.abs(diff)<=0.01?'matched':'review_required',note:'Kontrollo zbritjet, depozitën/Pfand, kuponët dhe artikujt e palexueshëm.',createdAt:existing?existing.createdAt:now_()};if(existing)patch_('ReceiptAudit',existing._row,o);else mhExtraAppend_('ReceiptAudit',o);return o}
+function homeLive_(q,m){const d=dashboard_({},m),appointments=appointmentList_({},m).filter(x=>mhDate_(x.date)>=day_()).sort((a,b)=>String(a.date+' '+a.time).localeCompare(String(b.date+' '+b.time))).slice(0,5);const bills=billList_({},m).filter(x=>x.status!=='paid').sort((a,b)=>String(a.dueDate).localeCompare(String(b.dueDate))).slice(0,5);return {dashboard:d,appointments,bills,notifications:notifications_({},m).filter(x=>x.status==='new').length,updatedAt:now_()}}
+// Mbështetje për ofertat sipas shteteve të konfiguruara; jo për çdo shtet pa burime reale.
+function offersCountry_(q,m){const country=String(q.country||q.shteti||(m?effectiveCountry_(q,m):'DE')).toUpperCase();const city=String(q.city||q.qyteti||'');if(MH_OFFER_SHEETS[country]&&ss_().getSheetByName(MH_OFFER_SHEETS[country]))return mhOffersForApp_(country,city);return publicOffers_({country,city},m)}
+// Mos ekspozo tokenin e verifikimit ose rivendosjes përmes API publike.
+
+function emailVerify_(q){const r=rows_('EmailVerification').find(x=>x.tokenHash===hash_(q.verificationToken||'')&&!mhBool_(x.used));if(!r||new Date(r.expiresAt)<new Date())throw Error('VERIFY_INVALID');const u=rows_('Users').find(x=>x.userId===r.userId);if(!u)throw Error('USER_NOT_FOUND');patch_('Users',u._row,{emailVerified:true});patch_('EmailVerification',r._row,{used:true,usedAt:now_()});return true}
+function sessionRevoke_(q,m){const prefix=String(q.tokenHashPrefix||'');if(prefix.length<10)throw Error('SESSION_PREFIX_TOO_SHORT');const found=rows_('Sessions').filter(x=>x.userId===m.userId&&String(x.tokenHash).startsWith(prefix));if(found.length!==1)throw Error('SESSION_NOT_UNIQUE');patch_('Sessions',found[0]._row,{active:false});return true}
+function notificationRead_(q,m){const r=rows_('Notifications').find(x=>x.notificationId===q.notificationId&&x.householdId===m.householdId&&(x.userId===m.userId||!x.userId));if(!r)throw Error('NOTIFICATION_NOT_FOUND');patch_('Notifications',r._row,{readAt:now_(),status:'read'});return true}
+function memberRoleUpdate_(q,m){requireAdmin_(m);if(!CFG.ROLES.includes(q.role))throw Error('ROLE_INVALID');const hm=rows_('HouseholdMembers').find(x=>x.userId===q.userId&&x.householdId===m.householdId);if(!hm)throw Error('MEMBER_NOT_FOUND');if(hm.role==='owner'||q.role==='owner')throw Error('OWNER_ROLE_PROTECTED');patch_('HouseholdMembers',hm._row,{role:q.role});const u=rows_('Users').find(x=>x.userId===q.userId);if(u)patch_('Users',u._row,{role:q.role});return true}
+
+
+
+
+
+function shoppingAddUnlocked_(q,m){const name=String(q.product||q.Produkti||'').trim();if(!name)throw Error('Produkti mungon');const o={householdId:m.householdId,itemId:id_('sl'),productKey:norm_(name),Produkti:name,Kategoria:q.category||'',Sasia:Number(q.quantity||1),'Njësia':q.unit||'copë',priority:q.priority||'normal',source:q.source||'manual',assignedTo:q.assignedTo||'',status:q.status||'open',storeHint:q.storeHint||q.notes||'',offerId:q.offerId||q.dueTime||'',targetDate:q.targetDate||q.dueDate||'',createdBy:m.userId,createdAt:now_(),updatedAt:now_()};append_('ShoppingList',o);return o}
+
+function purchaseDate_(value){
+  if(value instanceof Date)return Utilities.formatDate(value,CFG.TZ,'yyyy-MM-dd');
+  let s=String(value||'').trim(),match=s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if(match)s=match[3]+'-'+match[2].padStart(2,'0')+'-'+match[1].padStart(2,'0');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(s))throw Error('DATE_INVALID');
+  const d=new Date(s+'T12:00:00Z');
+  if(isNaN(d)||d.toISOString().slice(0,10)!==s)throw Error('DATE_INVALID');
+  return s;
+}
+
+function needBuyList_(q,m){
+  const date=String(q.date||'').trim();
+  return rows_('ShoppingList').filter(x=>x.householdId===m.householdId&&x.source==='needbuy'&&(!date||String(x.targetDate||'')===date));
+}
+
+function needBuySave_(q,m){
+  const date=String(q.date||day_()).slice(0,10),name=String(q.name||q.Produkti||'').trim();
+  if(!name)throw Error('PRODUCT_REQUIRED');
+  const o={householdId:m.householdId,itemId:id_('need'),productKey:norm_(name),Produkti:name,Kategoria:q.category||'',Sasia:Number(q.quantity||1),Njësia:q.unit||'copë',priority:q.priority||'normal',source:'needbuy',assignedTo:'',status:q.status||'need',storeHint:q.storeHint||'',offerId:'',targetDate:date,createdBy:m.userId,createdAt:now_(),updatedAt:now_()};
+  append_('ShoppingList',o);return o;
+}
+
+function needBuyUpdate_(q,m){
+  const r=rows_('ShoppingList').find(x=>x.itemId===q.itemId&&x.householdId===m.householdId&&x.source==='needbuy');
+  if(!r)throw Error('ITEM_NOT_FOUND');
+  const p={updatedAt:now_()};
+  if(q.status!=null)p.status=q.status;
+  if(q.name!=null)p.Produkti=String(q.name).trim();
+  if(q.date!=null)p.targetDate=String(q.date).slice(0,10);
+  patch_('ShoppingList',r._row,p);return true;
+}
+
+function documentList_(q,m){
+  return rows_('Dokumentet').filter(x=>x.householdId===m.householdId&&String(x.status||'active')!=='deleted');
+}
+
+function documentSave_(q,m){
+  const did=q.documentId||id_('doc');
+  const existing=rows_('Dokumentet').find(x=>x.documentId===did&&x.householdId===m.householdId);
+  const o={userId:m.userId,householdId:m.householdId,documentId:did,memberId:q.memberId||'',Emri:String(q.name||q.Emri||'').trim(),Kategoria:q.category||q.Kategoria||'Të tjera',Data:q.date||q.Data||day_(),Skadimi:q.expiryDate||q.Skadimi||'',fileName:q.fileName||'',mimeType:q.mimeType||'',fileUrl:q.fileUrl||'',driveFileId:q.driveFileId||'','Shënim':q.note||q['Shënim']||'',status:q.status||'active',createdAt:existing?existing.createdAt||now_():now_(),updatedAt:now_()};
+  if(!o.Emri)throw Error('DOCUMENT_NAME_REQUIRED');
+  if(existing)patch_('Dokumentet',existing._row,o);else append_('Dokumentet',o);
+  return o;
+}
+
+function documentDelete_(q,m){
+  const r=rows_('Dokumentet').find(x=>x.documentId===q.documentId&&x.householdId===m.householdId);
+  if(!r)throw Error('DOCUMENT_NOT_FOUND');
+  patch_('Dokumentet',r._row,{status:'deleted',updatedAt:now_()});
+  return true;
+}
+
+
+
+function offerDateIso_(v){
+  if(!v)return '';
+  if(v instanceof Date&&!isNaN(v))return Utilities.formatDate(v,Session.getScriptTimeZone()||'Europe/Berlin','yyyy-MM-dd');
+  const d=new Date(v);
+  return isNaN(d)?String(v):Utilities.formatDate(d,Session.getScriptTimeZone()||'Europe/Berlin','yyyy-MM-dd');
+}
+function absOfferUrl_(u,base){
+  u=String(u||'').replace(/&amp;/g,'&').trim();if(!u)return '';
+  if(new RegExp('^https?://','i').test(u))return u;if(u.indexOf('//')===0)return 'https:'+u;
+  try{const m=String(base||'').match(new RegExp('^(https?://[^/]+)','i'));while(u.indexOf('./')===0)u=u.substring(2);return m?(u.charAt(0)==='/'?m[1]+u:m[1]+'/'+u):''}catch(e){return ''}
+}
+function extractOfferImages_(html,base){
+  const out=[],seen={},s=String(html||'');
+  const exts=['.jpg','.jpeg','.png','.webp'];
+  const attrs=['src="',"src='",'data-src="',"data-src='",'data-original="',"data-original='",'data-lazy-src="',"data-lazy-src='",'content="',"content='"];
+  attrs.forEach(a=>{let p=0;while((p=s.indexOf(a,p))>=0){p+=a.length;const q=a.endsWith('"')?'"':"'";const e=s.indexOf(q,p);if(e<0)break;let u=absOfferUrl_(s.substring(p,e),base);const low=u.toLowerCase();if(u&&exts.some(x=>low.indexOf(x)>=0)&&!['logo','icon','sprite','favicon','badge','tracking','pixel'].some(x=>low.indexOf(x)>=0)&&!seen[u]){seen[u]=1;out.push(u)}p=e+1}});
+  return out
+}
+function upsertCountryOffer_(country,city,store,o,row){
+  try{
+    const sh=offersSheet_(country),vals=sh.getDataRange().getValues(),h=vals[0].map(String),ix={};h.forEach((k,i)=>ix[k]=i);let target=-1;
+    for(let r=1;r<vals.length;r++)if(norm_(vals[r][ix.Dyqani])===norm_(store)&&norm_(vals[r][ix.Produkti])===norm_(o.product)){target=r+1;break}
+    const data={Shteti:country,Rajoni_Qyteti:city,Dyqani:store,Kategoria:o.category||'',Produkti:o.product||'',Pershkrimi:o.description||'',Sasia:o.size||'',Cmimi:o.price||'',Cmimi_Vjeter:o.oldPrice||'',Zbritja:o.discount||'',Nga:o.validFrom||'',Deri:o.validTo||'',Foto_URL:o.imageUrl||'',Oferta_URL:o.sourceUrl||row.sourceUrl||'',Aktive:'TRUE'};
+    if(target>0){Object.keys(data).forEach(k=>{if(ix[k]!=null&&data[k]!=='' )sh.getRange(target,ix[k]+1).setValue(data[k])})}
+    else{const id='auto_'+country.toLowerCase()+'_'+Utilities.getUuid().replace(/-/g,'').slice(0,12);sh.appendRow(h.map(k=>k==='ID'?id:(data[k]??'')))}
+  }catch(e){}
+}
+function syncOfferImageToCountrySheet_(country,city,store,product,imageUrl,sourceUrl){
+  if(!imageUrl)return;
+  try{
+    const sh=offersSheet_(country),vals=sh.getDataRange().getValues();if(vals.length<2)return;
+    const h=vals[0].map(String),ix={};h.forEach((k,i)=>ix[k]=i);
+    for(let r=1;r<vals.length;r++){
+      if(norm_(vals[r][ix.Dyqani])===norm_(store)&&norm_(vals[r][ix.Produkti])===norm_(product)){
+        if(ix.Foto_URL!=null)sh.getRange(r+1,ix.Foto_URL+1).setValue(imageUrl);
+        if(ix.Oferta_URL!=null&&sourceUrl)sh.getRange(r+1,ix.Oferta_URL+1).setValue(sourceUrl);
+      }
+    }
+  }catch(e){}
+}
+function warrantyList_(q,m){
+  return rows_('Garantien').filter(function(x){
+    return x.householdId===m.householdId &&
+           String(x.status||'active')!=='deleted';
+  });
+}
+function warrantySave_(q,m){
+  var wid=q.warrantyId||id_('war');
+
+  var existing=rows_('Garantien').find(function(x){
+    return x.warrantyId===wid &&
+           x.householdId===m.householdId;
+  });
+
+  var o={
+    userId:m.userId,
+    householdId:m.householdId,
+    warrantyId:wid,
+    memberId:q.memberId||'',
+    Produkti:String(q.product||q.Produkti||'').trim(),
+    Marka:q.brand||q.Marka||'',
+    Modeli:q.model||q.Modeli||'',
+    Dyqani:q.store||q.Dyqani||'',
+    Cmimi:Number(q.price||q.Cmimi||0),
+    DataBlerjes:q.purchaseDate||q.DataBlerjes||day_(),
+    Skadimi:q.expiryDate||q.Skadimi||'',
+    SerialNumber:q.serialNumber||q.SerialNumber||'',
+    FaturaId:q.billId||q.FaturaId||'',
+    fileUrl:q.fileUrl||'',
+    driveFileId:q.driveFileId||'',
+    Shenim:q.note||q.Shenim||'',
+    status:q.status||'active',
+    createdAt:existing?(existing.createdAt||now_()):now_(),
+    updatedAt:now_()
+  };
+
+  if(!o.Produkti)throw Error('WARRANTY_PRODUCT_REQUIRED');
+
+  if(existing){
+    patch_('Garantien',existing._row,o);
+  }else{
+    append_('Garantien',o);
+  }
+
+  return o;
+}
+function warrantyDelete_(q,m){
+  var r=rows_('Garantien').find(function(x){
+    return x.warrantyId===q.warrantyId &&
+           x.householdId===m.householdId;
+  });
+
+  if(!r)throw Error('WARRANTY_NOT_FOUND');
+
+  patch_('Garantien',r._row,{
+    status:'deleted',
+    updatedAt:now_()
+  });
+
+  return true;
+}
+function offerImportJsonUrl_(url, store, country, city) {
+  country = String(country || 'DE').toUpperCase();
+  city = String(city || 'Frankenthal');
+
+  var response = UrlFetchApp.fetch(url, {
+    muteHttpExceptions: true,
+    followRedirects: true,
+    headers: {
+      'Accept': 'application/json,text/plain,*/*',
+      'User-Agent': 'Mozilla/5.0'
+    }
+  });
+
+  var code = response.getResponseCode();
+  if (code < 200 || code >= 300) {
+    throw new Error(store + ' HTTP ' + code);
+  }
+
+  var data = JSON.parse(response.getContentText());
+  var raw = offerFindProducts_(data);
+  var imported = 0;
+  var skippedNoPhoto = 0;
+
+  raw.forEach(function(x) {
+    var o = offerNormalizeApiItem_(x, store, country, city, url);
+
+    // RREGULL ABSOLUT: PA FOTO = MOS PUBLIKO
+    if (!o.Foto_URL || !/^https?:\/\//i.test(o.Foto_URL)) {
+      skippedNoPhoto++;
+      return;
+    }
+
+    if (!o.Produkti || !o.Cmimi) return;
+
+    upsertCountryOffer_(country, city, store, o);
+    imported++;
+  });
+
+  return {
+    store: store,
+    country: country,
+    city: city,
+    found: raw.length,
+    imported: imported,
+    skippedNoPhoto: skippedNoPhoto
+  };
+}
+function offerFindProducts_(obj) {
+  var found = [];
+
+  function walk(x) {
+    if (!x) return;
+
+    if (Array.isArray(x)) {
+      x.forEach(walk);
+      return;
+    }
+
+    if (typeof x !== 'object') return;
+
+    var name =
+      x.productName || x.product_name || x.name ||
+      x.title || x.description || '';
+
+    var price =
+      x.price || x.salesPrice || x.salePrice ||
+      x.currentPrice || x.offerPrice || '';
+
+    var image =
+      x.imageUrl || x.imageURL || x.image ||
+      x.picture || x.pictureUrl || x.thumbnail || '';
+
+    if (name && (price !== '' || image)) {
+      found.push(x);
+    }
+
+    Object.keys(x).forEach(function(k) {
+      if (typeof x[k] === 'object') walk(x[k]);
+    });
+  }
+
+  walk(obj);
+
+  var seen = {};
+  return found.filter(function(x) {
+    var key = String(
+      x.id || x.productId || x.sku ||
+      x.productName || x.name || x.title || ''
+    ).toLowerCase();
+
+    if (!key || seen[key]) return false;
+    seen[key] = true;
+    return true;
+  });
+}
+function offerNormalizeApiItem_(x, store, country, city, sourceUrl) {
+
+  function first() {
+    for (var i = 0; i < arguments.length; i++) {
+      if (
+        arguments[i] !== undefined &&
+        arguments[i] !== null &&
+        arguments[i] !== ''
+      ) return arguments[i];
+    }
+    return '';
+  }
+
+  function price(v) {
+    if (v && typeof v === 'object') {
+      v = first(v.value, v.amount, v.price);
+    }
+    return String(v === undefined || v === null ? '' : v)
+      .replace('€', '')
+      .trim();
+  }
+
+  var img = first(
+    x.imageUrl,
+    x.imageURL,
+    x.image_url,
+    x.pictureUrl,
+    x.picture,
+    x.thumbnail,
+    x.image
+  );
+
+  if (img && typeof img === 'object') {
+    img = first(
+      img.url,
+      img.src,
+      img.large,
+      img.medium,
+      img.original
+    );
+  }
+
+  var name = first(
+    x.productName,
+    x.product_name,
+    x.name,
+    x.title
+  );
+
+  var description = first(
+    x.description,
+    x.subtitle,
+    x.shortDescription
+  );
+
+  var category = first(
+    x.categoryName,
+    x.category,
+    x.productCategory,
+    'Sonstige'
+  );
+
+  if (category && typeof category === 'object') {
+    category = first(category.name, category.title, 'Sonstige');
+  }
+
+  var currentPrice = price(first(
+    x.price,
+    x.salesPrice,
+    x.salePrice,
+    x.currentPrice,
+    x.offerPrice
+  ));
+
+  var oldPrice = price(first(
+    x.oldPrice,
+    x.originalPrice,
+    x.regularPrice,
+    x.strikePrice
+  ));
+
+  var discount = first(
+    x.discount,
+    x.discountPercentage,
+    x.saving
+  );
+
+  var from = first(
+    x.validFrom,
+    x.startDate,
+    x.availableFrom,
+    x.from
+  );
+
+  var to = first(
+    x.validTo,
+    x.endDate,
+    x.availableTo,
+    x.to
+  );
+
+  var size = first(
+    x.quantity,
+    x.packageSize,
+    x.content,
+    x.unit
+  );
+
+  return {
+    Shteti: country,
+    Rajoni_Qyteti: city,
+    Dyqani: store,
+    Kategoria: String(category),
+    Produkti: String(name),
+    Pershkrimi: String(description),
+    Sasia: String(size),
+    Cmimi: currentPrice,
+    Cmimi_Vjeter: oldPrice,
+    Zbritja: String(discount),
+    Nga: String(from),
+    Deri: String(to),
+    Foto_URL: String(img || ''),
+    Oferta_URL: String(first(
+      x.url,
+      x.productUrl,
+      x.offerUrl,
+      sourceUrl
+    )),
+    Aktive: true
+  };
+}
+function offersRealSourcesDE_(){
+  return [
+    {store:'PENNY',url:'https://www.penny.de/angebote'},
+    {store:'Lidl',url:'https://www.lidl.de/c/online-prospekte/s10005610/'},
+    {store:'ALDI SÜD',url:'https://www.aldi-sued.de/angebote'},
+    {store:'Netto Marken-Discount',url:'https://www.netto-online.de/ueber-netto/Online-Prospekte.chtm'},
+    {store:'REWE',url:'https://www.rewe.de/angebote'},
+    {store:'Kaufland',url:'https://filiale.kaufland.de/service/filiale/frankenthal-8510.html'}
+  ];
+}
+function offerFetchReal_(url){
+  var r=UrlFetchApp.fetch(url,{
+    muteHttpExceptions:true,
+    followRedirects:true,
+    headers:{
+      'User-Agent':'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/140 Safari/537.36',
+      'Accept-Language':'de-DE,de;q=0.9'
+    }
+  });
+  if(r.getResponseCode()<200 || r.getResponseCode()>=400) return '';
+  return r.getContentText();
+}
+function offerDecodeReal_(s){
+  return String(s||'')
+    .replace(/&amp;/g,'&')
+    .replace(/&quot;/g,'"')
+    .replace(/&#39;/g,"'")
+    .replace(/&euro;/g,'€')
+    .replace(/&nbsp;/g,' ')
+    .replace(/\\u002F/g,'/')
+    .replace(/\\\//g,'/');
+}
+function offerImagesReal_(html){
+  html=offerDecodeReal_(html);
+  var out=[], seen={};
+  var rx=/(https?:\/\/[^"'<>\\\s]+?\.(?:jpg|jpeg|png|webp)(?:\?[^"'<>\\\s]*)?)/gi;
+  var m;
+  while((m=rx.exec(html))!==null){
+    var u=m[1];
+    if(/logo|icon|sprite|favicon|placeholder|error-page/i.test(u)) continue;
+    if(!seen[u]){
+      seen[u]=1;
+      out.push(u);
+    }
+  }
+  return out;
+}
+function offerTextReal_(html){
+  return offerDecodeReal_(html)
+    .replace(/<script[\s\S]*?<\/script>/gi,' ')
+    .replace(/<style[\s\S]*?<\/style>/gi,' ')
+    .replace(/<[^>]+>/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function offerProductsReal_(html,store,url){
+  var text=offerTextReal_(html);
+  var images=offerImagesReal_(html);
+  var result=[],seen={};
+
+  /*
+    German offer pattern:
+    old price / offer price / product / amount.
+    Intentionally conservative: bad/incomplete records are rejected.
+  */
+  var rx=/(?:UVP|Streichpreis|statt|vorher)?\s*([0-9]{1,3}[.,][0-9]{2})?\s*€?.{0,100}?(?:Angebotspreis|Aktionspreis|Preis|ab)?\s*([0-9]{1,3}[.,][0-9]{2})\s*€.{0,80}?([A-ZÄÖÜ0-9][A-ZÄÖÜa-zäöüß0-9 '&+\-\/]{2,80}?)(?:\*|\s+je\s+)([^.]{1,45})/g;
+
+  var m,i=0;
+  while((m=rx.exec(text))!==null && result.length<250){
+    var price=String(m[2]||'').replace(',','.');
+    var oldPrice=String(m[1]||'').replace(',','.');
+    var name=String(m[3]||'').replace(/\s+/g,' ').trim();
+    var size=String(m[4]||'').replace(/\s+/g,' ').trim();
+
+    if(!name || !price || Number(price)<=0) continue;
+    if(name.length<3 || name.length>90) continue;
+
+    var key=(store+'|'+name+'|'+price).toLowerCase();
+    if(seen[key]) continue;
+    seen[key]=1;
+
+    var image=images[i]||'';
+    i++;
+
+    // User rule: no active offer without real image.
+    if(!/^https?:\/\//i.test(image)) continue;
+
+    result.push({
+      product:name,
+      category:'Lebensmittel',
+      description:name,
+      size:size,
+      price:price,
+      oldPrice:oldPrice,
+      discount:'',
+      validFrom:'',
+      validTo:'',
+      imageUrl:image,
+      sourceUrl:url
+    });
+  }
+  return result;
+}
+function importRealOffersDE(){
+  var sources=offersRealSourcesDE_();
+  var imported=0,withPhotos=0,errors=[];
+
+  sources.forEach(function(src){
+    try{
+      var html=offerFetchReal_(src.url);
+      if(!html){
+        errors.push(src.store+': HTTP/HTML leer');
+        return;
+      }
+
+      var rows=offerProductsReal_(html,src.store,src.url);
+
+      rows.forEach(function(o){
+        if(!o.product || !o.price || !o.imageUrl || !o.sourceUrl) return;
+
+        o.Aktive=true;
+
+        upsertCountryOffer_(
+          'DE',
+          'Frankenthal',
+          src.store,
+          o,
+          {}
+        );
+
+        imported++;
+        withPhotos++;
+      });
+
+    }catch(e){
+      errors.push(src.store+': '+String(e.message||e));
+    }
+  });
+
+  return {
+    ok:true,
+    country:'DE',
+    city:'Frankenthal',
+    imported:imported,
+    withPhotos:withPhotos,
+    errors:errors,
+    offers:publicOffers_({country:'DE',city:'Frankenthal'}, {})
+  };
+}
+function testRealOffersDE(){
+  return importRealOffersDE();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// V2 clients and the PWA use the same canonical ShoppingList columns.
+function shoppingAlias_(r){return Object.assign({},r,{id:r.itemId,product:r.Produkti||r.product||'',name:r.Produkti||r.product||'',quantity:Number(r.Sasia??r.quantity??1),unit:r['Njësia']||r.unit||'copë',purchased:['done','purchased','bought'].includes(String(r.status).toLowerCase())})}
+function shoppingListV2_(q,m){return shoppingList_(q,m).items.map(shoppingAlias_)}
+function shoppingListAddV2_(q,m){return shoppingAlias_(shoppingAdd_(Object.assign({},q,{product:q.product||q.name||q.Produkti,source:q.source||'needbuy'}),m))}
+function shoppingListUpdateV2_(q,m){const id=q.itemId||q.id;shoppingUpdate_(Object.assign({},q,{itemId:id,product:q.product??q.name??q.Produkti}),m);return shoppingAlias_(rows_('ShoppingList').find(r=>r.householdId===m.householdId&&r.itemId===id))}
+function shoppingListPurchasedV2_(q,m){const id=q.itemId||q.id,done=q.purchased===true||String(q.purchased).toLowerCase()==='true'||['done','purchased','bought'].includes(String(q.status).toLowerCase());shoppingUpdate_({itemId:id,status:done?'done':'open'},m);return shoppingAlias_(rows_('ShoppingList').find(r=>r.householdId===m.householdId&&r.itemId===id))}
+function shoppingListHistoryV2_(q,m){return shoppingListV2_(q,m).filter(r=>r.purchased)}
+function shoppingListDeleteV2_(q,m){return shoppingDelete_({itemId:q.itemId||q.id},m)}

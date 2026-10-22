@@ -1,0 +1,58 @@
+<!doctype html><html lang="sq"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lista për Blerje</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#061b38;color:#fff}.w{max-width:900px;margin:auto;padding:14px}.c{background:#103667;border:1px solid #31598a;border-radius:20px;padding:18px;margin:12px 0}input,textarea,button{width:100%;padding:13px;margin:6px 0;border-radius:12px;border:1px solid #45678d;font-size:16px}input,textarea{background:#071d39;color:#fff}button{background:#1684ff;color:#fff;font-weight:800;border:0}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.item{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid #ffffff22}.item input{width:24px}.muted{color:#c9d9ee}.hide{display:none}@media(max-width:600px){.row{grid-template-columns:1fr}}</style></head><body><div class="w">
+<div class="c"><h1>🛒 Lista për Blerje</h1><div class="muted">Me dorë · Frigoriferi · Ofertat · Inventari</div></div>
+<div id="nos" class="c hide"><b>🔐 Sesioni nuk u gjet.</b><div class="muted">Hyr nga Ballina. Nuk kërkohet login i dytë.</div></div>
+<div id="app"><div class="c"><h2>➕ Shto produkt</h2><div class="row"><input id="n" placeholder="Produkti"><input id="q" placeholder="Sasia"></div><div class="row"><input id="s" placeholder="Dyqani"><input id="d" type="date"></div><textarea id="note" placeholder="Shënim"></textarea><button onclick="add()">Shto në listë</button><div id="msg"></div></div>
+<div class="c"><h2>📋 Për t'u blerë</h2><button onclick="load()">↻ Fresko</button><div id="list">Duke ngarkuar…</div></div>
+<div class="c"><details><summary><b>🕘 Historiku</b></summary><button onclick="history()">Ngarko historikun</button><div id="hist"></div></details></div></div></div>
+<script>
+const API='https://script.google.com/macros/s/AKfycbxLAP0EW3Inecns-l3KIF5wPPAardgQnXSMrVJCEuZj6RtLofAOOwlQzFa1UCwsoKA/exec';
+const tok=()=>{
+  const keys=['mh_token','sessionToken','token','mh_session_token','session_token','authToken','mh_auth_token'];
+  for(const k of keys){const v=localStorage.getItem(k);if(v)return v}
+  try{
+    const u=JSON.parse(localStorage.getItem('mh_user')||'{}');
+    if(u.token||u.sessionToken)return u.token||u.sessionToken;
+  }catch(e){}
+  return '';
+};
+async function api(action,p={}){
+  const token=tok();
+  if(!token)throw Error('LOGIN_REQUIRED');
+  let r;
+  try{
+    r=await fetch(API,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
+      body:JSON.stringify({...p,action,token})
+    });
+  }catch(e){
+    throw Error('Lidhja me serverin dështoi');
+  }
+  const x=await r.text();
+  let j;
+  try{j=JSON.parse(x)}catch(e){throw Error('Serveri nuk ktheu JSON')}
+  if(j&&j.ok===false)throw Error(j.error||j.message||'Gabim');
+  return j&&Object.prototype.hasOwnProperty.call(j,'data')?j.data:j;
+}
+const E=v=>String(v??'').replace(/[&<>"]/g,c=>String.fromCharCode(38)+'#'+c.charCodeAt(0)+';');
+const arr=d=>Array.isArray(d)?d:(Array.isArray(d?.items)?d.items:[]);
+function err(e,el){if(e.message==='LOGIN_REQUIRED'){nos.classList.remove('hide');app.classList.add('hide')}else el.innerHTML='⚠️ '+E(e.message)}
+async function load(){try{let a=arr(await api('shoppingListV2')).filter(x=>!x.purchasedAt&&!['purchased','bought','done'].includes(String(x.status||'').toLowerCase()));list.innerHTML=a.length?a.map(x=>{let id=x.itemId||x.id||x.ID||x._row||'',name=x.name||x.product||x.Produkti||'Produkt',meta=[x.quantity||x.qty||x.Sasia,x.storeHint||x.store||x.Dyqani,x.targetDate||x.date,x.source].filter(Boolean).join(' · ');return `<div class="item"><input type="checkbox" onchange="bought('${E(id)}',this)"><div style="flex:1"><b>${E(name)}</b><div class="muted">${E(meta)}</div><div style="display:flex;gap:6px;margin-top:7px"><button style="width:auto;padding:7px 10px" onclick="editItem('${E(id)}','${E(name).replace("'","'")}')">✏️ Edito</button><button style="width:auto;padding:7px 10px;background:#9d2b3c" onclick="delItem('${E(id)}')">🗑️ Fshi</button></div></div></div>`}).join(''):'Lista është bosh.'}catch(e){err(e,list)}}
+async function add(){let name=n.value.trim();if(!name)return msg.textContent='Shkruaj produktin.';try{await api('shoppingListAddV2',{name,product:name,quantity:q.value.trim(),qty:q.value.trim(),storeHint:s.value.trim(),store:s.value.trim(),targetDate:d.value,note:note.value.trim(),source:'manual'});n.value=q.value=s.value=d.value=note.value='';msg.textContent='✅ U shtua.';load()}catch(e){msg.textContent='⚠️ '+e.message}}
+async function bought(id,cb){try{await api('shoppingListPurchasedV2',{itemId:id,id,purchased:true,status:'purchased',purchasedAt:new Date().toISOString()});load()}catch(e){cb.checked=false;msg.textContent='⚠️ '+e.message}}
+async function editItem(id,oldName){
+  const name=prompt('Produkti:',oldName||'');
+  if(name===null||!name.trim())return;
+  try{await api('shoppingListUpdateV2',{itemId:id,id,name:name.trim(),product:name.trim()});load()}
+  catch(e){msg.textContent='⚠️ '+e.message}
+}
+async function delItem(id){
+  if(!confirm('Ta fshij këtë produkt nga lista?'))return;
+  try{await api('shoppingListDeleteV2',{itemId:id,id});load()}
+  catch(e){msg.textContent='⚠️ '+e.message}
+}
+
+async function history(){try{let a=arr(await api('shoppingListHistoryV2')).filter(x=>x.purchasedAt||['purchased','bought','done'].includes(String(x.status||'').toLowerCase()));hist.innerHTML=a.length?a.map(x=>`<div class="item"><div><b>✓ ${E(x.name||x.product||x.Produkti||'Produkt')}</b><div class="muted">${E(x.storeHint||x.store||'')} · ${E(x.purchasedAt||x.targetDate||'')}</div></div></div>`).join(''):'Ende nuk ka histori.'}catch(e){err(e,hist)}}
+if(!tok()){nos.classList.remove('hide');app.classList.add('hide')}else load();
+</script></body></html>

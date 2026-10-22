@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kartat e Mia • MeinHaushalt FT</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(150deg,#06142a,#123c62);color:#fff;font:15px Arial,sans-serif}main{max-width:750px;margin:auto;padding:18px}h1{margin:10px 0 6px}p{color:#cbd9e9;line-height:1.5}.bar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}button,.upload{border:0;border-radius:12px;background:#21c8a4;color:#042a2c;font-weight:700;padding:11px 13px;cursor:pointer}button.secondary{background:#234a6e;color:#fff}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{min-width:0;background:#112f50;border:1px solid #35678b;border-radius:16px;padding:12px}.card h3{margin:4px 0 10px;overflow-wrap:anywhere}.preview{width:100%;height:115px;object-fit:contain;background:#fff;border-radius:9px;margin:8px 0}.empty{height:115px;background:#173f63;border-radius:9px;display:grid;place-items:center;color:#bcd3e6}.actions{display:flex;gap:6px;flex-wrap:wrap}.actions button,.actions label{font-size:12px;padding:9px;flex:1;text-align:center}.upload{display:inline-block}input[type=file]{display:none}#viewer{display:none;position:fixed;inset:0;z-index:100;background:#020813f5;flex-direction:column;align-items:center;justify-content:center;padding:14px;gap:12px}#viewer img{max-width:100%;max-height:78vh;object-fit:contain;background:white}#message{min-height:20px;color:#b4ffde}@media(max-width:420px){main{padding:12px}.grid{gap:8px}.card{padding:8px}.actions{flex-direction:column}}
+select{padding:10px;border-radius:10px;background:#fff;color:#123;max-width:100%} .card small{display:block;color:#a7d9e5;margin-bottom:7px} .card select{width:100%;margin:4px 0 10px} </style>
+<script>(function(){try{const l=localStorage.getItem('lang')||localStorage.getItem('mh_language')||'sq';localStorage.setItem('lang',l);localStorage.setItem('mh_language',l)}catch(e){}})();</script></head>
+<body><nav style="padding:10px;background:#fff"><a href="../index.html" style="color:#075ab5;text-decoration:none;font:600 15px Arial">‹ MeinHaushalt FT</a></nav>
+<main>
+<h1>💳 Kartat e Mia</h1>
+<p>Zgjidh veçmas 📷 Fotografo ose 🖼 Ngarko nga galeria. Ruhet lokalisht në këtë pajisje, jo në server. Hap fotografinë për skanim në arkë.</p>
+<div class="bar"><button id="add">＋ Shto kartë</button><button class="secondary" id="export">⬇ Backup</button><label class="upload">⬆ Rikthe backup<input id="import" type="file" accept="application/json,.json"></label></div>
+<div id="message" role="status"></div>
+<div class="bar"><label>Kategoria <select id="filter"><option value="">Të gjitha</option><option>Dyqane</option><option>Shëndetësi</option><option>Sigurime</option><option>Leje & Patenta</option><option>Të tjera</option></select></label></div>
+<div id="cards" class="grid"></div>
+</main>
+<div id="viewer"><img id="big" alt="Fotografia e kartës"><button id="close">Mbyll ✕</button></div>
+<script>
+'use strict';
+let db;
+const STORE='cards';
+const CATS=['Dyqane','Shëndetësi','Sigurime','Leje & Patenta','Të tjera'];
+const METAKEY='mh_cards_categories_v4';
+function catOf(c){return CATS.includes(c.category)?c.category:'Dyqane'}
+async function syncMeta(){try{const cards=await all();localStorage.setItem(METAKEY,JSON.stringify(cards.map(c=>({id:c.id,name:c.name,category:catOf(c)}))));}catch(e){console.warn('Nuk u sinkronizuan kategoritë',e)}}
+const $=id=>document.getElementById(id);
+function status(msg){$('message').textContent=msg}
+const req=indexedDB.open('mein_haushalt_cards_v2',1);
+req.onupgradeneeded=()=>req.result.createObjectStore(STORE,{keyPath:'id'});
+req.onsuccess=async()=>{db=req.result;const cards=await all();if(!cards.length){for(const name of ['Lidl Plus','PAYBACK','myKiK'])await put({id:crypto.randomUUID(),name,category:'Dyqane',front:'',back:''})}await syncMeta();render()};
+req.onerror=()=>status('Ruajtja lokale nuk është e disponueshme. Hape faqen në Chrome ose në një WebView që lejon IndexedDB.');
+function store(mode='readonly'){return db.transaction(STORE,mode).objectStore(STORE)}
+function all(){return new Promise((resolve,reject)=>{const r=store().getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function get(id){return new Promise((resolve,reject)=>{const r=store().get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function put(value){return new Promise((resolve,reject)=>{const r=store('readwrite').put(value);r.onsuccess=()=>{syncMeta();resolve()};r.onerror=()=>reject(r.error)})}
+function del(id){return new Promise((resolve,reject)=>{const r=store('readwrite').delete(id);r.onsuccess=()=>{syncMeta();resolve()};r.onerror=()=>reject(r.error)})}
+function optimize(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(Error('Nuk u lexua fotografia'));reader.onload=()=>{const img=new Image();img.onerror=()=>reject(Error('Formati i fotografisë nuk u hap'));img.onload=()=>{const scale=Math.min(1,1800/Math.max(img.width,img.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL('image/jpeg',.88))};img.src=reader.result};reader.readAsDataURL(file)})}
+async function upload(id,side,file){if(!file)return;try{status('Duke ruajtur fotografinë…');const data=await optimize(file);const card=await get(id);card[side]=data;await put(card);status('Fotografia u ruajt në këtë pajisje.');render()}catch(e){status('Gabim: '+e.message)}}
+function element(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text)el.textContent=text;return el}
+async function render(){if(!db)return;const root=$('cards');root.replaceChildren();for(const card of await all()){if($('filter').value&&catOf(card)!=$('filter').value)continue;const box=element('article','card');box.append(element('h3','',card.name));const category=element('select');for(const c of CATS){const option=element('option','',c);option.value=c;category.append(option)}category.value=catOf(card);category.onchange=async()=>{card.category=category.value;await put(card);render()};box.append(element('small','','Kategoria'),category);for(const side of ['front','back']){const label=side==='front'?'Përpara':'Prapa';if(card[side]){const img=element('img','preview');img.src=card[side];img.alt=card.name+' '+label;img.onclick=()=>show(card[side]);box.append(img)}else box.append(element('div','empty','Pa foto • '+label));const actions=element('div','actions');
+for(const mode of ['camera','gallery']){
+  const input=element('input');
+  input.type='file';
+  input.accept='image/*';
+  if(mode==='camera')input.setAttribute('capture','environment');
+  input.onchange=()=>{const file=input.files&&input.files[0];if(file)upload(card.id,side,file);input.value=''};
+  const pick=element('label','upload',(mode==='camera'?'📷 Fotografo ':'🖼 Ngarko ')+label);
+  pick.append(input);
+  actions.append(pick);
+}
+if(card[side]){const view=element('button','secondary','Shfaq');view.onclick=()=>show(card[side]);actions.append(view);const remove=element('button','secondary','Fshi foton');remove.onclick=async()=>{if(!confirm('Ta fshij fotografinë?'))return;const item=await get(card.id);item[side]='';await put(item);render()};actions.append(remove)}box.append(actions)}const deleteCard=element('button','secondary','Hiq kartën');deleteCard.onclick=async()=>{if(confirm('Ta fshij kartën dhe fotografitë e saj?')){await del(card.id);render()}};box.append(deleteCard);root.append(box)}}
+function show(data){$('big').src=data;$('viewer').style.display='flex'}
+$('close').onclick=()=>{$('viewer').style.display='none';$('big').removeAttribute('src')};
+$('filter').onchange=render;
+$('add').onclick=async()=>{const name=prompt('Emri i kartës së re:');if(!name||!name.trim())return;const category=prompt('Kategoria: Dyqane / Shëndetësi / Sigurime / Leje & Patenta / Të tjera','Dyqane');await put({id:crypto.randomUUID(),name:name.trim(),category:CATS.includes(category)?category:'Të tjera',front:'',back:''});render()};
+$('export').onclick=async()=>{const data=JSON.stringify({version:2,cards:await all()});const url=URL.createObjectURL(new Blob([data],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='kartat-e-mia-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status('Backup u përgatit. Ruaje në vend privat.')};
+$('import').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!Array.isArray(data.cards))throw Error('Skedar jo i vlefshëm');if(!confirm('Të rikthehen '+data.cards.length+' karta nga backup?'))return;for(const c of data.cards){if(typeof c.id==='string'&&typeof c.name==='string')await put({id:c.id,name:c.name,front:c.front||'',back:c.back||''})}await render();status('Kartat u rikthyen.')}catch(err){status('Backup nuk u lexua: '+err.message)}e.target.value=''};
+</script>
+</body>
+</html>

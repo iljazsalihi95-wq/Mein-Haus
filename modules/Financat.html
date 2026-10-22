@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Financat / Finanzen</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f7fc;color:#152238}
+.w{max-width:950px;margin:auto;padding:12px}.hero{background:linear-gradient(135deg,#1269d3,#248cf0);color:#fff;border-radius:22px;padding:18px}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:center}.top h1{margin:0;font-size:28px}
+#lang{width:auto;padding:8px;border:0;border-radius:10px}.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.k{background:#ffffff29;border-radius:14px;padding:10px;text-align:center}.k b{display:block;font-size:18px}
+.bal,.item,.form,.status{background:white;border-radius:17px;padding:14px;margin-top:10px}.bal{display:flex;justify-content:space-between;align-items:center}
+.bal strong{font-size:25px;color:#1269d3}.filters{display:flex;gap:7px;overflow:auto;margin:10px 0;padding-bottom:2px}
+.filters button{border:1px solid #d9e3f0;background:white;border-radius:22px;padding:9px 13px;font-weight:800;white-space:nowrap}
+.filters .on{background:#1677e8;color:white}.item{display:grid;grid-template-columns:1fr auto;gap:8px}
+.meta{font-size:12px;color:#718096;margin-top:4px}.amt{font-weight:900}.in{color:#159447}.out{color:#d23a3a}
+input,select,textarea{width:100%;padding:11px;border:1px solid #d7e1ee;border-radius:11px;margin:4px 0 9px;background:#fff}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.save{width:100%;border:0;border-radius:12px;padding:13px;background:#1677e8;color:#fff;font-weight:900}
+.add{border:0;background:#18a75b;color:#fff;border-radius:12px;padding:11px 14px;font-weight:900}.hide{display:none}
+.status{font-size:13px;color:#52657a}.err{color:#b42318}
+</style>
+<script>(function(){try{const l=localStorage.getItem('lang')||localStorage.getItem('mh_language')||'sq';localStorage.setItem('lang',l);localStorage.setItem('mh_language',l)}catch(e){}})();</script></head>
+<body><nav style="padding:10px;background:#fff"><a href="../index.html" style="color:#075ab5;text-decoration:none;font:600 15px Arial">‹ MeinHaushalt FT</a></nav><div class="w">
+<div class="hero">
+ <div class="top"><h1 data-i="title">💶 Financat / Finanzen</h1>
+ <select id="lang" onchange="setLang(this.value)"><option>SQ</option><option>DE</option><option>EN</option><option>IT</option><option>TR</option><option>MK</option><option>BS</option></select></div>
+ <div class="sum">
+  <div class="k"><span data-i="income">HYRJE</span><b id="inc">0,00 €</b></div>
+  <div class="k"><span data-i="expense">DALJE</span><b id="exp">0,00 €</b></div>
+  <div class="k"><span data-i="records">REGJISTRIME</span><b id="cnt">0</b></div>
+ </div>
+</div>
+<div class="bal"><div><span data-i="balance">GJENDJA</span> <strong id="bal">0,00 €</strong></div><button class="add" onclick="form.classList.toggle('hide')" data-i="add">+ Shto</button></div>
+<div id="status" class="status">⏳ Duke ngarkuar...</div>
+<div id="form" class="form hide">
+ <div class="row"><select id="type"><option value="dalje">🔴 Dalje</option><option value="hyrje">🟢 Hyrje</option></select><input id="amount" type="number" step=".01" placeholder="Shuma €"></div>
+ <div class="row"><input id="date" type="date"><select id="payment"><option value="cash">💵 Cash</option><option value="bank">💳 Bankë / Kartë</option></select></div>
+ <input id="category" value="Tjetër" placeholder="Kategoria"><input id="description" placeholder="Përshkrimi"><input id="store" placeholder="Dyqani / Burimi"><textarea id="note" placeholder="Shënim"></textarea>
+ <button class="save" onclick="save()" data-i="save">💾 Ruaj</button><div id="msg"></div>
+</div>
+<div class="filters">
+ <button class="on" onclick="f='ALL';sel(this)" data-i="all">Të gjitha</button>
+ <button onclick="f='hyrje';sel(this)" data-i="income">🟢 Hyrje</button>
+ <button onclick="f='dalje';sel(this)" data-i="expense">🔴 Dalje</button>
+ <button onclick="f='cash';sel(this)">💵 Cash</button>
+ <button onclick="f='bank';sel(this)">💳 Bankë/Kartë</button>
+</div>
+<div id="list"></div></div>
+<script>
+const API='https://script.google.com/macros/s/AKfycbxLAP0EW3Inecns-l3KIF5wPPAardgQnXSMrVJCEuZj6RtLofAOOwlQzFa1UCwsoKA/exec';
+let data=[],f='ALL'; const $=x=>document.getElementById(x);
+const tok=()=>localStorage.getItem('sessionToken')||localStorage.getItem('token')||'';
+
+const TXT={
+ SQ:{title:'💶 Financat / Finanzen',income:'HYRJE',expense:'DALJE',records:'REGJISTRIME',balance:'GJENDJA',add:'+ Shto',save:'💾 Ruaj',all:'Të gjitha'},
+ DE:{title:'💶 Finanzen',income:'EINNAHMEN',expense:'AUSGABEN',records:'BUCHUNGEN',balance:'SALDO',add:'+ Hinzufügen',save:'💾 Speichern',all:'Alle'},
+ EN:{title:'💶 Finances',income:'INCOME',expense:'EXPENSES',records:'RECORDS',balance:'BALANCE',add:'+ Add',save:'💾 Save',all:'All'},
+ IT:{title:'💶 Finanze',income:'ENTRATE',expense:'USCITE',records:'REGISTRAZIONI',balance:'SALDO',add:'+ Aggiungi',save:'💾 Salva',all:'Tutti'},
+ TR:{title:'💶 Finans',income:'GELİR',expense:'GİDER',records:'KAYITLAR',balance:'BAKİYE',add:'+ Ekle',save:'💾 Kaydet',all:'Tümü'},
+ MK:{title:'💶 Финансии',income:'ПРИХОДИ',expense:'РАСХОДИ',records:'ЗАПИСИ',balance:'САЛДО',add:'+ Додај',save:'💾 Зачувај',all:'Сите'},
+ BS:{title:'💶 Finansije',income:'PRIHODI',expense:'RASHODI',records:'EVIDENCIJE',balance:'STANJE',add:'+ Dodaj',save:'💾 Sačuvaj',all:'Sve'}
+};
+function setLang(v){v=(v||'SQ').toUpperCase();localStorage.setItem('mh_language',v.toLowerCase());localStorage.setItem('lang',v.toLowerCase());lang.value=v;document.querySelectorAll('[data-i]').forEach(e=>{let t=TXT[v]?.[e.dataset.i];if(t)e.textContent=t})}
+function initialLang(){let v=(localStorage.getItem('mh_language')||localStorage.getItem('lang')||'sq').toUpperCase();return TXT[v]?v:'SQ'}
+
+async function api(action,p={}){
+ let r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({action,token:tok(),...p}),redirect:'follow'});
+ let raw=(await r.text()).trim(); let j; try{j=JSON.parse(raw)}catch(e){throw Error('API nuk ktheu JSON')}
+ if(j?.ok===false)throw Error(j.error||j.message||'ERROR');
+ return Object.prototype.hasOwnProperty.call(j||{},'data')?j.data:j;
+}
+function arr(x){
+ if(Array.isArray(x))return x;
+ if(!x||typeof x!=='object')return [];
+ for(const k of ['items','rows','records','finances','transactions','list','data','result']){
+   if(Array.isArray(x[k]))return x[k];
+   if(x[k]&&typeof x[k]==='object'){let a=arr(x[k]);if(a.length)return a}
+ }
+ return [];
+}
+const euro=v=>Number(v||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+function norm(x){
+ let src=String(x.Burimi??x.source??x.Source??'').toLowerCase(),note=String(x['Shënim']??x.note??x.Note??''),pay=String(x.Pagesa??x.payment??x.paymentMethod??'').toLowerCase();
+ if(!pay&&/cash|bar/.test(src+' '+note))pay='cash';
+ if(!pay&&/bank|card|kart|giro|ec/.test(src+' '+note))pay='bank';
+ let typ=String(x.Lloji??x.type??x.Type??'').toLowerCase().trim();
+ if(/ausgabe|expense|dalje/.test(typ))typ='dalje'; if(/einnahme|income|hyrje/.test(typ))typ='hyrje';
+ let rawDate=x.Data??x.date??x.Date??x.createdAt??'';
+ let ds=String(rawDate||''); if(ds.includes('T'))ds=ds.slice(0,10);
+ return {id:x.ID??x.id??'',date:ds,type:typ,cat:x.Kategoria??x.category??'',desc:x['Përshkrimi']??x.description??x.Pershkrimi??'',amount:Number(String(x.Shuma??x.amount??x.Amount??0).replace(',','.'))||0,pay,store:x.Dyqani??x.store??'',note};
+}
+function sel(b){document.querySelectorAll('.filters button').forEach(x=>x.classList.remove('on'));b.classList.add('on');render()}
+function rows(){return data.filter(x=>f==='ALL'||x.type===f||(f==='cash'&&x.pay==='cash')||(f==='bank'&&x.pay==='bank'))}
+function render(){
+ let all=data, i=all.filter(x=>x.type==='hyrje').reduce((s,x)=>s+x.amount,0),e=all.filter(x=>x.type==='dalje').reduce((s,x)=>s+x.amount,0);
+ inc.textContent=euro(i);exp.textContent=euro(e);bal.textContent=euro(i-e);cnt.textContent=all.length;
+ let r=rows();
+ list.innerHTML=[...r].sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(x=>`<div class="item"><div><b>${esc(x.desc||x.cat||'Financë')}</b><div class="meta">${esc(x.date)} · ${esc(x.cat)} ${x.store?'· 🏪 '+esc(x.store):''} ${x.pay?'· '+(x.pay==='cash'?'💵 Cash':'💳 Bank/Kartë'):''}</div></div><div class="amt ${x.type==='hyrje'?'in':'out'}">${x.type==='hyrje'?'+':'−'}${euro(x.amount)}</div></div>`).join('');
+ if(!r.length)list.innerHTML='<div class="item">Nuk ka regjistrime për këtë filtër.</div>';
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>String.fromCharCode(38)+'#'+c.charCodeAt(0)+';')}
+async function load(){
+ status.className='status';status.textContent='⏳ Duke ngarkuar financat...';
+ try{
+   let raw=await api('financeList'); let a=arr(raw);
+   data=a.map(norm).filter(x=>x.amount||x.desc||x.cat);
+   render();status.textContent='✅ U ngarkuan '+data.length+' regjistrime nga Financat.';
+ }catch(e){status.className='status err';status.textContent='⚠️ '+e.message;list.innerHTML=''}
+}
+function localDate(){let d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
+async function save(){
+ let a=Number(amount.value);if(!a){msg.textContent='⚠️ Shkruaj shumën';return}
+ try{
+  await api('financeSave',{type:type.value,Lloji:type.value,amount:a,Shuma:a,date:date.value||localDate(),Data:date.value||localDate(),category:category.value||'Tjetër',Kategoria:category.value||'Tjetër',description:description.value.trim(),Pershkrimi:description.value.trim(),paymentMethod:payment.value,payment:payment.value,source:payment.value,Burimi:payment.value,store:store.value.trim(),Dyqani:store.value.trim(),note:note.value.trim()});
+  msg.textContent='✅ U ruajt'; await load();
+ }catch(e){msg.textContent='⚠️ '+e.message}
+}
+date.value=localDate();setLang(initialLang());load();
+window.addEventListener('pageshow',load);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
+</script></body></html>

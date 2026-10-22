@@ -1,0 +1,77 @@
+[
+  {
+    "name": "Ballina / Startseite",
+    "id": "39466006",
+    "ref": "Ballina"
+  },
+  {
+    "name": "Blerjet / Einkäufe",
+    "id": "39462784",
+    "ref": "Blerje"
+  },
+  {
+    "name": "Ofertat LIVE / Angebote",
+    "id": "39462791",
+    "ref": "Ofertst"
+  },
+  {
+    "name": "Inventari / Vorräte",
+    "id": "39462836",
+    "ref": "Inventari"
+  },
+  {
+    "name": "Financat / Finanzen",
+    "id": "39462959",
+    "ref": "Financat"
+  },
+  {
+    "name": "Terminet / Termine",
+    "id": "39462994",
+    "ref": "Terminet"
+  },
+  {
+    "name": "Detyrat/Aufgabe",
+    "id": "39463036",
+    "ref": "Detyrat"
+  },
+  {
+    "name": "Dokumentet / Dokumente",
+    "id": "39463630",
+    "ref": "Dokumente"
+  },
+  {
+    "name": "Faturat / Rechnungen",
+    "id": "39463777",
+    "ref": "Faturat"
+  },
+  {
+    "name": "Lista për Blerje / Einkaufsliste",
+    "id": "39463811",
+    "ref": "ListaBlerj"
+  },
+  {
+    "name": "Familja / Familie",
+    "id": "39463850",
+    "ref": "Familja"
+  },
+  {
+    "name": "Garancitë / Garantien",
+    "id": "39464052",
+    "ref": "Garancite"
+  },
+  {
+    "name": "Skadimet / Ablaufdaten",
+    "id": "39464427",
+    "ref": "Skadimet"
+  },
+  {
+    "name": "Test lista e blerjeve 2",
+    "id": "39475084",
+    "ref": ""
+  },
+  {
+    "name": "Kartat e mia",
+    "id": "39504430",
+    "ref": "Kartat"
+  }
+]

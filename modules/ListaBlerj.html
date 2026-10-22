@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lista për Blerje</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#061b38;color:#fff}
+.w{max-width:920px;margin:auto;padding:12px}.c{background:#103667;border:1px solid #31598a;border-radius:20px;padding:16px;margin:10px 0}
+h1,h2,h3{margin:4px 0 10px}.muted{color:#c9d9ee}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.count{font-size:28px;font-weight:900;background:#071d39;padding:8px 14px;border-radius:14px}
+.store{background:#0a294f;border:1px solid #31598a;border-radius:17px;padding:12px;margin:12px 0}
+.store h2{display:flex;justify-content:space-between;gap:10px;font-size:20px}
+.item{display:flex;align-items:flex-start;gap:11px;padding:11px 4px;border-top:1px solid #ffffff20}
+.item:first-of-type{border-top:0}.item input[type=checkbox]{width:25px;height:25px;accent-color:#1dc96b;flex:0 0 auto}
+.name{font-size:17px;font-weight:800}.meta{font-size:14px;color:#c9d9ee;margin-top:3px}.done{opacity:.55;text-decoration:line-through}
+button,input,select{font:inherit;border-radius:12px;border:0;padding:11px}button{background:#1684ff;color:white;font-weight:800}.secondary{background:#324f75}
+.editBtn{margin-left:auto;padding:7px 10px;background:#31598a}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.add input,.add select,.editBox input,.editBox select{width:100%;background:#071d39;color:#fff;border:1px solid #45678d}
+.editBox{display:none;background:#071d39;border-radius:13px;padding:10px;margin:5px 0 10px}.editBox.show{display:block}
+.storeChoice{font-size:12px;color:#a9c9ef;margin-top:3px}.hide{display:none}@media(max-width:600px){.row{grid-template-columns:1fr}}
+</style><script>(function(){try{const l=localStorage.getItem('lang')||localStorage.getItem('mh_language')||'sq';localStorage.setItem('lang',l);localStorage.setItem('mh_language',l)}catch(e){}})();</script></head>
+<body><nav style="padding:10px;background:#fff"><a href="../index.html" style="color:#075ab5;text-decoration:none;font:600 15px Arial">‹ MeinHaushalt FT</a></nav><div class="w">
+<div class="c top"><div><h1>🛒 Lista për Blerje</h1><div class="muted">E renditur sipas dyqanit • selekto kur e blen • ✏️ Edit për ndryshim</div></div><div class="count"><span id="activeCount">0</span></div></div>
+<div class="c"><div class="top"><b>Lista aktive</b><button class="secondary" onclick="resetAll()">↻ Rikthe të gjitha</button></div><div id="groups"></div></div>
+<div class="c add"><details><summary><b>➕ Shto artikull tjetër</b></summary>
+<div class="row"><input id="newName" placeholder="Produkti"><input id="newQty" placeholder="Sasia"></div>
+<div class="row"><select id="newStore"><option>Lidl</option><option>Kaufland</option><option>Te Turku</option><option>Tom</option><option>Kaufland / Lidl</option><option>Kaufland / Lidl / Tom</option><option>Kaufland / Lidl / Te Turku</option><option>Tjetër</option></select><button onclick="addLocal()">Shto</button></div>
+</details></div>
+<div class="c"><details><summary><b>🕘 Të blera</b> <span id="doneCount"></span></summary><div id="history"></div></details></div>
+</div>
+<script>
+const SEED=[];
+const KEY='mh_shopping_real_20261010_v1';
+function loadData(){return []}
+let data=[];
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>String.fromCharCode(38)+'#'+c.charCodeAt(0)+';');
+function bucket(store){const s=String(store||'').toLowerCase();
+ if(s.includes('tom'))return '🟧 Tom';
+ if(s.includes('turk')||s.includes('avantaj')||s.includes('inci'))return '🟩 Te Turku — Avantaj / İnci';
+ if(s==='lidl')return '🟦 Lidl'; if(s==='kaufland')return '🟥 Kaufland';
+ if(s.includes('kaufland')&&s.includes('lidl'))return '🟨 Kaufland / Lidl';
+ return '⬜ Tjetër / ku ta gjesh'}
+const order=['🟥 Kaufland','🟦 Lidl','🟧 Tom','🟩 Te Turku — Avantaj / İnci','🟨 Kaufland / Lidl','⬜ Tjetër / ku ta gjesh'];
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+async function mark(id,v){try{await api('shoppingListPurchasedV2',{itemId:id,purchased:v,status:v?'done':'open'});await loadServer()}catch(e){alert(e.message);render()}}
+function edit(id){document.getElementById('ed_'+id).classList.toggle('show')}
+async function saveEdit(id){try{const qty=document.getElementById('eq_'+id).value.trim(),q=parseQty(qty);await api('shoppingListUpdateV2',{itemId:id,product:document.getElementById('en_'+id).value.trim(),quantity:q.quantity,unit:q.unit,storeHint:document.getElementById('es_'+id).value});await loadServer()}catch(e){alert(e.message)}}
+function itemHTML(x,done=false){return `<div class="item ${done?'done':''}"><input type="checkbox" ${done?'checked':''} onchange="mark('${x.id}',this.checked)"><div style="flex:1"><div class="name">${esc(x.name)}</div><div class="meta">${esc(x.qty||'')}${x.qty?' · ':''}${esc(x.store)}</div>${!done?`<button class="editBtn" onclick="edit('${x.id}')">✏️ Edit</button><div class="editBox" id="ed_${x.id}"><input id="en_${x.id}" value="${esc(x.name)}"><input id="eq_${x.id}" value="${esc(x.qty)}"><select id="es_${x.id}">${['Lidl','Kaufland','Te Turku','Tom','Kaufland / Lidl','Kaufland / Lidl / Tom','Kaufland / Lidl / Te Turku','Tjetër'].map(s=>`<option ${x.store===s?'selected':''}>${s}</option>`).join('')}</select><button onclick="saveEdit('${x.id}')">💾 Ruaj</button></div>`:''}</div></div>`}
+function render(){let active=data.filter(x=>!x.done),done=data.filter(x=>x.done);activeCount.textContent=active.length;doneCount.textContent='('+done.length+')';let groups={};active.forEach(x=>(groups[bucket(x.store)]??=[]).push(x));document.getElementById('groups').innerHTML=order.filter(k=>groups[k]?.length).map(k=>`<div class="store"><h2><span>${k}</span><span>${groups[k].length}</span></h2>${groups[k].map(x=>itemHTML(x)).join('')}</div>`).join('')||'<div class="muted">Lista është bosh.</div>';history.innerHTML=done.length?done.map(x=>itemHTML(x,true)).join(''):'<div class="muted">Ende asgjë.</div>'}
+async function addLocal(){const n=newName.value.trim();if(!n)return;try{const q=parseQty(newQty.value);await api('shoppingListAddV2',{name:n,quantity:q.quantity,unit:q.unit,storeHint:newStore.value,source:'manual'});newName.value=newQty.value='';await loadServer()}catch(e){alert(e.message)}}
+async function resetAll(){if(!confirm('T’i rikthej të gjitha në listën aktive?'))return;try{for(const x of data.filter(x=>x.done))await api('shoppingListPurchasedV2',{itemId:x.id,purchased:false,status:'open'});await loadServer()}catch(e){alert(e.message)}}
+render();
+
+const API="https://script.google.com/macros/s/AKfycbxLAP0EW3Inecns-l3KIF5wPPAardgQnXSMrVJCEuZj6RtLofAOOwlQzFa1UCwsoKA/exec";
+async function api(action,payload={}){const token=localStorage.getItem('sessionToken')||localStorage.getItem('token');if(!token)throw Error('LOGIN_REQUIRED');const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...payload,action,token})});const j=JSON.parse(await r.text());if(j.ok===false)throw Error(j.error||'SERVER_ERROR');return j.data??j}
+function parseQty(text){const s=String(text||'').trim(),m=s.match(/^(\d+(?:[.,]\d+)?)\s*(.*)$/);if(!s)return {quantity:1,unit:'copë'};if(!m||Number(m[1].replace(',','.'))<=0)throw Error('QUANTITY_INVALID');return {quantity:Number(m[1].replace(',','.')),unit:m[2]||'copë'}}
+async function loadServer(){try{const rows=await api('shoppingListV2');data=(Array.isArray(rows)?rows:rows?.items||[]).filter(x=>x.status!=='deleted').map(x=>({id:x.itemId||x.id,name:x.Produkti||x.product||x.name||'',qty:String(x.Sasia??x.quantity??1)+' '+(x['Njësia']||x.unit||''),store:x.storeHint||x.store||'',done:['done','purchased','bought'].includes(String(x.status).toLowerCase()),doneAt:x.purchasedAt||''}));render()}catch(e){document.getElementById('groups').textContent=e.message==='LOGIN_REQUIRED'?'Hyr nga Ballina / Bitte zuerst anmelden':e.message}}
+loadServer();
+</script></body></html>

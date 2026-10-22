@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>MeinHaushalt FT</title>
+
+<style>
+*{box-sizing:border-box}
+:root{
+ --blue:#1677E8;--blue2:#0758bd;--bg:#F4F7FC;
+ --text:#152238;--muted:#718096;--green:#18A75B;
+ --orange:#f59e0b;--red:#e5484d;--border:#e2e9f4
+}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:950px;margin:auto;padding:14px 12px 90px}
+
+.hero{
+ background:linear-gradient(135deg,#1684f5,#0750ad);
+ color:#fff;border-radius:24px;padding:20px;
+ box-shadow:0 12px 30px #0756b530
+}
+.heroHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.heroTop{display:flex;align-items:center;gap:14px}
+.heroIcon{
+ width:64px;height:64px;border-radius:19px;background:#ffffff25;
+ display:flex;align-items:center;justify-content:center;font-size:35px
+}
+.hero h1{margin:0;font-size:27px}
+.hero p{margin:5px 0 0;opacity:.9}
+
+.lang{
+ border:1px solid #ffffff55;background:#ffffff20;color:#fff;
+ border-radius:11px;padding:8px;font-weight:800;max-width:125px
+}
+.lang option{color:#111;background:#fff}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+.stat{
+ background:#ffffff20;border:1px solid #ffffff30;
+ border-radius:15px;padding:10px;text-align:center
+}
+.stat b{display:block;font-size:21px}
+.stat small{font-size:10px}
+
+.actions{display:flex;gap:8px;margin:14px 0}
+.btn{border:0;border-radius:14px;padding:13px;font-weight:900;cursor:pointer}
+.add{flex:1;color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue2))}
+.refresh{background:#fff;color:var(--blue);border:1px solid var(--border)}
+
+.filters{background:#fff;padding:11px;border-radius:18px}
+.search{
+ width:100%;padding:13px;border:1px solid var(--border);
+ border-radius:13px;font-size:15px;outline:none
+}
+.chips{display:flex;gap:7px;margin-top:8px;overflow:auto}
+.chip{
+ border:1px solid var(--border);background:#f8faff;padding:8px 11px;
+ border-radius:20px;white-space:nowrap;font-weight:800;font-size:12px
+}
+.chip.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+.card{
+ background:#fff;margin:10px 0;padding:15px;border-radius:19px;
+ border:1px solid #edf1f7;box-shadow:0 5px 22px #1c36580e
+}
+.top{display:flex;justify-content:space-between;gap:10px}
+.product{font-size:18px;font-weight:900}
+.category{font-size:12px;color:var(--muted);margin-top:4px}
+.badge{padding:6px 9px;border-radius:14px;font-size:11px;font-weight:900;height:max-content}
+.good{background:#e6f8ed;color:#087d3e}
+.soon{background:#fff2d7;color:#9a6100}
+.urgent{background:#ffe9df;color:#c64c18}
+.expired{background:#ffe4e4;color:#bd2828}
+
+.infoGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.info{background:#f7f9fd;padding:9px;border-radius:11px}
+.info small{display:block;color:var(--muted);font-size:10px}
+.info b{font-size:13px}
+.note{margin-top:10px;padding:9px;background:#f7f9fd;border-radius:10px;font-size:13px}
+.editBtn{
+ width:100%;border:0;background:#eaf3ff;color:#0965ce;
+ padding:10px;border-radius:11px;margin-top:11px;font-weight:900
+}
+.empty{text-align:center;padding:50px 15px;color:var(--muted)}
+.emptyIcon{font-size:52px;margin-bottom:10px}
+
+.status{display:none;padding:11px;margin:10px 0;border-radius:12px;font-size:13px}
+.error{background:#ffe7e7;color:#b32c2c}
+.success{background:#e7f8ee;color:#087d3e}
+
+.overlay{
+ position:fixed;inset:0;background:#07162caa;display:none;
+ align-items:flex-end;z-index:100
+}
+.modal{
+ background:#fff;width:100%;max-height:92vh;overflow:auto;
+ border-radius:25px 25px 0 0;padding:19px 15px 30px
+}
+.modal h2{margin:0 0 15px}
+label{display:block;font-size:12px;font-weight:900;margin:11px 2px 5px}
+input,select,textarea{
+ width:100%;padding:12px;border:1px solid #dce4f0;
+ border-radius:12px;background:#fff;font-size:14px
+}
+textarea{min-height:75px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.save{
+ width:100%;margin-top:17px;padding:14px;border:0;border-radius:14px;
+ color:#fff;font-weight:900;background:linear-gradient(135deg,var(--blue),var(--blue2))
+}
+.cancel{
+ width:100%;margin-top:7px;padding:12px;border:0;
+ border-radius:13px;background:#edf1f7;font-weight:800
+}
+@media(min-width:700px){
+ .overlay{align-items:center;justify-content:center}
+ .modal{width:560px;border-radius:25px}
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<div class="hero">
+ <div class="heroHead">
+  <div class="heroTop">
+   <div class="heroIcon">📅</div>
+   <div>
+    <h1 data-i18n="title"></h1>
+    <p>MeinHaushalt FT</p>
+   </div>
+  </div>
+
+  <select id="langSelect" class="lang" onchange="changeLanguage(this.value)">
+   <option value="de">🇩🇪 DE</option>
+   <option value="sq">🇦🇱 SQ</option>
+   <option value="en">🇬🇧 EN</option>
+   <option value="it">🇮🇹 IT</option>
+   <option value="tr">🇹🇷 TR</option>
+   <option value="mk">🇲🇰 MK</option>
+   <option value="bs">🇧🇦 BS</option>
+   <option value="hr">🇭🇷 HR</option>
+   <option value="sr">🇷🇸 SR</option>
+   <option value="sl">🇸🇮 SL</option>
+   <option value="fr">🇫🇷 FR</option>
+   <option value="nl">🇳🇱 NL</option>
+  </select>
+ </div>
+
+ <div class="stats">
+  <div class="stat"><b id="total">0</b><small data-i18n="products"></small></div>
+  <div class="stat"><b id="soon">0</b><small data-i18n="soon"></small></div>
+  <div class="stat"><b id="expired">0</b><small data-i18n="expired"></small></div>
+ </div>
+</div>
+
+<div id="status" class="status"></div>
+
+<div class="actions">
+ <button class="btn add" onclick="newItem()" data-i18n="add"></button>
+ <button class="btn refresh" onclick="loadItems()">↻</button>
+</div>
+
+<div class="filters">
+ <input id="search" class="search" oninput="render()">
+
+ <div class="chips">
+  <button class="chip active" data-filter="all" onclick="filterSet('all',this)" data-i18n="all"></button>
+  <button class="chip" data-filter="soon" onclick="filterSet('soon',this)" data-i18n="soon"></button>
+  <button class="chip" data-filter="expired" onclick="filterSet('expired',this)" data-i18n="expired"></button>
+ </div>
+</div>
+
+<div id="list"></div>
+</div>
+
+<div id="overlay" class="overlay">
+<div class="modal">
+
+<h2 id="modalTitle"></h2>
+<input type="hidden" id="itemId">
+
+<label data-i18n="product"></label>
+<input id="product">
+
+<div class="two">
+ <div>
+  <label data-i18n="category"></label>
+  <select id="category"></select>
+ </div>
+ <div>
+  <label data-i18n="quantity"></label>
+  <input id="quantity" type="number" step="0.01" value="1">
+ </div>
+</div>
+
+<div class="two">
+ <div>
+  <label data-i18n="unit"></label>
+  <select id="unit">
+   <option value="copë">Stück</option>
+   <option value="paketë">Packung</option>
+   <option value="kg">kg</option>
+   <option value="g">g</option>
+   <option value="l">l</option>
+   <option value="ml">ml</option>
+  </select>
+ </div>
+
+ <div>
+  <label data-i18n="expiryDate"></label>
+  <input id="expiryDate" type="date">
+ </div>
+</div>
+
+<label data-i18n="warning"></label>
+<select id="warningDays">
+ <option value="1">1</option>
+ <option value="3">3</option>
+ <option value="7" selected>7</option>
+ <option value="14">14</option>
+ <option value="30">30</option>
+</select>
+
+<label data-i18n="note"></label>
+<textarea id="note"></textarea>
+
+<button class="save" onclick="saveItem()" data-i18n="save"></button>
+<button class="cancel" onclick="closeModal()" data-i18n="cancel"></button>
+
+</div>
+</div>
+
+<script>
+const API='https://script.google.com/macros/s/AKfycbxLAP0EW3Inecns-l3KIF5wPPAardgQnXSMrVJCEuZj6RtLofAOOwlQzFa1UCwsoKA/exec';
+
+const translations={
+de:{
+ title:'Ablaufdaten',products:'Produkte',soon:'Bald fällig',expired:'Abgelaufen',
+ add:'＋ Produkt hinzufügen',all:'Alle',product:'Produkt *',category:'Kategorie',
+ quantity:'Menge',unit:'Einheit',expiryDate:'Ablaufdatum *',warning:'Warnung vorher (Tage)',
+ note:'Notiz',save:'Speichern',cancel:'Abbrechen',edit:'Bearbeiten',
+ addTitle:'Ablaufdatum hinzufügen',editTitle:'Ablaufdatum bearbeiten',
+ search:'Produkt suchen...',empty:'Keine Produkte vorhanden.',
+ login:'Bitte zuerst anmelden.',ok:'In Ordnung',today:'Läuft heute ab',
+ days:'Tage',expiredStatus:'Abgelaufen',saved:'Erfolgreich gespeichert.',
+ requiredProduct:'Produkt eingeben.',requiredDate:'Ablaufdatum eingeben.',
+ error:'Fehler',expiry:'Ablaufdatum',status:'Status',food:'Lebensmittel',
+ drinks:'Getränke',medicine:'Medikamente',hygiene:'Hygiene',other:'Sonstiges'
+},
+sq:{
+ title:'Skadimet',products:'Produktet',soon:'Skadojnë shpejt',expired:'Të skaduara',
+ add:'＋ Shto produkt',all:'Të gjitha',product:'Produkti *',category:'Kategoria',
+ quantity:'Sasia',unit:'Njësia',expiryDate:'Data e skadimit *',warning:'Paralajmëro para (ditë)',
+ note:'Shënim',save:'Ruaj',cancel:'Anulo',edit:'Ndrysho',
+ addTitle:'Shto datë skadimi',editTitle:'Ndrysho datën e skadimit',
+ search:'Kërko produkt...',empty:'Nuk ka produkte.',
+ login:'Duhet të hyni në profil.',ok:'Në rregull',today:'Skadon sot',
+ days:'ditë',expiredStatus:'Skaduar',saved:'U ruajt me sukses.',
+ requiredProduct:'Shkruaj produktin.',requiredDate:'Vendos datën e skadimit.',
+ error:'Gabim',expiry:'Skadimi',status:'Statusi',food:'Ushqime',
+ drinks:'Pije',medicine:'Ilaçe',hygiene:'Higjienë',other:'Të tjera'
+},
+en:{
+ title:'Expiry Dates',products:'Products',soon:'Expiring soon',expired:'Expired',
+ add:'＋ Add product',all:'All',product:'Product *',category:'Category',
+ quantity:'Quantity',unit:'Unit',expiryDate:'Expiry date *',warning:'Warn before (days)',
+ note:'Note',save:'Save',cancel:'Cancel',edit:'Edit',
+ addTitle:'Add expiry date',editTitle:'Edit expiry date',
+ search:'Search product...',empty:'No products available.',
+ login:'Please sign in first.',ok:'OK',today:'Expires today',
+ days:'days',expiredStatus:'Expired',saved:'Saved successfully.',
+ requiredProduct:'Enter a product.',requiredDate:'Enter an expiry date.',
+ error:'Error',expiry:'Expiry date',status:'Status',food:'Food',
+ drinks:'Drinks',medicine:'Medicine',hygiene:'Hygiene',other:'Other'
+},
+it:{
+ title:'Scadenze',products:'Prodotti',soon:'In scadenza',expired:'Scaduti',
+ add:'＋ Aggiungi prodotto',all:'Tutti',product:'Prodotto *',category:'Categoria',
+ quantity:'Quantità',unit:'Unità',expiryDate:'Data di scadenza *',warning:'Avvisa prima (giorni)',
+ note:'Nota',save:'Salva',cancel:'Annulla',edit:'Modifica',
+ addTitle:'Aggiungi scadenza',editTitle:'Modifica scadenza',
+ search:'Cerca prodotto...',empty:'Nessun prodotto disponibile.',
+ login:'Accedi prima.',ok:'Valido',today:'Scade oggi',days:'giorni',
+ expiredStatus:'Scaduto',saved:'Salvato con successo.',
+ requiredProduct:'Inserisci il prodotto.',requiredDate:'Inserisci la data di scadenza.',
+ error:'Errore',expiry:'Scadenza',status:'Stato',food:'Alimenti',
+ drinks:'Bevande',medicine:'Medicinali',hygiene:'Igiene',other:'Altro'
+},
+tr:{
+ title:'Son Kullanma Tarihleri',products:'Ürünler',soon:'Yakında dolacak',expired:'Süresi dolmuş',
+ add:'＋ Ürün ekle',all:'Tümü',product:'Ürün *',category:'Kategori',
+ quantity:'Miktar',unit:'Birim',expiryDate:'Son kullanma tarihi *',warning:'Önceden uyar (gün)',
+ note:'Not',save:'Kaydet',cancel:'İptal',edit:'Düzenle',
+ addTitle:'Son kullanma tarihi ekle',editTitle:'Tarihi düzenle',
+ search:'Ürün ara...',empty:'Ürün bulunmuyor.',login:'Önce giriş yapın.',
+ ok:'Uygun',today:'Bugün sona eriyor',days:'gün',expiredStatus:'Süresi dolmuş',
+ saved:'Başarıyla kaydedildi.',requiredProduct:'Ürün girin.',
+ requiredDate:'Son kullanma tarihini girin.',error:'Hata',expiry:'Son kullanma',
+ status:'Durum',food:'Gıda',drinks:'İçecekler',medicine:'İlaçlar',hygiene:'Hijyen',other:'Diğer'
+},
+mk:{
+ title:'Рокови на траење',products:'Производи',soon:'Наскоро истекува',expired:'Истечени',
+ add:'＋ Додај производ',all:'Сите',product:'Производ *',category:'Категорија',
+ quantity:'Количина',unit:'Единица',expiryDate:'Рок на траење *',warning:'Предупреди пред (дена)',
+ note:'Белешка',save:'Зачувај',cancel:'Откажи',edit:'Измени',
+ addTitle:'Додај рок на траење',editTitle:'Измени рок',
+ search:'Пребарај производ...',empty:'Нема производи.',login:'Најавете се прво.',
+ ok:'Во ред',today:'Истекува денес',days:'дена',expiredStatus:'Истечено',
+ saved:'Успешно зачувано.',requiredProduct:'Внесете производ.',
+ requiredDate:'Внесете рок на траење.',error:'Грешка',expiry:'Рок на траење',
+ status:'Статус',food:'Храна',drinks:'Пијалаци',medicine:'Лекови',hygiene:'Хигиена',other:'Друго'
+},
+bs:{
+ title:'Rokovi trajanja',products:'Proizvodi',soon:'Uskoro ističe',expired:'Isteklo',
+ add:'＋ Dodaj proizvod',all:'Sve',product:'Proizvod *',category:'Kategorija',
+ quantity:'Količina',unit:'Jedinica',expiryDate:'Rok trajanja *',warning:'Upozori prije (dana)',
+ note:'Napomena',save:'Sačuvaj',cancel:'Otkaži',edit:'Uredi',
+ addTitle:'Dodaj rok trajanja',editTitle:'Uredi rok trajanja',
+ search:'Traži proizvod...',empty:'Nema proizvoda.',login:'Prvo se prijavite.',
+ ok:'U redu',today:'Ističe danas',days:'dana',expiredStatus:'Isteklo',
+ saved:'Uspješno sačuvano.',requiredProduct:'Unesite proizvod.',
+ requiredDate:'Unesite rok trajanja.',error:'Greška',expiry:'Rok trajanja',
+ status:'Status',food:'Hrana',drinks:'Piće',medicine:'Lijekovi',hygiene:'Higijena',other:'Ostalo'
+},
+hr:{
+ title:'Rokovi trajanja',products:'Proizvodi',soon:'Uskoro istječe',expired:'Isteklo',
+ add:'＋ Dodaj proizvod',all:'Sve',product:'Proizvod *',category:'Kategorija',
+ quantity:'Količina',unit:'Jedinica',expiryDate:'Rok trajanja *',warning:'Upozori prije (dana)',
+ note:'Napomena',save:'Spremi',cancel:'Odustani',edit:'Uredi',
+ addTitle:'Dodaj rok trajanja',editTitle:'Uredi rok trajanja',
+ search:'Pretraži proizvod...',empty:'Nema proizvoda.',login:'Prvo se prijavite.',
+ ok:'U redu',today:'Istječe danas',days:'dana',expiredStatus:'Isteklo',
+ saved:'Uspješno spremljeno.',requiredProduct:'Unesite proizvod.',
+ requiredDate:'Unesite rok trajanja.',error:'Greška',expiry:'Rok trajanja',
+ status:'Status',food:'Hrana',drinks:'Piće',medicine:'Lijekovi',hygiene:'Higijena',other:'Ostalo'
+},
+sr:{
+ title:'Rokovi trajanja',products:'Proizvodi',soon:'Uskoro ističe',expired:'Isteklo',
+ add:'＋ Dodaj proizvod',all:'Sve',product:'Proizvod *',category:'Kategorija',
+ quantity:'Količina',unit:'Jedinica',expiryDate:'Rok trajanja *',warning:'Upozori pre (dana)',
+ note:'Napomena',save:'Sačuvaj',cancel:'Otkaži',edit:'Izmeni',
+ addTitle:'Dodaj rok trajanja',editTitle:'Izmeni rok trajanja',
+ search:'Pretraži proizvod...',empty:'Nema proizvoda.',login:'Prvo se prijavite.',
+ ok:'U redu',today:'Ističe danas',days:'dana',expiredStatus:'Isteklo',
+ saved:'Uspešno sačuvano.',requiredProduct:'Unesite proizvod.',
+ requiredDate:'Unesite rok trajanja.',error:'Greška',expiry:'Rok trajanja',
+ status:'Status',food:'Hrana',drinks:'Piće',medicine:'Lekovi',hygiene:'Higijena',other:'Ostalo'
+},
+sl:{
+ title:'Roki uporabnosti',products:'Izdelki',soon:'Kmalu poteče',expired:'Poteklo',
+ add:'＋ Dodaj izdelek',all:'Vse',product:'Izdelek *',category:'Kategorija',
+ quantity:'Količina',unit:'Enota',expiryDate:'Rok uporabnosti *',warning:'Opozori prej (dni)',
+ note:'Opomba',save:'Shrani',cancel:'Prekliči',edit:'Uredi',
+ addTitle:'Dodaj rok uporabnosti',editTitle:'Uredi rok uporabnosti',
+ search:'Išči izdelek...',empty:'Ni izdelkov.',login:'Najprej se prijavite.',
+ ok:'V redu',today:'Poteče danes',days:'dni',expiredStatus:'Poteklo',
+ saved:'Uspešno shranjeno.',requiredProduct:'Vnesite izdelek.',
+ requiredDate:'Vnesite rok uporabnosti.',error:'Napaka',expiry:'Rok uporabnosti',
+ status:'Stanje',food:'Hrana',drinks:'Pijače',medicine:'Zdravila',hygiene:'Higiena',other:'Drugo'
+},
+fr:{
+ title:'Dates d’expiration',products:'Produits',soon:'Expire bientôt',expired:'Expirés',
+ add:'＋ Ajouter un produit',all:'Tous',product:'Produit *',category:'Catégorie',
+ quantity:'Quantité',unit:'Unité',expiryDate:'Date d’expiration *',warning:'Avertir avant (jours)',
+ note:'Note',save:'Enregistrer',cancel:'Annuler',edit:'Modifier',
+ addTitle:'Ajouter une date',editTitle:'Modifier la date',
+ search:'Rechercher un produit...',empty:'Aucun produit.',login:'Veuillez vous connecter.',
+ ok:'Valide',today:'Expire aujourd’hui',days:'jours',expiredStatus:'Expiré',
+ saved:'Enregistré avec succès.',requiredProduct:'Saisissez un produit.',
+ requiredDate:'Saisissez la date d’expiration.',error:'Erreur',expiry:'Expiration',
+ status:'Statut',food:'Aliments',drinks:'Boissons',medicine:'Médicaments',hygiene:'Hygiène',other:'Autre'
+},
+nl:{
+ title:'Houdbaarheidsdata',products:'Producten',soon:'Bijna verlopen',expired:'Verlopen',
+ add:'＋ Product toevoegen',all:'Alle',product:'Product *',category:'Categorie',
+ quantity:'Aantal',unit:'Eenheid',expiryDate:'Houdbaarheidsdatum *',warning:'Waarschuw vooraf (dagen)',
+ note:'Notitie',save:'Opslaan',cancel:'Annuleren',edit:'Bewerken',
+ addTitle:'Datum toevoegen',editTitle:'Datum bewerken',
+ search:'Product zoeken...',empty:'Geen producten.',login:'Log eerst in.',
+ ok:'In orde',today:'Verloopt vandaag',days:'dagen',expiredStatus:'Verlopen',
+ saved:'Succesvol opgeslagen.',requiredProduct:'Voer een product in.',
+ requiredDate:'Voer een houdbaarheidsdatum in.',error:'Fout',expiry:'Houdbaarheidsdatum',
+ status:'Status',food:'Voeding',drinks:'Dranken',medicine:'Medicijnen',hygiene:'Hygiëne',other:'Overig'
+}
+};
+
+const supported=Object.keys(translations);
+
+function detectLanguage(){
+ const saved=localStorage.getItem('meinHausLanguage');
+ if(saved && supported.includes(saved)) return saved;
+
+ const langs=navigator.languages || [navigator.language || 'de'];
+ for(const x of langs){
+   const code=String(x).toLowerCase().split('-')[0];
+   if(supported.includes(code)) return code;
+ }
+ return 'de';
+}
+
+let lang=detectLanguage();
+let T=translations[lang];
+let items=[];
+let filter='all';
+
+function applyLanguage(){
+ T=translations[lang]||translations.de;
+ document.documentElement.lang=lang;
+ document.getElementById('langSelect').value=lang;
+
+ document.querySelectorAll('[data-i18n]').forEach(el=>{
+   const k=el.dataset.i18n;
+   if(T[k]) el.textContent=T[k];
+ });
+
+ document.getElementById('search').placeholder=T.search;
+ buildCategories();
+ render();
+}
+
+function changeLanguage(v){
+ lang=supported.includes(v)?v:'de';
+ localStorage.setItem('meinHausLanguage',lang);
+ applyLanguage();
+}
+
+function buildCategories(){
+ const sel=document.getElementById('category');
+ const old=sel.value;
+ sel.innerHTML=`
+   <option value="Ushqime">${T.food}</option>
+   <option value="Pije">${T.drinks}</option>
+   <option value="Ilaçe">${T.medicine}</option>
+   <option value="Higjienë">${T.hygiene}</option>
+   <option value="Të tjera">${T.other}</option>`;
+ if([...sel.options].some(o=>o.value===old)) sel.value=old;
+}
+
+function getToken(){
+ return localStorage.getItem('sessionToken')||
+        localStorage.getItem('token')||'';
+}
+
+async function api(action,data={}){
+ const token=getToken();
+ if(!token) throw Error('LOGIN_REQUIRED');
+
+ const r=await fetch(API,{
+   method:'POST',
+   headers:{'Content-Type':'text/plain;charset=utf-8'},
+   body:JSON.stringify({...data,action,token})
+ });
+
+ const j=await r.json();
+ if(!j.ok) throw Error(j.error||'API_ERROR');
+ return j.data;
+}
+
+function message(t,type='error'){
+ const e=document.getElementById('status');
+ e.className='status '+type;
+ e.textContent=t;
+ e.style.display='block';
+ setTimeout(()=>e.style.display='none',4000);
+}
+
+function days(date){
+ if(!date)return null;
+ const a=new Date(); a.setHours(0,0,0,0);
+ const b=new Date(date+'T00:00:00');
+ return Math.ceil((b-a)/86400000);
+}
+
+function state(x){
+ const d=days(x.expiryDate);
+ if(d===null)return 'good';
+ if(d<0)return 'expired';
+ if(d<=Number(x.warningDays||7))return 'soon';
+ return 'good';
+}
+
+async function loadItems(){
+ if(!getToken()){
+   document.getElementById('list').innerHTML=
+   `<div class="empty"><div class="emptyIcon">🔐</div><b>${T.login}</b></div>`;
+   return;
+ }
+
+ try{
+   const d=await api('expiryList');
+   items=Array.isArray(d)?d:(d?.items||[]);
+   render();
+ }catch(e){
+   message(T.error+': '+e.message);
+ }
+}
+
+function filterSet(f,el){
+ filter=f;
+ document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+ el.classList.add('active');
+ render();
+}
+
+function formatDate(d){
+ if(!d)return '—';
+ try{
+   const locales={
+     de:'de-DE',sq:'sq-AL',en:'en-GB',it:'it-IT',tr:'tr-TR',
+     mk:'mk-MK',bs:'bs-BA',hr:'hr-HR',sr:'sr-RS',sl:'sl-SI',
+     fr:'fr-FR',nl:'nl-NL'
+   };
+   return new Date(d+'T00:00:00').toLocaleDateString(locales[lang]||'de-DE');
+ }catch(e){return d}
+}
+
+function categoryName(v){
+ const map={
+   'Ushqime':T.food,'Pije':T.drinks,'Ilaçe':T.medicine,
+   'Higjienë':T.hygiene,'Të tjera':T.other
+ };
+ return map[v]||v||'';
+}
+
+function render(){
+ if(!T)return;
+
+ let exp=0,soon=0;
+ items.forEach(x=>{
+   const s=state(x);
+   if(s==='expired')exp++;
+   if(s==='soon')soon++;
+ });
+
+ document.getElementById('total').textContent=items.length;
+ document.getElementById('soon').textContent=soon;
+ document.getElementById('expired').textContent=exp;
+
+ const q=document.getElementById('search').value.toLowerCase();
+
+ const arr=items.filter(x=>{
+   const s=state(x);
+   if(filter!=='all' && s!==filter)return false;
+   return String(x.Produkti||x.product||'').toLowerCase().includes(q);
+ });
+
+ if(!arr.length){
+   document.getElementById('list').innerHTML=
+   `<div class="empty"><div class="emptyIcon">📅</div><b>${T.empty}</b></div>`;
+   return;
+ }
+
+ document.getElementById('list').innerHTML=arr.map(x=>{
+   const s=state(x);
+   const d=days(x.expiryDate);
+
+   let label=T.ok,cls='good';
+
+   if(s==='soon'){
+     label=d===0?T.today:`${d} ${T.days}`;
+     cls=d<=2?'urgent':'soon';
+   }
+   if(s==='expired'){
+     label=T.expiredStatus;
+     cls='expired';
+   }
+
+   return `
+   <div class="card">
+    <div class="top">
+     <div>
+      <div class="product">${esc(x.Produkti||x.product||'')}</div>
+      <div class="category">${esc(categoryName(x.Kategoria||x.category))}</div>
+     </div>
+     <span class="badge ${cls}">${esc(label)}</span>
+    </div>
+
+    <div class="infoGrid">
+     <div class="info">
+      <small>${T.expiry}</small>
+      <b>${formatDate(x.expiryDate)}</b>
+     </div>
+     <div class="info">
+      <small>${T.quantity}</small>
+      <b>${esc(x.quantity||1)} ${esc(x.unit||'')}</b>
+     </div>
+     <div class="info">
+      <small>${T.warning}</small>
+      <b>${esc(x.warningDays||7)} ${T.days}</b>
+     </div>
+     <div class="info">
+      <small>${T.status}</small>
+      <b>${esc(label)}</b>
+     </div>
+    </div>
+
+    ${x.note?`<div class="note">📝 ${esc(x.note)}</div>`:''}
+
+    <button class="editBtn"
+      onclick='editItem(${JSON.stringify(x.itemId||"")})'>
+      ✏️ ${T.edit}
+    </button>
+   </div>`;
+ }).join('');
+}
+
+function newItem(){
+ clearForm();
+ document.getElementById('modalTitle').textContent=T.addTitle;
+ document.getElementById('overlay').style.display='flex';
+}
+
+function editItem(id){
+ const x=items.find(a=>String(a.itemId)===String(id));
+ if(!x)return;
+
+ document.getElementById('modalTitle').textContent=T.editTitle;
+ document.getElementById('itemId').value=x.itemId||'';
+ document.getElementById('product').value=x.Produkti||x.product||'';
+ document.getElementById('category').value=x.Kategoria||x.category||'Të tjera';
+ document.getElementById('quantity').value=x.quantity||1;
+ document.getElementById('unit').value=x.unit||'copë';
+ document.getElementById('expiryDate').value=x.expiryDate||'';
+ document.getElementById('warningDays').value=x.warningDays||7;
+ document.getElementById('note').value=x.note||'';
+ document.getElementById('overlay').style.display='flex';
+}
+
+async function saveItem(){
+ const product=document.getElementById('product').value.trim();
+ const expiryDate=document.getElementById('expiryDate').value;
+
+ if(!product){message(T.requiredProduct);return}
+ if(!expiryDate){message(T.requiredDate);return}
+
+ try{
+   await api('expirySave',{
+     itemId:document.getElementById('itemId').value||undefined,
+     productKey:product.toLowerCase().trim(),
+     product,
+     category:document.getElementById('category').value,
+     quantity:Number(document.getElementById('quantity').value||1),
+     unit:document.getElementById('unit').value,
+     expiryDate,
+     warningDays:Number(document.getElementById('warningDays').value||7),
+     note:document.getElementById('note').value.trim()
+   });
+
+   closeModal();
+   message(T.saved,'success');
+   await loadItems();
+
+ }catch(e){
+   message(T.error+': '+e.message);
+ }
+}
+
+function clearForm(){
+ document.getElementById('itemId').value='';
+ document.getElementById('product').value='';
+ document.getElementById('category').value='Ushqime';
+ document.getElementById('quantity').value='1';
+ document.getElementById('unit').value='copë';
+ document.getElementById('expiryDate').value='';
+ document.getElementById('warningDays').value='7';
+ document.getElementById('note').value='';
+}
+
+function closeModal(){
+ document.getElementById('overlay').style.display='none';
+}
+
+function esc(v){
+ return String(v??'')
+ .replace(/&/g,String.fromCharCode(38)+'amp;').replace(/</g,String.fromCharCode(38)+'lt;')
+ .replace(/>/g,String.fromCharCode(38)+'gt;').replace(/"/g,String.fromCharCode(38)+'quot;')
+ .replace(/'/g,String.fromCharCode(38)+'#39;');
+}
+
+document.getElementById('overlay').addEventListener('click',e=>{
+ if(e.target===e.currentTarget)closeModal();
+});
+
+applyLanguage();
+loadItems();
+</script>
+</body>
+</html>
