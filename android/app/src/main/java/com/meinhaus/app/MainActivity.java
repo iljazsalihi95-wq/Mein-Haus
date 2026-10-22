@@ -10,6 +10,8 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebResourceResponse;
+import androidx.webkit.WebViewAssetLoader;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -19,7 +21,7 @@ public class MainActivity extends Activity {
   private WebView web;
   private ProgressBar progress;
   private TextView offline;
-  private static final String APP_URL = "https://mein-haus-shtepia-ime.netlify.app/";
+  private static final String APP_URL = "https://appassets.androidplatform.net/assets/index.html";
 
   @Override public void onCreate(Bundle b){
     super.onCreate(b);
@@ -46,7 +48,12 @@ public class MainActivity extends Activity {
     web.setWebChromeClient(new WebChromeClient(){
       @Override public void onProgressChanged(WebView v,int p){progress.setProgress(p);progress.setVisibility(p>=100?View.GONE:View.VISIBLE);}
     });
+    final WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
+      .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this)).build();
     web.setWebViewClient(new WebViewClient(){
+      @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request){
+        return assetLoader.shouldInterceptRequest(request.getUrl());
+      }
       @Override public void onPageFinished(WebView v,String u){offline.setVisibility(View.GONE);}
       @Override public void onReceivedError(WebView v,WebResourceRequest r,android.webkit.WebResourceError e){
         if(r.isForMainFrame()){offline.setVisibility(View.VISIBLE);Toast.makeText(MainActivity.this,"Verbindung fehlgeschlagen",Toast.LENGTH_SHORT).show();}
